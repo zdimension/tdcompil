@@ -1,11 +1,10 @@
-%{ 
-    int in_str = 0; 
-%}
+%x IN_STR
 
 %%
-\\([abfnrtv\"]|[0-9]{3}|x[0-9a-f]+)|(\\\n) ECHO;
-[a-z] putchar(*yytext-32*in_str);
-\" {in_str = !in_str; ECHO;}
+<IN_STR>\\([abfnrtv\"]|[0-9]{3}|x[0-9a-f]+)|(\\\n) ECHO;
+<IN_STR>[a-z] putchar(*yytext-32);
+<INITIAL>\" {BEGIN IN_STR; ECHO;}
+<IN_STR>\" {BEGIN INITIAL; ECHO;}
 . ECHO;
 %%
 
