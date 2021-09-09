@@ -1,0 +1,24 @@
+// -*- mode: java -*-
+//
+// ok-plusplus.toy      -- Test of pre and post increment/decrement
+//
+//           Author: Erick Gallesio [eg@unice.fr]
+//    Creation date: 16-Nov-2015 14:36 (eg)
+// Last file update: 16-Nov-2015 15:10 (eg)
+//
+
+int main() {
+    int x = 0;
+    int y;
+
+    y = x++; print("(after y = x++) ", "x=", x, " y=", y, "\n");
+    y = ++x; print("(after y = ++x) ", "x=", x, " y=", y, "\n");
+
+    print("-++y  = ", -++y , "\n");
+    print("- --y = ", - --y , "\n");
+    print("-y++  = ", -y++ , "\n");
+    print("-y--  = ", -y-- , "\n");
+
+    print((x == 2 and y == 2) ? "SUCCESS\n": "FAILURE\n");
+    return 0;
+}

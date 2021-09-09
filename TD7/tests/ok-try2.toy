@@ -1,0 +1,71 @@
+// -*- mode: java -*-
+//
+// %ok-try1.toy         -- A first test with try-catch
+//
+//           Author: Erick Gallesio [eg@unice.fr]
+//    Creation date: 18-Dec-2017 18:52
+// Last file update: 19-Dec-2017 10:42 (eg)
+//
+
+int foo() {
+    print("We are in foo\n");
+    throw;
+}
+
+int main () {
+    int x;
+
+
+    // A full try-catch-finally
+    x = 0;
+    try {
+        x++;
+        foo();
+        print("FAILURE\n");
+        x++;
+    }
+    catch
+        x++;
+    finally
+        x++;
+    print(x == 3 ? "SUCCESS\n": "FAILURE\n");
+
+
+    // A try without catch
+    x = 0;
+    try {
+        x++;
+        foo();
+        print("FAILURE\n");
+        x++;
+    }
+    finally
+        x++;
+    print(x == 2 ? "SUCCESS\n": "FAILURE\n");
+
+
+    // A try without finally
+     x = 0;
+    try {
+        x++;
+        foo();
+        print("FAILURE\n");
+        x++;
+    }
+    catch
+        x++;
+    print(x == 2 ? "SUCCESS\n": "FAILURE\n");
+
+
+    // A try alone
+    x = 0;
+    try {
+        x++;
+        foo();
+        print("FAILURE\n");
+        x++;
+    }
+    print(x == 1 ? "SUCCESS\n": "FAILURE\n");
+
+    return 0;
+}

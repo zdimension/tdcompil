@@ -1,0 +1,34 @@
+// -*- mode: java -*-
+//
+// ok-string.toy        -- Comparison of strings
+//
+//           Author: Erick Gallesio [eg@unice.fr]
+//    Creation date: 16-Nov-2015 18:18 (eg)
+// Last file update: 21-Nov-2018 18:52 (eg)
+//
+
+
+int main() {
+    string ch1 = "abcd";
+    string ch2 = "xyz";
+
+    print(ch1, " < ",  ch2, " => ", ch1 <  ch2, "\n");
+    print(ch1, " <= ", ch2, " => ", ch1 <= ch2, "\n");
+    print(ch1, " > ",  ch2, " => ", ch1 >  ch2, "\n");
+    print(ch1, " >= ", ch2, " => ", ch1 >= ch2, "\n");
+    print(ch1, " == ", ch2, " => ", ch1 == ch2, "\n");
+    print(ch1, " != ", ch2, " => ", ch1 != ch2, "\n");
+    print("----------------\n");
+    print(ch1, " < ",  ch1, " => ", ch1 <  ch1, "\n");
+    print(ch1, " <= ", ch1, " => ", ch1 <= ch1, "\n");
+    print(ch1, " > ",  ch1, " => ", ch1 >  ch1, "\n");
+    print(ch1, " >= ", ch1, " => ", ch1 >= ch1, "\n");
+    print(ch1, " == ", ch1, " => ", ch1 == ch1, "\n");
+    print(ch1, " != ", ch1, " => ", ch1 != ch1, "\n");
+
+    print(("abcd" < "z")? "SUCCESS\n": "FAILURE\n");
+    print(("abc" < "abcd")? "SUCESSS\n": "FAILURE\n");
+    return 0;
+}
+
+

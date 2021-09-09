@@ -1,0 +1,28 @@
+// -*- mode: java -*-
+//
+// fail-var-decl.toy    -- Test of variable declarations
+//
+//           Author: Erick Gallesio [eg@unice.fr]
+//    Creation date: 26-Jun-2015 14:59 (eg)
+// Last file update: 12-Jul-2015 07:36 (eg)
+//
+// ERRORS: 4
+
+int foo(int x) {
+  // local variables 
+  int w = -3 * x;
+  bool z = (w < 10) and 8;
+
+  return x * w + 42;
+}
+
+
+// Global variables
+int w, x = (5), y = w * x, z = foo(0);
+
+
+int main() {
+  print("w=", w, "x=", x, " y=", y, " z=", z, "\n");
+  print("End of test\n");
+}
+

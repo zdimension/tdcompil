@@ -1,0 +1,33 @@
+// -*- mode: java -*-
+//
+// ok-concat1.toy        -- String concatenation test
+//
+//           Author: Erick Gallesio [eg@unice.fr]
+//    Creation date:  8-Dec-2016 18:39 (eg)
+// Last file update:  4-Dec-2018 16:01 (eg)
+//
+
+int main() {
+    string s = "Hello, " +  "world.";
+
+    print("s='", s, "'\n");
+    print((s == "Hello, world.")? "SUCCESS\n": "FAILURE\n");
+
+    print("ab" + "cd" + "ef" + "gh\n");
+
+    // beware of NULL!!
+    string s1, s2;
+    print("Concatenate two uninitialized: ->", s1 + s2, "<-\n");
+    
+    // Of course we have a memory leak here. Toy runtime should really use Boehm GC. 
+    s = "";
+    for (int i = 0; i < 50; i++) {
+        s = s + ".";
+    }
+
+    print("s='", s, "'\n");
+    print((s == "..................................................")?
+          "SUCCESS\n": "FAILURE\n");
+
+        return 0;
+}

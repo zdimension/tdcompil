@@ -1,0 +1,32 @@
+// -*- mode: java -*-
+//
+// ok-for.toy   -- Test of the for statement
+//
+//           Author: Erick Gallesio [eg@unice.fr]
+//    Creation date: 18-Nov-2015 12:37 (eg)
+// Last file update: 18-Nov-2015 14:42 (eg)
+//
+
+int main() {
+    int i, k = 42, x = 5;
+
+    print("*** A simple for\n");
+    for (i = 0; i < 5; i++) print("  i = ", i, "\n");
+    if (i != 5) print("FAILURE\n");
+
+    print("*** Another one with a local declaration\n");
+    for (int j = 0; j < 5; j++) print("  j = ", j, "\n");
+
+    print("** One with a local variable already declared\n");
+    for (int k = 0; k < 5; k++) print("  k = ", k, "\n");
+    if (k != 42) print("FAILURE\n");
+
+    print("*** An \"empty\" for\n");
+    for ( ; ; ) {
+        print("  x = ", x , "\n");
+        if (--x == 0) break;
+    }
+    print((x == 0) ? "SUCCESS\n": "FAILURE\n");
+
+    return 0;
+}

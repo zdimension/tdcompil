@@ -1,0 +1,33 @@
+// -*- mode: java -*-
+//
+// ok-plusequal1.toy    -- Test of +=, -=, ...
+//
+//           Author: Erick Gallesio [eg@unice.fr]
+//    Creation date: 13-Dec-2019 10:15
+// Last file update: 13-Dec-2019 11:24 (eg)
+//
+
+int main() {
+  int x, y;
+
+  x = 3; y = 2;
+  print("x = ", x, " y = ", y); print(" | x += 3*4 => ", x+=3*4);
+  print(((x == 15) and (y == 2))? " SUCCESS\n": " FAILURE\n");
+
+  x = 3; y = 2;
+  print("x = ", x, " y = ", y); print(" | x += y *= x*x => ", x += y *= x*x);
+  print(((x == 21) and (y == 18))? " SUCCESS\n": " FAILURE\n");
+
+  x = 3; y = 2;
+  print("x = ", x, " y = ", y); print(" | x *= y += x*x => ", x *= y += x*x);
+  print(((x == 33) and (y == 11))? " SUCCESS\n": " FAILURE\n");
+
+  x = 3; y = 2;
+  print("x = ", x, " y = ", y); print(" | x *= y *= x*x => ", x *= y *= x*x);
+  print(((x == 54) and (y == 18))? " SUCCESS\n": " FAILURE\n");
+
+  print("Finally x = ", x, " y = ", y, "\n");
+
+
+  return 0;
+}

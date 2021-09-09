@@ -1,0 +1,37 @@
+// -*- mode: C++ -*-
+//
+// fail-func-decl.toy   -- function declarations
+//
+//           Author: Erick Gallesio [eg@unice.fr]
+//    Creation date: 12-Jul-2015 20:24 (eg)
+// Last file update: 13-Jul-2015 10:50 (eg)
+//
+// ERRORS: 10
+
+
+int func1(int x, int x);
+
+
+int foo(int x, bool b, void x) { // x redefined and void
+  return "false";                // return value is not compatible
+}
+
+
+void bar(int a) {
+  if (a < 0)
+    return 10;                  // function is void
+  if (a > 10)
+    return;
+
+  print("in bar");
+}
+
+int main() {
+  int x;
+
+  bar(10);
+  x = bar(20);                  // setting result of a void function
+  bar();
+  bar("jjsj");                  // incompatible parameter type
+  bar(100, 200);                // too much parameters
+}

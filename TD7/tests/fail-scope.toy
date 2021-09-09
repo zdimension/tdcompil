@@ -1,0 +1,38 @@
+// -*- mode: java -*-
+//
+// ok-scope.toy         -- // Testing scope on simple code
+//
+//           Author: Erick Gallesio [eg@unice.fr]
+//    Creation date: 29-Jun-2015 16:51 (eg)
+// Last file update:  1-Jul-2015 11:43 (eg)
+//
+// ERRORS: 5
+
+int x = 1;
+
+int foo(int y) {
+  int z, z;
+
+  z= 2*y;
+  print("in foo (1): x = ", x, " y = ", y, " z = ", z, "\n");
+  {
+    // Redefine x & y in an inner block;
+    int x = 10, y = 20;
+    int x;
+    print("inner block: x = ", x, " y = ", y, " z = ", z, "\n");
+    {
+      // Redefine z in a block
+      int z = 30;
+      print("more inner block: x = ", x, " y = ", y, " z = ", z, "\n");
+    }
+    int y = 17;
+  }
+  print("in foo (2): x = ", x, " y = ", y, " z = ", z, "\n");
+}
+
+int x = 1000;
+
+int main() {
+  foo(2, 3);
+  return 0;
+}

@@ -1,0 +1,34 @@
+// -*- mode: java -*-
+//
+// ok-try4.toy  -- Another try-catch test
+//
+//           Author: Erick Gallesio [eg@unice.fr]
+//    Creation date:  4-Dec-2018 19:44
+// Last file update:  4-Dec-2018 20:25 (eg)
+//
+
+int x = 0;
+
+void foo(int n) {
+    x++;
+    if (n > 0) {
+        throw;
+        print("FAILURE\n");
+    }
+}
+
+int main() {
+    if (true)
+        try foo(1); catch foo(0); finally foo(0);
+    else
+        print("FAILURE\n");
+    print(x == 3 ? "SUCCESS\n" : "FAILURE\n");
+
+    if (true)
+        try foo(0); catch foo(0); finally foo(0);
+    else
+        print("FAILURE\n");
+    print(x == 5 ? "SUCCESS\n" : "FAILURE\n");
+    
+    return 0;
+}
