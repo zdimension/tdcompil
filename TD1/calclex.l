@@ -1,5 +1,5 @@
 %{
-    #include "calc.h"
+    #include "calc.c"
 %}
 
 %%
