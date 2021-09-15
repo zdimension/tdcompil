@@ -3,7 +3,8 @@
 %}
 
 %%
-[ ]*#(.*)$ { }
+" " {}
+\#(.*)$ { }
 ^\!(.*)$ {system(yytext+1);return(EOL);}
 quit {yyterminate();}
 0x[0-9A-Fa-f]+ {sscanf(yytext+2, "%x", &yylval.val);return(NUMBER);}
