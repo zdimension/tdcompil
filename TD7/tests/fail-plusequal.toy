@@ -1,0 +1,21 @@
+// -*- mode: java -*-
+//
+// fail-plusequal.toy   -- Test +=, -=, ...  failures
+//
+//           Author: Erick Gallesio [eg@unice.fr]
+//    Creation date: 13-Dec-2019 11:59
+// Last file update: 13-Dec-2019 22:27 (eg)
+//
+// ERRORS: 3
+
+int main() {
+  string x = "Hello";
+  int y;
+  float z;
+
+  x -= ", world";       // No '-=' on strings
+  y += z;
+  z /= y;
+  z += x;               // += on  incompatible type or/and += not defined on strings
+  return 0;
+}

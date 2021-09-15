@@ -1,0 +1,59 @@
+// -*- mode: java -*-
+//
+// fail-dble-decl.toy   -- Doucle declaration of a variable or a function
+//
+//           Author: Erick Gallesio [eg@unice.fr]
+//    Creation date: 24-Jun-2015 20:47 (eg)
+// Last file update:  1-Jul-2015 11:43 (eg)
+//
+// ERRORS: 5
+
+int x;
+
+
+int foo() {
+  return 10;
+}
+
+
+int foo() {                             // double declaration of foo
+  return 11;
+}
+
+
+void foo() {                            // tripe declaration of foo
+  print("Once again\n");
+}
+
+
+int bar(int n, int m) {
+  int m;                                // redeclaration of m
+
+  {
+    int m;                              // This one is not re-declared
+
+    m = n + n;
+  }
+  return n + m;
+}
+
+int gee(int n, int m) {
+  {
+    int m;                              // This one is not re-declared
+
+    m = n + n;
+    return n + m;
+  }
+}
+
+
+int x;                                  // re-declaration of x
+
+
+int main() {
+  int z, z;                             // Double declaration of z
+  int x;
+
+  x = x + 2 * z;
+  print(x);
+}

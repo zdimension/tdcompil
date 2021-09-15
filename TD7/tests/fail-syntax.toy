@@ -1,0 +1,19 @@
+// -*- mode: java -*-
+//
+// fail-syntax.toy      -- Testing syntax errors recovery
+//
+//           Author: Erick Gallesio [eg@unice.fr]
+//    Creation date: 13-Nov-2015 07:51 (eg)
+// Last file update: 13-Nov-2015 10:38 (eg)
+//
+// ERRORS: 4
+
+int main () {
+
+    int x = 12;
+    int y , z
+    int w = 1200;
+
+    if (x < y)) print(x);
+    print(x, y, w);
+}

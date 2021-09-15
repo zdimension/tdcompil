@@ -1,0 +1,26 @@
+// -*- mode: java -*-
+//
+// ok-switch3.toy       -- Test of "special" switches
+//
+//           Author: Erick Gallesio [eg@unice.fr]
+//    Creation date:  8-Dec-2016 12:21 (eg)
+// Last file update:  8-Dec-2016 12:23 (eg)
+//
+
+int main() {
+    int i = 0;
+
+    // An empty switch
+    switch {
+    }
+
+    // An obscure switch
+    switch {
+        default: i = 100;
+    }
+
+    print((i == 100) ? "SUCCESS\n": "FAILURE");
+    return 0;
+}
+        
+

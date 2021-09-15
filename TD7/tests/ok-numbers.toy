@@ -1,0 +1,18 @@
+// -*- mode: java -*-
+//
+// ok-numbers.toy       -- Some tests with numbers in different bases
+//
+//           Author: Erick Gallesio [eg@unice.fr]
+//    Creation date: 24-Jun-2015 20:25 (eg)
+// Last file update: 13-Nov-2015 20:12 (eg)
+
+int main() {
+  print("Test with numbers\n");
+  print("Ox12 = ", 0x12, "\n");
+  print("012  = ", 012,  "\n");
+  print("12   = ", 12,   "\n");
+  print("+12  = ", +12,  "\n");
+  print("-12  = ", -12,  "\n");
+  print("End of test: ", (0x12 == 022) ? "SUCCESS\n": "FAILURE\n");
+  return 0;
+}

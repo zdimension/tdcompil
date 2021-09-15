@@ -1,0 +1,17 @@
+// -*- mode: java -*-
+//
+// ok-system.toy        -- Using the extern C system function
+//
+//           Author: Erick Gallesio [eg@unice.fr]
+//    Creation date: 24-Jun-2015 20:28 (eg)
+// Last file update: 15-Jul-2015 21:14 (eg)
+
+// Declaring the system function
+int system(string command);
+
+int main() {
+  print("**** Running the ls command\n");
+  system("ls -l");
+  print("**** We're back: SUCCESS\n");
+  return 0;
+}

@@ -1,0 +1,74 @@
+// -*- mode: java -*-
+//
+// ok-try5.toy  -- Another try-catch sample ...
+//
+//           Author: Erick Gallesio [eg@unice.fr]
+//    Creation date:  5-Dec-2018 14:55
+// Last file update:  5-Dec-2018 16:42 (eg)
+//
+
+void  foo() {
+    int x = 0;
+
+    // Should print:
+    // external, internal, internal catch, internal finally, external finally
+    try {
+        print("external\n"); x++;
+        try {
+            print("internal\n"); x++;
+            throw;
+            print("not printed internal"); x++;
+        }
+        catch {
+            print("internal catch\n"); x++;
+        }
+        finally {
+            print("internal finally\n"); x++;
+        }
+    }
+    catch {
+        print("external catch\n"); x++;
+    }
+    finally {
+        print("external finally\n"); x++;
+    }
+    print((x == 5)? "SUCCESS\n": "FAILURE\n");
+}
+
+void  bar() {
+    int x = 0;
+
+    // Should print:
+    // external, internal, internal catch, internal finally,
+    // EXTERNAL CATCH, external finally
+    try {
+        print("external\n"); x++;
+        try {
+            print("internal\n"); x++;
+            throw;
+            print("not printed internal"); x++;
+        }
+        catch {
+            print("internal catch\n"); x++;
+        }
+        finally {
+            print("internal finally\n"); x++;
+            throw; 
+            print("not printed internal finally\n"); x++;
+
+        }
+    }
+    catch {
+        print("external catch\n"); x++;
+    }
+    finally {
+        print("external finally\n"); x++;
+    }
+    print((x == 6)? "SUCCESS\n": "FAILURE\n");
+}
+
+int main() {
+    foo();
+    bar();
+    return 0;
+}

@@ -1,0 +1,32 @@
+// -*- mode: C++ -*-
+//
+// ok-fact.toy  -- Factorial and Fibonnaci
+//
+//           Author: Erick Gallesio [eg@unice.fr]
+//    Creation date:  3-Jul-2015 14:33 (eg)
+// Last file update: 13-Nov-2015 20:00 (eg)
+//
+
+int fact(int n) {
+  return (n < 2) ?  1: n * fact(n-1);
+}
+
+int fib(int n) {
+  if (n < 2)
+    return n;
+  else
+    return fib(n-1) + fib(n-2);
+}
+
+int concise_fib(int n) {
+  return (n < 2)? n:  concise_fib(n-1) + concise_fib(n-2);
+}
+
+int main() {
+  print("10! = ", fact(10), "\n");
+  print("fib(10) = ", fib(10), "\n");
+  print("cfib(10) = ", concise_fib(10), "\n");
+
+  print((concise_fib(12) == 144) ? "SUCCESS\n": "FAILURE\n");
+  return 0;
+}

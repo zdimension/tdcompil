@@ -1,0 +1,30 @@
+// -*- mode: java -*-
+//
+// ok_switch2.toy       -- Simple switch with default clause
+//
+//           Author: Erick Gallesio [eg@unice.fr]
+//    Creation date:  8-Dec-2016 12:03 (eg)
+// Last file update:  8-Dec-2016 12:23 (eg)
+//
+
+int main() {
+    int i = 0;
+    int b = 0;
+
+    while (i < 10) {
+        switch {
+            case i < 4:
+                print("small\n");
+            case i == 4:
+                { print("FOUR\n"); b++; }
+            case i == 5:
+                { print("FIVE\n"); b++; }
+            default:
+                print("big\n");
+        }
+        i++;
+    }
+
+    print((b == 2) ? "SUCCESS\n": "FAILURE\n");
+    return 0;
+}

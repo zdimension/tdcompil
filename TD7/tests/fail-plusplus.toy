@@ -1,0 +1,23 @@
+// -*- mode: java -*-
+//
+// fail-plusplus.toy    -- Test of pre and post increment/decrement
+//
+//           Author: Erick Gallesio [eg@unice.fr]
+//    Creation date: 16-Nov-2015 14:36 (eg)
+// Last file update: 23-Nov-2018 12:24 (eg)
+//
+//ERRORS: 2
+
+int main() {
+    int x = 0;
+    int y;
+
+    print(x++, ++x, y++, ++y);
+    x++;
+    ++x;
+    ++x = 10;
+    x = ++x;
+    ++x++;
+
+    return 0;
+}

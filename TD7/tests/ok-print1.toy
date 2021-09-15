@@ -1,0 +1,20 @@
+// -*- mode: java -*-
+//
+// ok-print1.toy        -- Test of the print statement
+//
+//           Author: Erick Gallesio [eg@unice.fr]
+//    Creation date: 25-Jun-2015 10:57 (eg)
+// Last file update: 14-Nov-2015 17:49 (eg)
+//
+
+
+int main() {
+  print("A string: ", "abc", "\n");
+  print("An int: ", 3, "\n");
+  print("An expression: ", 3 * (2 + 4), "\n");
+  print("A boolean False: ", false, " True: ", true, "\n");
+  print("A boolean expression: ", (3 < 4) and (4 < 5), "\n");
+  print("End of test: SUCCESS\n");
+}
+  
+

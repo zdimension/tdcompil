@@ -1,0 +1,19 @@
+// -*- mode: java -*-
+//
+// ok-plusequal1.toy    -- Test of +=, -=, ...
+//
+//           Author: Erick Gallesio [eg@unice.fr]
+//    Creation date: 13-Dec-2019 10:15
+// Last file update: 13-Dec-2019 10:20 (eg)
+//
+
+int main() {
+  int x = 0;
+
+  x += 1; print("x = ", x, "\n");   // 1
+  x -=10; print("x = ", x, "\n");   // -9
+  x *=10; print("x = ", x, "\n");   // -90
+  x /=-9; print("x = ", x, "\n");   // 10
+  print((x == 10)? "SUCCESS\n": "FAILURE\n");
+  return 0;
+}

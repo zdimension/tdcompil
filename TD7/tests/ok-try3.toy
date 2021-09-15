@@ -1,0 +1,57 @@
+// -*- mode: java -*-
+//
+// %ok-try1.toy         -- Embedded try-catchs
+//
+//           Author: Erick Gallesio [eg@unice.fr]
+//    Creation date: 18-Dec-2017 18:52
+// Last file update: 18-Dec-2017 21:16 (eg)
+//
+
+int x;
+
+int bar() {
+    print("We are in bar\n");
+    throw;
+}
+
+int foo() {
+    try {
+        print("We are in foo\n");
+        x++;
+        bar();
+        print("FAILURE\n");
+        x++;
+    }
+    catch {
+        print("Catch of foo\n");
+        x++;
+    }
+    finally {
+        print("Finally of foo\n");
+        x++;
+        throw;
+        print("foo: FAILURE\n");
+    }
+}
+
+int main () {
+    x = 0;
+    try {
+        x++;
+        foo();
+        print("FAILURE\n");
+        x++;
+    }
+    catch {
+        print("catch of main\n");
+        x++;
+    }
+    finally {
+        print("Finally of main\n");
+        x++;
+    }
+
+    print(x == 6 ? "SUCCESS\n": "FAILURE\n");
+
+    return 0;
+}

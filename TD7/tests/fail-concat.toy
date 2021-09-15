@@ -1,0 +1,19 @@
+// -*- mode: java -*-
+//
+// fail-concat.toy      -- Failing on string concatenations
+//
+//           Author: Erick Gallesio [eg@unice.fr]
+//    Creation date:  8-Dec-2016 20:44 (eg)
+// Last file update:  8-Dec-2016 20:47 (eg)
+//
+// ERRORS: 5
+
+int main() {
+    int i = "ab" + "cd";
+
+    print("1" + "2");
+    print(1 + 2);
+    print(1 + "2");
+    print("1" - "2");
+    return "ab" + "cd";
+}

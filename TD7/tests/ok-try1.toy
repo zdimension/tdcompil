@@ -1,0 +1,27 @@
+// -*- mode: java -*-
+//
+// %ok-try1.toy         -- A first test with try-catch
+//
+//           Author: Erick Gallesio [eg@unice.fr]
+//    Creation date: 18-Dec-2017 18:52
+// Last file update:  4-Dec-2018 19:31 (eg)
+//
+
+int foo() {
+    print("We are in foo\n");
+    throw;
+}
+
+int main () {
+    try {
+        print("We'll see this message\n");
+        foo();
+        print("   but not this one: FAILURE\n");
+    } catch {
+        print("This message will be displayed if we have an exception\n");
+    } finally {
+        print("This message will be always printed\n");
+        print("SUCCESS\n");
+    }
+    return 0;
+}

@@ -1,0 +1,31 @@
+// -*- mode: java -*-
+//
+// fail-switch.toy      -- Failing on switches
+//
+//           Author: Erick Gallesio [eg@unice.fr]
+//    Creation date:  8-Dec-2016 12:28 (eg)
+// Last file update:  8-Dec-2016 12:40 (eg)
+//
+// ERRORS: 4
+
+int main() {
+    int i = 1;
+    // A switch with  conditions which are not Boolean
+    switch {
+        case i:                 i++;
+        case i < 10:            i++;
+        case "abc":             i++;
+        case "abc" < "abcdef":  i++;
+    }
+
+    foo(i);
+        
+    // A switch with a default clause which is not at the end
+    switch {
+        case i < 10:            i++;
+        default:                i++;
+        case "abc" < "abcdef":  i++;
+    }
+
+}
+

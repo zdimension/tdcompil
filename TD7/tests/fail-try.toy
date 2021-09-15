@@ -1,0 +1,30 @@
+// -*- mode: java -*-
+//
+// fail-try.toy         -- Try-catch failure
+//
+//           Author: Erick Gallesio [eg@unice.fr]
+//    Creation date: 19-Dec-2017 11:07
+// Last file update: 19-Dec-2017 11:15 (eg)
+//
+//ERRORS: 2
+
+int main() {
+    int x = 1; 
+
+    //This is OK
+    try;
+    catch;
+    finally;
+
+    try {
+        int z = 2 *x;
+        throw;
+    } catch {
+        print(z, "\n");
+    } finally {
+        x = false;
+    }
+
+    return 0;
+}
+
