@@ -13,3 +13,5 @@ Makefile.depend
 *.o
 *.out
 *.output
+
+cmake-build-debug

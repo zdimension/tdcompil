@@ -1,0 +1,111 @@
+1.1
+
+S -> AB
+A -> aAb
+B -> bBc
+
+1.2
+
+call -> ident ( liste | ε )
+liste -> expr liste2
+liste2 -> , expr liste2 | ε
+
+<ident> ::= [a-z]+
+<expr> ::= <ident>
+
+<call> ::= <ident> "(" <liste> ")" | <ident> "(" ")"
+<liste> ::= <liste> "," <expr> | <expr>
+
+<call> ::= <ident> "(" [<liste>] ")"
+<liste> ::= <expr> <liste2>
+<liste2> ::= ["," <expr> <liste2>]
+
+1.3
+
+abab -> "a" ("b" ε "a" ε) "b" ε
+	 -> "a" ε "b" ("a" ε "b" ε)
+
+1.4
+
+atome = symbole
+      | nombre
+      | chaine
+
+expr = atome
+	 | parent
+
+parent = "(" liste-opt ")"
+
+liste-opt = expr suite-liste
+suite-liste = " " expr | ε
+
+1.5
+
+declaration-stmt = symbole liste-decl ";"
+
+liste-decl = liste-decl "," declaration
+
+declaration = ptr-opt symbole liste-tab-opt
+
+ptr-opt = "*"
+        | ε
+        
+liste-tab-opt = liste-tab
+              | ε
+              
+liste-tab = liste-tab tab 
+          | tab
+
+tab = "[" nombre "]"
+
+<integer> ::= [0-9]+
+<tab> ::= "[" <integer> "]"
+<declaration> ::= "*"? <ident> <tab>*
+<declaration_stmt> ::= <ident> ("," <ident>)* ";"
+
+2.1
+
+P(S) = P(A) U P(B) U P(C) \ { ε } = 	{ a, b, c, d }
+P(A) = 									{ a, ε }
+P(B) = 									{ b, c, ε }
+P(C) = 									{ d }
+
+S(S) = 						{ $ }
+S(A) = P(B) U P(C) U S(C) =	{ b, c, d, e }
+S(B) = P(C) =				{ d }
+S(C) =						{ e }
+
+	a		b		c		d		e
+S	S→ABCe	S→ABCe	S→ABCe	S→ABCe
+-------------------------------------------------
+A	A→aA	A→ε		A→ε		A→ε		A→ε
+-------------------------------------------------
+B			B→bB	B→cB	B→ε
+-------------------------------------------------
+C							C→de
+							C→da
+							C→dA
+-------------------------------------------------
+
+La grammaire est LL(2) car si un C est suivi d'un d on ne peut conclure.
+
+2.2
+
+P(Bloc) = { '{' }
+P(L_decl) = P(d)
+P(L_instr) = P(i) U P(Bloc) U { ';' } = P(i) U { '{', ';' }
+S(Bloc) = P(L_instr) = P(i) U { '{', ';' }
+S(L_decl) = ?
+S(L_instr) = { '}' }
+
+		{		;		}
+Bloc			
+L_decl	
+L_instr
+
+
+Bloc    = '{' L_decl L_instr '}'
+L_decl  = ';' L_decl | ε
+Instr   = i | Bloc
+L_instr = Instr ";" L_instr | Instr
+
