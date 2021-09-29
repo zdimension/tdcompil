@@ -111,9 +111,25 @@ L_instr = Instr ";" L_instr | Instr
 
 3.
 
+P(E)  = { INT, ( }
+P(E') = { +, -, ε }
+P(T)  = { INT, ( }
+P(T') = { *, /, ε }
+P(F)  = { INT, ( }
+S(E)  = { ), $ }
+S(E') = { ), $ }
+S(T)  = { +, - }
+S(T') = { +, -, ), $ }
+S(F)  = { *, /, +, - }
+
+E  → TE'
+E' → +TE' | -TE' | ε
+T  → FT'
+T' → *FT' | /FT' | ε
+F  → INT | (E)
 
 	INT		(		)		$		+		-		*		/
-E	E→TE'	E→TE'			E'→ε	
+E	E→TE'	E→TE'				
 E'					E'→ε	E'→ε	E'→+TE'	E'→TE'
 T	T→FT'	T→FT'
 T'					T'→ε	T'→ε	T'→ε	T'→ε	T'→*FT'	T'→/FT'
