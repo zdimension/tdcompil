@@ -41,9 +41,6 @@ bool E()
         case INT:
         case OPEN:
             return T() && Ep();
-        case EOL:
-            printf("PRINT\n");
-            return true; // empty line
         default:
             EXPECTED("Expected INT or OPEN, got %s\n");
     }
@@ -100,7 +97,6 @@ bool Tp()
     switch (next)
     {
         case EOL:
-            printf("PRINT\n");
             return true;
         case PLUS:
         case MINUS:
