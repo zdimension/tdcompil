@@ -2,15 +2,7 @@
 #include <stdio.h>
 #include "calculatrice.h"
 
-bool E();
-
-bool Ep();
-
-bool T();
-
-bool Tp();
-
-bool F();
+bool E(), Ep(), T(), Tp(), F();
 
 int yylval;
 
@@ -20,7 +12,7 @@ token next;
 
 extern token yylex();
 
-#define EXPECTED(message) return (fprintf(stderr, message, TOKEN_NAMES[next - LAST_ASCII - 1]), false)
+#define EXPECTED(message) (fprintf(stderr, "While parsing %s, expected " message ", got %s: %s\n", __func__, TOKEN_NAMES[next - LAST_ASCII - 1], next == EOL ? "\\n" : yytext), false)
 
 
 bool verify(token tok)
@@ -34,6 +26,11 @@ bool verify(token tok)
 	return true;
 }
 
+bool S()
+{
+	return E() && (next == EOL || EXPECTED("EOL"));
+}
+
 bool E()
 {
 	switch (next)
@@ -42,7 +39,7 @@ bool E()
 		case OPEN:
 			return T() && Ep();
 		default:
-			EXPECTED("Expected INT or OPEN, got %s\n");
+			return EXPECTED("INT or OPEN");
 	}
 }
 
@@ -76,7 +73,7 @@ bool Ep()
 		case CLOSE:
 			return true;
 		default:
-			EXPECTED("Expected PLUS, MINUS, CLOSE or EOL, got %s\n");
+			return EXPECTED("PLUS, MINUS, CLOSE or EOL");
 	}
 }
 
@@ -88,7 +85,7 @@ bool T()
 		case OPEN:
 			return F() && Tp();
 		default:
-			EXPECTED("Expected INT or OPEN, got %s\n");
+			return EXPECTED("INT or OPEN");
 	}
 }
 
@@ -117,7 +114,7 @@ bool Tp()
 			}
 			return false;
 		default:
-			EXPECTED("Expected PLUS, MINUS, CLOSE, EOL, MULT or DIV, got %s\n");
+			return EXPECTED("PLUS, MINUS, CLOSE, EOL, MULT or DIV");
 	}
 }
 
@@ -131,8 +128,14 @@ bool F()
 		case OPEN:
 			return verify(OPEN) && E() && verify(CLOSE);
 		default:
-			EXPECTED("Expected INT or OPEN, got %s\n");
+			return EXPECTED("INT or OPEN");
 	}
+}
+
+void clear()
+{
+	if (next != EOL)
+		while (yylex() != EOL);
 }
 
 int main()
@@ -143,11 +146,6 @@ int main()
 		next = yylex();
 		if (next == EOL)
 			continue;
-		printf("Résultat analyse : %s\n", E() ? "SUCCÈS" : "ÉCHEC");
-		
-		if (next != EOL)
-		{
-			while (yylex() != EOL);
-		}
+		printf("Résultat analyse : %s\n", S() ? "SUCCÈS" : (clear(), "ÉCHEC"));
 	}
 }
