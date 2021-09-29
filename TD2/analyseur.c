@@ -1,5 +1,6 @@
 #include <stdbool.h>
 #include <stdio.h>
+#include <unistd.h>
 #include "calculatrice.h"
 
 bool E(), Ep(), T(), Tp(), F();
@@ -140,12 +141,18 @@ void clear()
 
 int main()
 {
-	while (true)
+	bool interact = isatty(fileno(stdin));
+	bool success = true;
+	while (!feof(stdin) && success)
 	{
-		printf("> ");
+		if (interact)
+			printf("> ");
 		next = yylex();
 		if (next == EOL)
 			continue;
-		printf("Résultat analyse : %s\n", S() ? "SUCCÈS" : (clear(), "ÉCHEC"));
+		success = S();
+		if (interact)
+			printf("Résultat analyse : %s\n", success ? "SUCCÈS" : (clear(), "ÉCHEC"));
 	}
+	return success ? EXIT_SUCCESS : EXIT_FAILURE;
 }
