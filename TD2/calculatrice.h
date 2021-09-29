@@ -10,7 +10,8 @@
     F(OPEN) \
     F(CLOSE) \
     F(EQUAL) \
-    F(EOL)
+    F(EOL) \
+    F(INVALID)
 
 #define ENUM_ITEM(X) X,
 enum

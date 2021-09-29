@@ -20,6 +20,7 @@ quit {exit(0);}
 \) return(CLOSE);
 = return(EQUAL);
 \n return(EOL);
+. {fprintf(stderr, "Invalid token: %s\n", yytext); return(INVALID);}
 %%
 
 int yywrap() { return 1; }
