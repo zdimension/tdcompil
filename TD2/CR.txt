@@ -91,17 +91,17 @@ La grammaire est LL(2) car si un C est suivi d'un d on ne peut conclure.
 
 2.2
 
-P(Bloc) = { '{' }
-P(L_decl) = P(d)
-P(L_instr) = P(i) U P(Bloc) U { ';' } = P(i) U { '{', ';' }
-S(Bloc) = P(L_instr) = P(i) U { '{', ';' }
-S(L_decl) = ?
-S(L_instr) = { '}' }
+P(Bloc) = [ { ]
+P(L_decl) =  [ d, ε ]
+P(L_instr) = [ i ] U P(Bloc) U [ ; ] = [ i, {, ;, ε ]
+S(Bloc) = P(L_instr) U S(L_instr) = [ i, {, ;, $, } ]
+S(L_decl) = P(L_instr) U S(L_instr) = [ i, {, ;, } ]
+S(L_instr) = [ } ]
 
-		{		;		}
-Bloc			
-L_decl	
-L_instr
+		{	}	d	i	;	$
+Bloc	r1	
+L_decl	r3	r3	r2	r3	r3
+L_instr	r5	r7		r4	r6
 
 
 Bloc    = '{' L_decl L_instr '}'
@@ -109,3 +109,12 @@ L_decl  = ';' L_decl | ε
 Instr   = i | Bloc
 L_instr = Instr ";" L_instr | Instr
 
+3.
+
+
+	INT		(		)		$		+		-		*		/
+E	E→TE'	E→TE'			E'→ε	
+E'					E'→ε	E'→ε	E'→+TE'	E'→TE'
+T	T→FT'	T→FT'
+T'					T'→ε	T'→ε	T'→ε	T'→ε	T'→*FT'	T'→/FT'
+F	F→INT	F→(E)
