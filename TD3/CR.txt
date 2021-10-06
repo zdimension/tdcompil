@@ -1,0 +1,160 @@
+1.
+
+G1 :
+
+S' → S$		r0
+S  → aS		r1
+S  → x		r2
+
+I0: S' → .S$	I1
+	S  → .aS	I2
+	S  → .x		I3
+
+I1:	S' → S.$	accept
+
+I2: S  → a.S	I4		
+	S  → .aS	I2
+	S  → .x		I3
+
+I3: S  → x.		reduce r2
+
+I4: S  → aS.	reduce r1
+
+	a	x	$	S
+0	s2	s3		1
+1			acc
+2	s2	s3		4
+3	r2	r2	r2
+4	r1	r1	r1
+
+pile		input
+$0			aax$		I2
+$0a2		ax$			I2
+$0a2a2		x$			I3
+$0a2a2x3	$
+$0a2a2S4	$
+$0a2S4		$
+$0S1		$
+$0S1		$	accept
+
+G2 :
+
+S' → S$		r0
+S  → aS		r1
+S  → ε		r2
+
+P(S') = P(S)
+P(S) = a | ε
+S(S) = $
+
+	a		ε		$
+S'	S'→S$	S'→S$		
+S	S→aS	S→ε
+
+I0: S' → .S$	I1
+	S  → .aS	I2
+	S  → .		r2
+
+I1: S' → S.$ 	accept
+
+I2: S  → a.S	I4
+	S  → .aS	I2
+	
+2.
+
+S' → S$		r0
+S  → atom	r1
+S  → ( M )	r2
+M  → M S	r3
+M  → ε		r4
+
+I0: S' → .S$		I1
+	S  → .atom		I2
+	S  → .( M )		I3
+	
+I1: S' → S.$		accept
+
+I2: S  → atom.		r1
+
+I3: S  → (. M )		I4
+	M  → .M S		I4
+	M  → .			r4
+
+I4: M  → ( M. )		I5
+	M  → M. S		I6
+	S  → .atom		I2
+	S  → .( M )		I3
+	
+I5: S  → ( M ).		r2
+
+I6: M  → M S.		r3
+
+	atom	(	)	$	S	M
+0	s2		s3			1
+1					acc
+2	r1		r1	r1	r1
+3	r4		r4	r4	r4		4
+4	r2		r3	r5		6
+5	r2		r2	r2	r2
+6	r3		r3	r3	r3
+
+3.
+
+0  S' → S$
+1  S  → S ; A
+2  S  → A
+3  A  → E
+4  A  → id := E
+5  E  → E + id
+6  E  → id
+
+I0: S' → .S$		I1
+	S  → .S ; A		I1
+	S  → .A			I2
+	A  → .E			I3
+	A  → .id := E	I4
+	E  → .E + id	I3
+	E  → .id		I4
+	
+I1: S' → S.$		accept
+	S  → S. ; A		I5
+
+I2: S  → A.			r2
+
+I3: A  → E.			r3	
+	E  → E. + id	I6
+
+I4: A  → id. := E	I7
+	E  → id.		r6
+	
+I5: S  → S ;. A		I8	
+	A  → .E			I3
+	A  → .id := E	I4
+	E  → .E + id	I3
+	E  → .id		I4
+
+I6: E  → E +. id	I9
+
+I7: A  → id :=. E	I10
+	E  → .E + id	I10
+	E  → .id		I4
+
+I8: S  → S ; A.		r1
+
+I9:	E  → E + id.	r5
+
+I10:A  → id := E.	r4
+	E  → E. + id	I6
+	
+	id	;	+	:=	$	S	A	E
+0	I4					1	2	3
+1		I5			acc
+2	r2	r2	r2	r2	r2
+3	r3	r3	I6	r3	r3
+4	r6	r6	r6	I7	r6
+5	I4						8	3
+6	I9
+7	I4							10
+8	r1	r1	r1	r1	r1
+9	r5	r5	r5	r5	r5
+10	r4	r4	I6	r4	r4
