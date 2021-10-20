@@ -1,0 +1,25 @@
+# This line is for emacs                         -*- mode: conf-space -*-
+
+# Tests for extension #1: String concatenations
+#fail-concat.toy
+#ok-concat.toy
+
+# Tests for extension #2:  +=, -= ...
+#fail-plusplus.toy
+#ok-plusequal1.toy
+#ok-plusequal2.toy
+#ok-plusequal3.toy
+
+# Tests for extension #2: switch à la Go
+#fail-switch.toy
+#ok-switch1.toy
+#ok-switch2.toy
+#ok-switch3.toy
+
+# Tests for extension #3: try-catch
+#fail-try.toy
+#ok-try1.toy
+#ok-try2.toy
+#ok-try3.toy
+#ok-try4.toy
+#ok-try5.toy
