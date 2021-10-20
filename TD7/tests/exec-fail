@@ -1,0 +1,35 @@
+#!/bin/sh
+#
+# Testing that a compilation should fail
+#
+#           Author: Erick Gallesio [eg@unice.fr]
+#    Creation date: 24-Jun-2015 21:08 (eg)
+# Last file update:  3-Jul-2015 12:26 (eg)
+#
+
+PROG=$1
+
+../src/toy $PROG.toy > $PROG.out 2>&1
+retcode=$?
+
+if [ "$retcode" = 0 ] ;then
+    echo "**** Compilation of $PROG should have failed"
+    exit 1
+else
+    errors=$(grep -E '^// *ERRORS?: ' $PROG.toy | sed -e 's/[^0-9]//g')
+
+    # Test that we have the file with the expected number of errors
+    if [ "$errors" = "" ] ; then
+	echo "**** File $PROG.toy needs a special '// ERRORS: n' comment"
+	exit 2
+    fi
+
+    # Compare the return code with the expected one
+    if [ $errors != $retcode ] ; then
+	echo "**** Number of errors in $PROG.toy was $retcode (expected $errors)"
+	exit 2
+    else
+	echo "Test of $PROG detected $retcode errors: OK"
+    fi
+fi
+exit 0
