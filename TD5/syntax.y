@@ -37,8 +37,11 @@ void yyerror(const char *s);
 %left '*' '/'
 %nonassoc UMINUS
 
+%nonassoc "then"
+%nonassoc KELSE
+
 //                      Non terminal types
-%type   <node>          stmt expr stmt_list var else_stmt
+%type   <node>          stmt expr stmt_list var
 
 %%
 
@@ -57,15 +60,13 @@ stmt:
         | KPRINT expr ';'                  { $$ = make_node(KPRINT, 1, $2); }
         | KREAD expr ';'                  { $$ = make_node(KREAD, 1, $2); }
         | KWHILE '(' expr ')' stmt         { $$ = make_node(KWHILE, 2, $3, $5); }
-        | KIF '(' expr ')' stmt else_stmt       { $$ = make_node(KIF, 3, $3, $5, $6); }
+        | KIF '(' expr ')' stmt    %prec "then"    { $$ = make_node(KIF, 3, $3, $5, NULL); }
+        | KIF '(' expr ')' stmt KELSE stmt      { $$ = make_node(KIF, 3, $3, $5, $7); }
         | var '=' expr ';'                 { $$ = make_node('=', 2, $1, $3); }
         | '{' stmt_list '}'                { $$ = $2; }
         ;
 
-else_stmt:
-	KELSE stmt { $$ = $2; }
-	| /**/     { $$ = NULL; }
-	;
+
 
 stmt_list:
           stmt                  { $$ = $1; }
