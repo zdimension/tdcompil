@@ -1,0 +1,13 @@
+# Calcul de la factorielle de 12
+{
+  n = 12;
+  prod = 1;
+  while (n > 1) {
+      prod = prod * n;
+      n = n - 1;
+  }
+
+  # Valeur attendue: 479001600
+  print prod;
+}
+

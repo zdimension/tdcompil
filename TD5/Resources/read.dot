@@ -1,0 +1,22 @@
+digraph E{
+	node [style="filled"];
+	box1 [label="[;]", fillcolor="turquoise4"];
+	box2 [label="[;]", fillcolor="turquoise4"];
+	box3 [label="read", fillcolor="turquoise4"];
+	box4 [label="a", fillcolor="peru"];
+		box3 -> box4;
+		box2 -> box3;
+	box5 [label="read", fillcolor="turquoise4"];
+	box6 [label="b", fillcolor="peru"];
+		box5 -> box6;
+		box2 -> box5;
+		box1 -> box2;
+	box7 [label="print", fillcolor="turquoise4"];
+	box8 [label="[+]", fillcolor="turquoise4"];
+	box9 [label="a", fillcolor="peru"];
+		box8 -> box9;
+	box10 [label="b", fillcolor="peru"];
+		box8 -> box10;
+		box7 -> box8;
+		box1 -> box7;
+}

@@ -1,0 +1,5 @@
+syntax.h
+*.dot
+!Resources/interp
+*.png
+!Resources/*.dot
