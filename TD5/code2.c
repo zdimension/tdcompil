@@ -138,7 +138,8 @@ void eval(ast_node* n, int* label)
                     PROD1L("jumpz", else_);
 
                     eval(op[1], label);
-                    PROD1L("jump", end);
+                    if (op[2] != NULL)
+                        PROD1L("jump", end);
 
                     LABEL(else_);
                     eval(op[2], label);
