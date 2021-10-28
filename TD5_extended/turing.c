@@ -15,7 +15,7 @@
 #include "calc.h"
 #include "syntax.h"
 
-#define INT_WIDTH 32
+#define INT_WIDTH 4
 
 // ----------------------------------------------------------------------
 //		Utilities
@@ -284,8 +284,9 @@ void eval(ast_node* n, int* label)
                     instr("'[,'0|'1,'_,'_ '[,'0,'_,'_ S,L,S,S");
                     instr("'[,'/|'[,'_,'_ S,R,S,S @%d", end);
                     instr("FROM @%d", not_equal);
-                    instr("'[,'0|'1,'0,'_ '[,'0|'1,'_,'_ S,S,R,S");
-                    instr("'[,'0|'1,'1,'_ '[,'0|'1,'_,'_ S,S,R,S");
+                    instr("'[,'0|'1,'0,'_ '[,'0|'1,'_,'_ S,R,R,S");
+                    instr("'[,'0|'1,'1,'_ '[,'0|'1,'_,'_ S,R,R,S");
+                    instr("'[,'/,'0|'1,'_ '[,'/,'_,'_ S,S,R,S");
                     instr("'[,'0|'1,'_,'_ S,R,S,S");
                     instr("'[,'/,'_,'_ S,L,S,S @%d", ++*label);
                     instr("FROM @%d", *label);
@@ -325,15 +326,16 @@ void eval(ast_node* n, int* label)
                         instr("'[,'0|'1,'_,'_ '[,'0,'_,'_ S,L,S,S @%d", ++*label);
                         instr("FROM @%d", *label);
                     }
-                    instr("'[,'0|'1,'_,'_ '[,'1,'_,'_ S,L,R,S @%d", end);
+                    instr("'[,'0|'1,'_,'_ '[,'1,'_,'_ S,R,S,S @%d", end);
                     instr("FROM @%d", not_equal);
-                    instr("'[,'0|'1,'0,'_ '[,'0|'1,'_,'_ S,S,R,S");
-                    instr("'[,'0|'1,'1,'_ '[,'0|'1,'_,'_ S,S,R,S");
+                    instr("'[,'0|'1,'0,'_ '[,'0|'1,'_,'_ S,R,R,S");
+                    instr("'[,'0|'1,'1,'_ '[,'0|'1,'_,'_ S,R,R,S");
+                    instr("'[,'/,'0|'1,'_ '[,'/,'_,'_ S,S,R,S");
                     instr("'[,'0|'1,'_,'_ S,R,S,S");
                     instr("'[,'/,'_,'_ S,L,S,S @%d", ++*label);
                     instr("FROM @%d", *label);
                     instr("'[,'0|'1,'_,'_ '[,'0,'_,'_ S,L,L,S");
-                    instr("'[,'/|'[,'_,'_ S,S,R,S @%d", end);
+                    instr("'[,'/|'[,'_,'_ S,R,S,S @%d", end);
                     instr("FROM @%d", end);
                     instr("'[,'0|'1,'_,'_ S,R,S,S");
                     instr("'[,'/|'[,'_,'_ S,S,S,S @%d", *label + 1);
