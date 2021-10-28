@@ -1,36 +1,36 @@
 # Memory map
-NEW "generated" 4		# line 551
-START @INIT		# line 552
-END @END "END"		# line 553
-END @DEFAULT "default option"		# line 554
-FROM @INIT		# line 555
-'_,'_,'_,'_ '[,'[,'_,'_ R,S,S,S @0		# line 556
-FROM @0		# line 568
-'_|'/|'0,'[,'_,'_ L,S,S,S		# line 569
-'[,'[,'_,'_ S,S,S,S @1		# line 570
+NEW "generated" 4		# line 619
+START @INIT		# line 620
+END @END "END"		# line 621
+END @DEFAULT "default option"		# line 622
+FROM @INIT		# line 623
+'_,'_,'_,'_ '[,'[,'_,'_ R,S,S,S @0		# line 624
+FROM @0		# line 636
+'_|'/|'0,'[,'_,'_ L,S,S,S		# line 637
+'[,'[,'_,'_ S,S,S,S @1		# line 638
 # KIND = 2		# line 61
 # KIND = 1		# line 61
 FROM @1		# line 67
-#	push	8
+#	push	5
 '/|'[,'[,'_,'_ S,R,S,S @2		# line 70
 '/|'[,'/,'_,'_ S,R,S,S @2		# line 71
 FROM @2		# line 72
-'/|'[,'_,'_,'_ '/|'[,'0,'_,'_ S,R,S,S @3		# line 75
+'/|'[,'_,'_,'_ '/|'[,'1,'_,'_ S,R,S,S @3		# line 75
 FROM @3		# line 76
 '/|'[,'_,'_,'_ '/|'[,'0,'_,'_ S,R,S,S @4		# line 75
 FROM @4		# line 76
-'/|'[,'_,'_,'_ '/|'[,'0,'_,'_ S,R,S,S @5		# line 75
+'/|'[,'_,'_,'_ '/|'[,'1,'_,'_ S,R,S,S @5		# line 75
 FROM @5		# line 76
-'/|'[,'_,'_,'_ '/|'[,'1,'_,'_ S,R,S,S @6		# line 75
+'/|'[,'_,'_,'_ '/|'[,'0,'_,'_ S,R,S,S @6		# line 75
 FROM @6		# line 76
 '/|'[,'_,'_,'_ '/|'[,'/,'_,'_ S,S,S,S @7		# line 78
 # KIND = 1		# line 61
 FROM @7		# line 67
-#	push	7
+#	push	6
 '/|'[,'[,'_,'_ S,R,S,S @8		# line 70
 '/|'[,'/,'_,'_ S,R,S,S @8		# line 71
 FROM @8		# line 72
-'/|'[,'_,'_,'_ '/|'[,'1,'_,'_ S,R,S,S @9		# line 75
+'/|'[,'_,'_,'_ '/|'[,'0,'_,'_ S,R,S,S @9		# line 75
 FROM @9		# line 76
 '/|'[,'_,'_,'_ '/|'[,'1,'_,'_ S,R,S,S @10		# line 75
 FROM @10		# line 76
@@ -39,39 +39,33 @@ FROM @11		# line 76
 '/|'[,'_,'_,'_ '/|'[,'0,'_,'_ S,R,S,S @12		# line 75
 FROM @12		# line 76
 '/|'[,'_,'_,'_ '/|'[,'/,'_,'_ S,S,S,S @13		# line 78
-#	cmpne
-FROM @13		# line 269
-'[,'/,'_,'_ '[,'_,'_,'_ S,L,S,S @14		# line 270
-FROM @14		# line 271
-'[,'0|'1,'_,'_ '[,'_,'0|'1,'_ S,L,L,S		# line 272
-'[,'/,'_,'_ S,L,S,S @15		# line 273
-FROM @15		# line 274
-'[,'0|'1,'_,'_ S,L,S,S		# line 275
-'[,'/|'[,'_,'_ S,R,R,S @16		# line 276
-FROM @16		# line 277
-'[,'0|'1,'0|'1,'_ '[,'0|'1,'_,'_ S,R,R,S		# line 280
-'[,'0|'1,'1|'0,'_ '[,'0|'1,'_,'_ S,R,R,S @17		# line 281
-'[,'/,'_,'_ S,L,S,S @19		# line 282
-FROM @19		# line 283
-'[,'0|'1,'_,'_ '[,'0,'_,'_ S,L,S,S		# line 284
-'[,'/|'[,'_,'_ S,R,S,S @18		# line 285
-FROM @17		# line 286
-'[,'0|'1,'0,'_ '[,'0|'1,'_,'_ S,R,R,S		# line 287
-'[,'0|'1,'1,'_ '[,'0|'1,'_,'_ S,R,R,S		# line 288
-'[,'/,'0|'1,'_ '[,'/,'_,'_ S,S,R,S		# line 289
-'[,'0|'1,'_,'_ S,R,S,S		# line 290
-'[,'/,'_,'_ S,L,S,S @20		# line 291
-FROM @20		# line 292
-'[,'0|'1,'_,'_ '[,'0,'_,'_ S,L,S,S @21		# line 295
-FROM @21		# line 296
-'[,'0|'1,'_,'_ '[,'0,'_,'_ S,L,S,S @22		# line 295
-FROM @22		# line 296
-'[,'0|'1,'_,'_ '[,'0,'_,'_ S,L,S,S @23		# line 295
-FROM @23		# line 296
-'[,'0|'1,'_,'_ '[,'1,'_,'_ S,R,S,S @18		# line 298
-FROM @18		# line 299
-'[,'0|'1,'_,'_ S,R,S,S		# line 300
-'[,'/|'[,'_,'_ S,S,S,S @24		# line 301
-FROM @24		# line 574
-'[,'/,'_,'_ S,S,S,S @END		# line 575
-'[,'[,'_,'_ S,S,S,S @END		# line 576
+#	cmplt
+FROM @13		# line 289
+'[,'/,'_,'_ '[,'_,'_,'_ S,L,S,S @14		# line 290
+FROM @14		# line 291
+'[,'0|'1,'_,'_ '[,'_,'0|'1,'_ S,L,L,S		# line 292
+'[,'/,'_,'_ S,S,R,S @15		# line 293
+FROM @15		# line 294
+'[,'/,'0|'1,'_ S,S,R,S		# line 295
+'[,'/,'_,'_ S,L,L,S @16		# line 296
+FROM @16		# line 297
+'[,'0|'1,'0|'1,'_ '[,'_,'_,'_ S,L,L,S		# line 303
+'[,'1,'0,'_ '[,'_,'_,'_ S,L,L,S @17		# line 304
+'[,'0,'1,'_ '[,'_,'_,'_ S,L,L,S @18		# line 305
+'[,'/|'[,'_,'_ '[,'/|'[,'_,'_ S,R,S,S @20		# line 306
+FROM @20		# line 307
+'[,'_,'_,'_ '[,'0,'_,'_ S,R,S,S		# line 308
+'[,'/,'_,'_ S,S,S,S @21		# line 309
+FROM @18		# line 310
+'[,'0|'1,'0,'_ '[,'_,'_,'_ S,L,L,S		# line 311
+'[,'0|'1,'1,'_ '[,'_,'_,'_ S,L,L,S		# line 312
+'[,'/|'[,'_,'_ S,R,S,S @20		# line 313
+FROM @17		# line 314
+'[,'0|'1,'0,'_ '[,'_,'_,'_ S,L,L,S		# line 315
+'[,'0|'1,'1,'_ '[,'_,'_,'_ S,L,L,S		# line 316
+'[,'/|'[,'_,'_ S,R,S,S @19		# line 317
+FROM @19		# line 318
+'[,'_,'_,'_ '[,'1,'_,'_ S,R,S,S @20		# line 319
+FROM @21		# line 642
+'[,'/,'_,'_ S,S,S,S @END		# line 643
+'[,'[,'_,'_ S,S,S,S @END		# line 644

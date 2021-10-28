@@ -15,7 +15,7 @@
 #include "calc.h"
 #include "syntax.h"
 
-#define INT_WIDTH 4
+#define INT_WIDTH 32
 
 // ----------------------------------------------------------------------
 //		Utilities
@@ -28,6 +28,38 @@
 #define PROD1L(op, v)     printf("#\t%s\tL%03d\n", op, v) // v is a label
 
 #define instr(format, ...) printf (format "\t\t# line %d\n", ## __VA_ARGS__, __LINE__)
+
+#define COMPARISON(code) { \
+instr("FROM @%d", ++*label);\
+instr("'[,'/,'_,'_ '[,'_,'_,'_ S,L,S,S @%d", ++*label);\
+instr("FROM @%d", *label);\
+instr("'[,'0|'1,'_,'_ '[,'_,'0|'1,'_ S,L,L,S");\
+instr("'[,'/,'_,'_ S,S,R,S @%d", ++*label);\
+instr("FROM @%d", *label);\
+instr("'[,'/,'0|'1,'_ S,S,R,S");\
+instr("'[,'/,'_,'_ S,L,L,S @%d", ++*label);\
+instr("FROM @%d", *label);\
+int left_then_one = ++*label;\
+int left_then_zero = ++*label;\
+int one = ++*label;\
+int zero = ++*label;\
+int end = *label + 1;\
+instr("'[,'0|'1,'0|'1,'_ '[,'_,'_,'_ S,L,L,S");\
+code \
+instr("FROM @%d", zero);\
+instr("'[,'_,'_,'_ '[,'0,'_,'_ S,R,S,S");\
+instr("'[,'/,'_,'_ S,S,S,S @%d", end);\
+instr("FROM @%d", left_then_zero);\
+instr("'[,'0|'1,'0,'_ '[,'_,'_,'_ S,L,L,S");\
+instr("'[,'0|'1,'1,'_ '[,'_,'_,'_ S,L,L,S");\
+instr("'[,'/|'[,'_,'_ S,R,S,S @%d", zero);\
+instr("FROM @%d", left_then_one);\
+instr("'[,'0|'1,'0,'_ '[,'_,'_,'_ S,L,L,S");\
+instr("'[,'0|'1,'1,'_ '[,'_,'_,'_ S,L,L,S");\
+instr("'[,'/|'[,'_,'_ S,R,S,S @%d", one);\
+instr("FROM @%d", one);\
+instr("'[,'_,'_,'_ '[,'1,'_,'_ S,R,S,S @%d", zero);\
+}
 
 struct var_list
 {
@@ -190,6 +222,7 @@ void eval(ast_node* n, int* label)
                     return;
                 }
                 case '*':
+                {
                     eval(op[0], label);
                     eval(op[1], label);
                     PROD0("mul");
@@ -236,31 +269,60 @@ void eval(ast_node* n, int* label)
                     instr("'[,'0|'1,'_,'# S,L,S,L");
                     instr("'[,'/|'[,'_,'_ S,R,R,R @%d", loop);
                     return;
+                }
                 case '/':
                     eval(op[0], label);
                     eval(op[1], label);
                     PROD0("div");
                     return;
                 case '<':
+                {
                     eval(op[0], label);
                     eval(op[1], label);
                     PROD0("cmplt");
+                    COMPARISON({
+                                   instr("'[,'0,'1,'_ '[,'_,'_,'_ S,L,L,S @%d", left_then_one);
+                                   instr("'[,'1,'0,'_ '[,'_,'_,'_ S,L,L,S @%d", left_then_zero);
+                                   instr("'[,'/|'[,'_,'_ '[,'/|'[,'_,'_ S,R,S,S @%d", zero);
+                               });
                     return;
+                }
                 case '>':
+                {
                     eval(op[0], label);
                     eval(op[1], label);
                     PROD0("cmpgt");
+                    COMPARISON({
+                                   instr("'[,'1,'0,'_ '[,'_,'_,'_ S,L,L,S @%d", left_then_one);
+                                   instr("'[,'0,'1,'_ '[,'_,'_,'_ S,L,L,S @%d", left_then_zero);
+                                   instr("'[,'/|'[,'_,'_ '[,'/|'[,'_,'_ S,R,S,S @%d", zero);
+                               });
                     return;
+                }
                 case GE:
+                {
                     eval(op[0], label);
                     eval(op[1], label);
                     PROD0("cmpge");
+                    COMPARISON({
+                                   instr("'[,'1,'0,'_ '[,'_,'_,'_ S,L,L,S @%d", left_then_one);
+                                   instr("'[,'0,'1,'_ '[,'_,'_,'_ S,L,L,S @%d", left_then_zero);
+                                   instr("'[,'/|'[,'_,'_ '[,'/|'[,'_,'_ S,R,S,S @%d", one);
+                               });
                     return;
+                }
                 case LE:
+                {
                     eval(op[0], label);
                     eval(op[1], label);
                     PROD0("cmple");
+                    COMPARISON({
+                                   instr("'[,'0,'1,'_ '[,'_,'_,'_ S,L,L,S @%d", left_then_one);
+                                   instr("'[,'1,'0,'_ '[,'_,'_,'_ S,L,L,S @%d", left_then_zero);
+                                   instr("'[,'/|'[,'_,'_ '[,'/|'[,'_,'_ S,R,S,S @%d", one);
+                               });
                     return;
+                }
                 case NE:
                 {
                     eval(op[0], label);
