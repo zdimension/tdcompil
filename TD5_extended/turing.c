@@ -15,7 +15,7 @@
 #include "calc.h"
 #include "syntax.h"
 
-#define INT_WIDTH 4
+#define INT_WIDTH 8
 
 // ----------------------------------------------------------------------
 //		Utilities
@@ -116,10 +116,10 @@ void eval(ast_node* n, int* label)
         case k_ident:
         {
             instr("FROM @%d", ++(*label));
-            instr("'[,'/|'[,'_,'_ S,S,S,S @%d", ++*label);
+            instr("'[,'/|'[,'_,'_ S,S,S,S @%d", *label + 1);
             PROD1S("load", VAR_NAME(n));
             nav_to_var(label, n);
-            instr("FROM @%d", *label);
+            instr("FROM @%d", ++*label);
             instr("'/|'[,'/,'_,'_ R,R,S,S @%d", ++*label);
             instr("'/|'[,'[,'_,'_ R,R,S,S @%d", *label);
             instr("FROM @%d", *label);
@@ -417,17 +417,13 @@ void eval(ast_node* n, int* label)
                     if (clean_stack) // statement
                     {
                         instr("FROM @%d", *label);
-                        int carry = ++*label;
                         int left_to_end = ++*label;
                         int end = *label + 1;
-                        instr("'0,'_,'_,'_ '1,'_,'_,'_ L,L,S,S @%d", end);
-                        instr("'1,'_,'_,'_ '0,'_,'_,'_ L,S,S,S @%d", carry);
-                        instr("FROM @%d", carry);
                         instr("'0,'_,'_,'_ '1,'_,'_,'_ L,S,S,S @%d", left_to_end);
-                        instr("'1,'_,'_,'_ '0,'_,'_,'_ L,S,S,S");
+                        instr("'1,'_,'_,'_ '0,'_,'_,'_ R,S,S,S");
                         instr("FROM @%d", left_to_end);
-                        instr("'0|'1,'_,'_,'_ L,S,S,S");
-                        instr("'/|'[,'_,'_,'_ S,L,S,S @%d", end);
+                        instr("'0|'1|'/,'_,'_,'_ L,S,S,S");
+                        instr("'[,'_,'_,'_ S,L,S,S @%d", end);
                     }
                     else // expression
                     {
@@ -463,17 +459,13 @@ void eval(ast_node* n, int* label)
                     if (clean_stack) // statement
                     {
                         instr("FROM @%d", *label);
-                        int carry = ++*label;
                         int left_to_end = ++*label;
                         int end = *label + 1;
-                        instr("'1,'_,'_,'_ '0,'_,'_,'_ L,S,S,S @%d", end);
-                        instr("'0,'_,'_,'_ '1,'_,'_,'_ L,L,S,S @%d", carry);
-                        instr("FROM @%d", carry);
-                        instr("'0,'_,'_,'_ '1,'_,'_,'_ L,S,S,S");
                         instr("'1,'_,'_,'_ '0,'_,'_,'_ L,S,S,S @%d", left_to_end);
+                        instr("'0,'_,'_,'_ '1,'_,'_,'_ R,L,S,S");
                         instr("FROM @%d", left_to_end);
-                        instr("'0|'1,'_,'_,'_ L,S,S,S");
-                        instr("'/|'[,'_,'_,'_ S,L,S,S @%d", end);
+                        instr("'0|'1|'/,'_,'_,'_ L,S,S,S");
+                        instr("'[,'_,'_,'_ S,L,S,S @%d", end);
                     }
                     else // expression
                     {
@@ -612,9 +604,9 @@ void eval(ast_node* n, int* label)
                     eval(op[1], label);
                     instr("FROM @%d", ++*label);
                     instr("'0|'1|'/,'/,'_,'_ L,S,S,S");
-                    instr("'[,'/,'_,'_ S,S,S,S @%d", ++*label);
+                    instr("'[,'/,'_,'_ S,S,S,S @%d", *label + 1);
                     nav_to_var(label, op[0]);
-                    instr("FROM @%d", *label);
+                    instr("FROM @%d", ++*label);
                     instr("'/|'[,'/,'_,'_ S,L,S,S @%d", ++*label);
                     instr("FROM @%d", *label);
                     instr("'/,'0|'1,'_,'_ S,L,S,S");
@@ -630,8 +622,8 @@ void eval(ast_node* n, int* label)
                         instr("FROM @%d", *label);
                         instr("'/|'0|'1|'[,'_,'_,'_ L,L,S,S");
                         instr("'/|'0|'1|'[,'/,'_,'_ S,S,S,S @%d", *label + 2);
-                        instr("'/|'0|'1|'[,'[,'_,'_ S,S,S,S @%d", *label + 1);
-                        instr("FROM @%d", ++*label);
+                        instr("'/|'0|'1|'[,'[,'_,'_ S,S,S,S @%d", ++*label);
+                        instr("FROM @%d", *label);
                         instr("'/|'0|'1,'[,'_,'_ L,S,S,S");
                         instr("'[,'[,'_,'_ S,S,S,S @%d", *label + 1);
                     }
@@ -664,13 +656,13 @@ void nav_to_var(int* label, struct ast_node* op)
     int vid = get_var_id(VAR_NAME(op));
     while (vid-- > 0)
     {
-        instr("FROM @%d", *label);
+        instr("FROM @%d", ++*label);
         instr("'/|'[,'/,'_,'_ R,S,S,S @%d", ++*label);
         instr("'/|'[,'[,'_,'_ R,S,S,S @%d", *label);
         instr("FROM @%d", *label);
         instr("'0|'1,'/,'_,'_ R,S,S,S");
         instr("'0|'1,'[,'_,'_ R,S,S,S");
-        instr("'/,'/|'[,'_,'_ S,S,S,S @%d", ++*label);
+        instr("'/,'/|'[,'_,'_ S,S,S,S @%d", *label + 1);
     }
 }
 
