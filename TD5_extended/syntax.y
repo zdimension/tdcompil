@@ -29,9 +29,11 @@ void yyerror(const char *s);
 //                      Tokens
 %token  <value>         NUMBER
 %token  <var>           IDENT
-%token                  KWHILE KIF KPRINT KELSE KREAD KFOR
+%token                  KWHILE KIF KPRINT KELSE KREAD KFOR KDO
 
 //                       Precedence rules
+
+%right '='
 %left GE LE EQ NE '>' '<'
 %left '+' '-'
 %left '*' '/'
@@ -39,7 +41,6 @@ void yyerror(const char *s);
 
 %nonassoc "then"
 %nonassoc KELSE
-%right '='
 
 //                      Non terminal types
 %type   <node>          stmt expr stmt_list var expr_opt
@@ -63,7 +64,8 @@ stmt:
         | KWHILE '(' expr ')' stmt         { $$ = make_node(KWHILE, 2, $3, $5); }
         | KIF '(' expr ')' stmt    %prec "then"    { $$ = make_node(KIF, 3, $3, $5, NULL); }
         | KIF '(' expr ')' stmt KELSE stmt      { $$ = make_node(KIF, 3, $3, $5, $7); }
-        | KFOR '(' expr_opt ';' expr_opt ';' expr_opt ')' { $$ = make_node(KFOR, 3, $3, $5, $7); }
+        | KFOR '(' expr_opt ';' expr_opt ';' expr_opt ')' stmt { $$ = make_node(';', 2, $3, make_node(KWHILE, 2, $5, make_node(';', 2, $9, $7))); }
+        | KDO stmt KWHILE '(' expr ')' ';' { $$ = make_node(KDO, 2, $2, $5); }
         | '{' stmt_list '}'                { $$ = $2; }
         ;
 

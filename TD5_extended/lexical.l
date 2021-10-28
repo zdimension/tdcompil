@@ -39,6 +39,7 @@
 "else" { return KELSE; }
 "read" { return KREAD; }
 "for" { return KFOR; }
+"do" { return KDO; }
 
 	/* ---- Idents ---- */
 [a-zA-Z]+			{ yylval.var = strdup(yytext); return IDENT; }

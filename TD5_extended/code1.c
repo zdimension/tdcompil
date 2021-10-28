@@ -137,6 +137,12 @@ float eval(ast_node* n)
                         return eval(op[1]);
                     else
                         return eval(op[2]);
+                case KDO:
+                    do
+                    {
+                        eval(op[0]);
+                    } while (eval(op[1]));
+                    return 0;
                 case KREAD:
                 {
                     char* line = NULL;
