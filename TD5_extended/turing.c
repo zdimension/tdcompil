@@ -15,7 +15,7 @@
 #include "calc.h"
 #include "syntax.h"
 
-#define INT_WIDTH 32
+#define INT_WIDTH 4
 
 // ----------------------------------------------------------------------
 //		Utilities
@@ -420,6 +420,24 @@ void eval(ast_node* n, int* label)
                     eval(op[0], label);
                     PROD0("print");
                     return;
+                case KDO:
+                {
+                    int start = *label + 1;
+                    eval(op[0], label);
+                    eval(op[1], label);
+                    instr("FROM @%d", ++*label);
+                    instr("'[,'/|'[,'_,'_ '[,'_,'_,'_ S,L,S,S @%d", ++*label);
+                    instr("FROM @%d", *label);
+                    instr("'[,'0,'_,'_ '[,'_,'_,'_ S,L,S,S");
+                    int one_found = ++*label;
+                    int end = *label + 1;
+                    instr("'[,'1,'_,'_ '[,'_,'_,'_ S,L,S,S @%d", one_found);
+                    instr("'[,'/|'[,'_,'_ S,S,S,S @%d", end);
+                    instr("FROM @%d", one_found);
+                    instr("'[,'0|'1,'_,'_ '[,'_,'_,'_ S,L,S,S");
+                    instr("'[,'/|'[,'_,'_ S,S,S,S @%d", start);
+                    return;
+                }
                 case KWHILE:
                 {
                     int start = ++*label;
@@ -507,17 +525,30 @@ void eval(ast_node* n, int* label)
                     instr("'[,'0|'1,'_,'_ S,L,S,S");
                     instr("'/,'/|'[,'_,'_ R,R,S,S @%d", ++*label);
                     instr("'[,'/|'[,'_,'_ R,R,S,S @%d", *label);
-                    instr("FROM @%d", *label);
-                    instr("'0|'1,'0,'_,'_ '0,'_,'_,'_ R,R,S,S");
-                    instr("'0|'1,'1,'_,'_ '1,'_,'_,'_ R,R,S,S");
-                    instr("'/,'/,'_,'_ '/,'_,'_,'_ L,L,S,S @%d", ++*label);
-                    instr("FROM @%d", *label);
-                    instr("'/|'0|'1|'[,'_,'_,'_ L,L,S,S");
-                    instr("'/|'0|'1|'[,'/,'_,'_ S,S,S,S @%d", *label + 2);
-                    instr("'/|'0|'1|'[,'[,'_,'_ S,S,S,S @%d", *label + 1);
-                    instr("FROM @%d", ++*label);
-                    instr("'/|'0|'1,'[,'_,'_ L,S,S,S");
-                    instr("'[,'[,'_,'_ S,S,S,S @%d", *label + 1);
+                    if (arity == 3) // statement, clear from stack
+                    {
+                        instr("FROM @%d", *label);
+                        instr("'0|'1,'0,'_,'_ '0,'_,'_,'_ R,R,S,S");
+                        instr("'0|'1,'1,'_,'_ '1,'_,'_,'_ R,R,S,S");
+                        instr("'/,'/,'_,'_ '/,'_,'_,'_ L,L,S,S @%d", ++*label);
+                        instr("FROM @%d", *label);
+                        instr("'/|'0|'1|'[,'_,'_,'_ L,L,S,S");
+                        instr("'/|'0|'1|'[,'/,'_,'_ S,S,S,S @%d", *label + 2);
+                        instr("'/|'0|'1|'[,'[,'_,'_ S,S,S,S @%d", *label + 1);
+                        instr("FROM @%d", ++*label);
+                        instr("'/|'0|'1,'[,'_,'_ L,S,S,S");
+                        instr("'[,'[,'_,'_ S,S,S,S @%d", *label + 1);
+                    }
+                    else // expression, keep in stack
+                    {
+                        instr("FROM @%d", *label);
+                        instr("'0|'1,'0,'_,'_ '0,'0,'_,'_ R,R,S,S");
+                        instr("'0|'1,'1,'_,'_ '1,'1,'_,'_ R,R,S,S");
+                        instr("'/,'/,'_,'_ L,S,S,S @%d", ++*label);
+                        instr("FROM @%d", *label);
+                        instr("'0|'1,'/,'_,'_ L,S,S,S");
+                        instr("'/|'[,'/,'_,'_ S,S,S,S @%d", *label + 1);
+                    }
                     PROD1S("store", VAR_NAME(op[0]));
                     return;
                 }

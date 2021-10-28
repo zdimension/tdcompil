@@ -39,11 +39,13 @@ void yyerror(const char *s);
 %left '*' '/'
 %nonassoc UMINUS
 
+
+
 %nonassoc "then"
 %nonassoc KELSE
 
 //                      Non terminal types
-%type   <node>          stmt expr stmt_list var expr_opt
+%type   <node>          stmt expr stmt_list var expr_opt expr_all
 
 %%
 
@@ -58,7 +60,8 @@ stmts:
 
 stmt:
          ';'                               { $$ = make_node(';', 0); }
-        | expr ';'                         { $$ = $1; }
+        | var '=' expr ';'        { $$ = make_node('=', 3, $1, $3, NULL); }
+        | expr_all ';'                     { $$ = $1; }
         | KPRINT expr ';'                  { $$ = make_node(KPRINT, 1, $2); }
         | KREAD expr ';'                  { $$ = make_node(KREAD, 1, $2); }
         | KWHILE '(' expr ')' stmt         { $$ = make_node(KWHILE, 2, $3, $5); }
@@ -80,10 +83,15 @@ stmt_list:
         | stmt_list stmt        { $$ = make_node(';', 2, $1, $2); }
         ;
 
+
 expr:
+          expr_all                  { $$ = $1; }
+        | var '=' expr          { $$ = make_node('=', 2, $1, $3); }
+        ;
+
+expr_all:
           NUMBER                { $$ = make_number($1); }
         | var                   { $$ = $1; }
-        | var '=' expr          { $$ = make_node('=', 2, $1, $3); }
         | '-' expr %prec UMINUS { $$ = make_node(UMINUS, 1, $2); }
         | expr '+' expr         { $$ = make_node('+', 2, $1, $3); }
         | expr '-' expr         { $$ = make_node('-', 2, $1, $3); }
