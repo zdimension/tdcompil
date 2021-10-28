@@ -1,0 +1,19 @@
+{
+    # parameters
+    x = 0;
+    y = 1;
+    n = 40;
+
+    # fibonacci
+    n = n - 1;
+    while (n)
+    {
+        tmp = x + y;
+        x = y;
+        y = tmp;
+        n = n - 1;
+    }
+
+    # output
+    result = y;
+}

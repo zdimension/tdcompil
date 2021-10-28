@@ -1,0 +1,14 @@
+# Calcul de a ^ b
+
+{
+  a   = 22;
+  b   = 7;
+  res = 1; 
+  while ( b != 0 ) {
+     res = res * a;
+     b   = b - 1;
+  }
+
+  # Valeur attendue 22**7 = 2494357888
+  print res;
+}

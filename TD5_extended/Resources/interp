@@ -1,0 +1,136 @@
+#!/usr/bin/env python3
+#                                               -*- mode: Python; coding: utf-8 -*-
+#
+# interp.py     -- A stack machine interpreter
+#
+#           Author: Erick Gallesio [eg@unice.fr]
+#    Creation date: 21-Oct-2015 17:41 (eg)
+# Last file update: 15-Nov-2017 18:39 (eg)
+#
+
+import argparse, sys, re
+
+def die(msg):
+    print("FATAL ERROR: ", msg, file=sys.stderr)
+    print("ABORT.", file=sys.stderr)
+    sys.exit(1)
+
+
+def parse_arguments():
+    parser = argparse.ArgumentParser(description="A mini stack interpreter")
+    parser.add_argument('infile', nargs='?', help='name of the input file',
+                        type=argparse.FileType('r'), default=sys.stdin)
+    return parser.parse_args()
+
+
+class StackMachine:
+    def read_file(self, src):
+        cpt = 0
+        instregexp = re.compile("^[ \t]+(\w+)[ \t]*(\\w*\.?\\w*)$")
+        for line in src:
+            line = line[:-1]
+            if line == "":
+                continue
+            elif line[0] == "L":
+                label = line[:-1]
+                self.labels[label] = cpt
+            else:
+                cpt += 1
+                try:
+                    m      = re.match(instregexp, line)
+                    instr = [m.group(1), m.group(2)]
+                    self.code.append(instr)
+                except:
+                    die("illegal instruction on line %d: '%s'" % (cpt, line))
+        # Add a stop at the end of the code
+        self.code.append(['stop', ''])
+
+    def __binop(self, fct):
+        op2 = self.stack.pop(); op1 = self.stack.pop()
+        self.stack.append(fct(op1, op2))
+
+    # ----- Instructions
+    def I_push(self, val):
+        self.stack.append(float(val))
+    def I_print(self, val):
+        print(self.stack.pop())
+    def I_read(self, var):
+        while True:
+            try:
+                print(var + "? ", end="")
+                self.mem[var] = float(input())
+            except:
+                print("*** Invalid number")
+            else:
+                break
+    def I_stop(self, val):
+        self.pc=-1;
+    def I_store(self, var):
+        self.mem[var] = self.stack.pop()
+    def I_negate(self, val):
+        self.stack[-1] *= -1
+    def I_jumpz(self, lab):
+        if self.stack.pop()== 0: self.I_jump(lab)
+    def I_load(self, var):
+        if not var in self.mem: die("variable '%s' is unset." % (var, ))
+        self.stack.append(self.mem[var])
+    def I_jump(self, lab):
+        if not lab in self.labels: die("label '%s' is not defined" % (lab, ))
+        self.pc = self.labels[lab]
+    def I_add(self, val):
+        self.__binop(lambda x,y: x+y)
+    def I_sub(self, val):
+        self.__binop(lambda x,y: x-y)
+    def I_mul(self, val):
+        self.__binop(lambda x,y: x*y)
+    def I_div(self, val):
+        op2 = self.stack.pop(); op1 = self.stack.pop()
+        if op2 == 0: die("division by 0")
+        self.stack.append(op1 / op2)
+    def I_cmplt(self, val):
+        self.__binop(lambda x,y: float(x<y))
+    def I_cmple(self, val):
+        self.__binop(lambda x,y: float(x<=y))
+    def I_cmpgt(self, val):
+        self.__binop(lambda x,y: float(x>y))
+    def I_cmpge(self, val):
+        self.__binop(lambda x,y: float(x>=y))
+    def I_cmpeq(self, val):
+        self.__binop(lambda x,y: float(x==y))
+    def I_cmpne(self, val):
+        self.__binop(lambda x,y: float(x!=y))
+
+
+    # ---- run
+    def run(self):
+        while self.pc >= 0:
+            mnemo,arg = self.code[self.pc]
+            # Uncomment next line to display the execution trace
+            # print("      ", self.pc, " -> ", mnemo, arg, file=sys.stderr)
+            self.pc  += 1
+
+            # fetch the code for the instruction
+            instr = getattr(self, "I_"+mnemo, False)
+            if not instr: die("instruction '%s' not implemented" % (mnemo, ))
+
+            # and execute the instruction
+            instr(arg)
+        print("*stop*")
+
+
+    def __init__(self, src_port=False):
+        self.pc = 0
+        self.labels = dict(); self.code   = list()
+        self.mem    = dict(); self.stack  = list()
+        if src_port:
+            self.read_file(src_port)
+
+
+def main():
+     args = parse_arguments()
+     StackMachine(args.infile).run()
+     sys.exit(0);
+
+
+if __name__ == "__main__" :
+    main()
