@@ -17,7 +17,7 @@ LDLIBS=
 LEX=flex
 LFLAGS=
 
-EXE= calc1 calc2 calc3
+EXE= calc1 calc2 calc3 turing
 
 COMMON_OBJ= syntax.o lexical.o calc.o
 
@@ -39,6 +39,9 @@ calc2: $(COMMON_OBJ) code2.o
 
 calc3: $(COMMON_OBJ) code3.o
 	$(CC) $(CFLAGS) -o $@  $(COMMON_OBJ) code3.o $(LDLIBS)
+
+turing: $(COMMON_OBJ) turing.o
+	$(CC) $(CFLAGS) -o $@  $(COMMON_OBJ) turing.o $(LDLIBS)
 
 clean:
 	rm -f $(EXE) *.o *~
