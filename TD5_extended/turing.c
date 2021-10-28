@@ -131,6 +131,7 @@ void eval(ast_node* n, int* label)
         {
             ast_node** op = OPER_OPERANDS(n);
             int arity = OPER_ARITY(n);
+            bool clean_stack = OPER_CLEAN_STACK(n);
 
             switch (OPER_OPERATOR(n))
             {
@@ -403,6 +404,10 @@ void eval(ast_node* n, int* label)
                     instr("'[,'/|'[,'_,'_ S,S,S,S @%d", *label + 1);
                     return;
                 }
+                case INC:
+                {
+                    return;
+                }
 
                     /* Statements */
                 case ';':
@@ -525,7 +530,7 @@ void eval(ast_node* n, int* label)
                     instr("'[,'0|'1,'_,'_ S,L,S,S");
                     instr("'/,'/|'[,'_,'_ R,R,S,S @%d", ++*label);
                     instr("'[,'/|'[,'_,'_ R,R,S,S @%d", *label);
-                    if (arity == 3) // statement, clear from stack
+                    if (clean_stack) // statement, clear from stack
                     {
                         instr("FROM @%d", *label);
                         instr("'0|'1,'0,'_,'_ '0,'_,'_,'_ R,R,S,S");

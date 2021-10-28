@@ -9,6 +9,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
+#include <stdbool.h>
 
 #include "calc.h"
 #include "code.h"
@@ -60,7 +61,7 @@ stmts:
 
 stmt:
          ';'                               { $$ = make_node(';', 0); }
-        | var '=' expr ';'        { $$ = make_node('=', 3, $1, $3, NULL); }
+        | expr_assign ';'        { OPER_CLEAN_STACK($1) = true; $$ = $1; }
         | expr_all ';'                     { $$ = $1; }
         | KPRINT expr ';'                  { $$ = make_node(KPRINT, 1, $2); }
         | KREAD expr ';'                  { $$ = make_node(KREAD, 1, $2); }
@@ -95,6 +96,10 @@ expr_assign:
         | var AMN expr          { $$ = make_node('=', 2, $1, make_node('-', 2, $1, $3)); }
         | var AML expr          { $$ = make_node('=', 2, $1, make_node('*', 2, $1, $3)); }
         | var ADV expr          { $$ = make_node('=', 2, $1, make_node('/', 2, $1, $3)); }
+        | INC var               { $$ = make_node(INC, 1, $2); }
+        | DEC var               { $$ = make_node(DEC, 1, $2); }
+        | var INC               { $$ = make_node(INC, 2, $1, NULL); }
+        | var DEC               { $$ = make_node(DEC, 2, $1, NULL); }
         ;
 
 expr_all:

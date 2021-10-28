@@ -38,6 +38,17 @@ static float get_ident_value(char* id)
     return 0;
 }
 
+static float* get_ident_ref(char* id)
+{
+    for (struct var_cell* cur = all; cur; cur = cur->next)
+    {
+        if (strcmp(cur->name, id) == 0)
+            return &cur->value;
+    }
+    error_msg("variable '%s' is unset.\n", id);
+    return NULL;
+}
+
 static float set_ident_value(char* id, float value)
 {
     for (struct var_cell* cur = all; cur; cur = cur->next)
@@ -110,6 +121,17 @@ float eval(ast_node* n)
                 case EQ:
                     return eval(op[0]) == eval(op[1]);
 
+                case INC:
+                {
+                    float* ref = get_ident_ref(VAR_NAME(op[0]));
+                    return arity == 1 ? ++*ref : (*ref)++;
+                }
+                case DEC:
+                {
+                    float* ref = get_ident_ref(VAR_NAME(op[0]));
+                    return arity == 1 ? --*ref : (*ref)--;
+                }
+
                     /* Statements */
                 case ';':
                     if (arity == 0)
@@ -165,7 +187,7 @@ float eval(ast_node* n)
                 default:
                     error_msg("Houston, we have a problem: unattended token %d",
                               OPER_OPERATOR(n));
-                    return 0;
+                    abort();
             }
         }
         default:

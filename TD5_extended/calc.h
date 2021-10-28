@@ -11,6 +11,8 @@
 #ifndef _CALC_H_
 #define _CALC_H_
 
+#include <stdbool.h>
+
 /// The various kind of node we can have: ident, number, operator
 enum node_kind
 {
@@ -68,11 +70,13 @@ struct ast_operator
     ast_node header;        // AST header
     int operator;            // lex token
     int arity;            // arity of the operator
+    bool clean_stack;
     ast_node* operands[0];    // array of operands
 };
 
 #define OPER_OPERATOR(p)    (((struct ast_operator *) p)->operator)
 #define OPER_ARITY(p)        (((struct ast_operator *) p)->arity)
+#define OPER_CLEAN_STACK(p)        (((struct ast_operator *) p)->clean_stack)
 #define OPER_OPERANDS(p)    (((struct ast_operator *) p)->operands)
 
 ast_node* make_node(int operator, int arity, ...); // make an operator node

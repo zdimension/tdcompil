@@ -63,6 +63,7 @@ ast_node* make_node(int operator, int arity, ...)
     initialize_header(p, k_operator);
     OPER_OPERATOR(p) = operator;
     OPER_ARITY(p) = arity;
+    OPER_CLEAN_STACK(p) = false;
 
     // Fill in the operands array from the vararg list
     va_start(ap, arity);

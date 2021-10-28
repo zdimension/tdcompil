@@ -1,0 +1,18 @@
+cmake_minimum_required(VERSION 3.16)
+project(TD5_extended C)
+
+FIND_PACKAGE(BISON REQUIRED)
+FIND_PACKAGE(FLEX REQUIRED)
+
+set(CMAKE_C_STANDARD 11)
+flex_target(lexical lexical.l lexical.c)
+bison_target(parser syntax.y syntax.c)
+set(COMMON_OBJ syntax.c lexical.c calc.c)
+add_executable(calc1 ${COMMON_OBJ} code1.c)
+add_executable(calc2 ${COMMON_OBJ} code2.c)
+add_executable(calc3 ${COMMON_OBJ} code3.c)
+add_executable(turing ${COMMON_OBJ} turing.c)
+target_include_directories(calc1 PRIVATE ${CMAKE_SOURCE_DIR})
+target_include_directories(calc2 PRIVATE ${CMAKE_SOURCE_DIR})
+target_include_directories(calc3 PRIVATE ${CMAKE_SOURCE_DIR})
+target_include_directories(turing PRIVATE ${CMAKE_SOURCE_DIR})
