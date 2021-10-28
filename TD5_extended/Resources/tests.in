@@ -7,8 +7,8 @@
 #    print y;
 #}
 {
-    y = 0;
-    x = y++;
+    y = 4;
+    x = y--;
     print x;
     print y;
 }

@@ -82,7 +82,7 @@ static float set_ident_value(char* id, float value)
 float eval(ast_node* n)
 {
     if (!n)
-        return 0;
+        return 1;
 
     switch (AST_KIND(n))
     {

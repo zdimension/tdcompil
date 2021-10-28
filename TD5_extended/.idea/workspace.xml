@@ -15,16 +15,9 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="a6805983-d57b-442f-a29f-dcb10bd9ca72" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/.idea/TD5_extended.iml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/.gitignore" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Makefile" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Resources/tests.am" beforeDir="false" afterPath="$PROJECT_DIR$/Resources/tests.am" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Resources/tests.in" beforeDir="false" afterPath="$PROJECT_DIR$/Resources/tests.in" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/calc.c" beforeDir="false" afterPath="$PROJECT_DIR$/calc.c" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/calc.h" beforeDir="false" afterPath="$PROJECT_DIR$/calc.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/code1.c" beforeDir="false" afterPath="$PROJECT_DIR$/code1.c" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/syntax.y" beforeDir="false" afterPath="$PROJECT_DIR$/syntax.y" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/turing.c" beforeDir="false" afterPath="$PROJECT_DIR$/turing.c" afterDir="false" />
@@ -59,6 +52,7 @@
     <property name="cf.first.check.clang-format" value="false" />
     <property name="cidr.known.project.marker" value="true" />
     <property name="cmake.loaded.for.project" value="true" />
+    <property name="nodejs_package_manager_path" value="npm" />
     <property name="settings.editor.selected.configurable" value="preferences.lookFeel" />
   </component>
   <component name="RunManager" selected="CMake Application.turing">
@@ -107,7 +101,7 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1635462525936</updated>
-      <workItem from="1635462528254" duration="252000" />
+      <workItem from="1635462528254" duration="1904000" />
     </task>
     <servers />
   </component>

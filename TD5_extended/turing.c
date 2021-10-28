@@ -88,7 +88,10 @@ int get_var_id(const char* name)
 void eval(ast_node* n, int* label)
 {
     if (!n)
-        return;
+    {
+        fprintf(stderr, "Null node eval\n");
+        abort();
+    }
 
     instr("# KIND = %d", AST_KIND(n));
 
@@ -406,6 +409,94 @@ void eval(ast_node* n, int* label)
                 }
                 case INC:
                 {
+                    PROD0("inc");
+                    nav_to_var(label, op[0]);
+                    instr("FROM @%d", ++*label);
+                    instr("'/|'[,'[,'_,'_ R,R,S,S @%d", ++*label);
+                    instr("'/|'[,'/,'_,'_ R,R,S,S @%d", *label);
+                    if (clean_stack) // statement
+                    {
+                        instr("FROM @%d", *label);
+                        int carry = ++*label;
+                        int left_to_end = ++*label;
+                        int end = *label + 1;
+                        instr("'0,'_,'_,'_ '1,'_,'_,'_ L,L,S,S @%d", end);
+                        instr("'1,'_,'_,'_ '0,'_,'_,'_ L,S,S,S @%d", carry);
+                        instr("FROM @%d", carry);
+                        instr("'0,'_,'_,'_ '1,'_,'_,'_ L,S,S,S @%d", left_to_end);
+                        instr("'1,'_,'_,'_ '0,'_,'_,'_ L,S,S,S");
+                        instr("FROM @%d", left_to_end);
+                        instr("'0|'1,'_,'_,'_ L,S,S,S");
+                        instr("'/|'[,'_,'_,'_ S,L,S,S @%d", end);
+                    }
+                    else // expression
+                    {
+                        instr("FROM @%d", *label);
+                        int end = ++*label;
+                        int left = ++*label;
+                        if (arity == 1) // ++x
+                        {
+                            instr("'0,'_,'_,'_ '1,'1,'_,'_ R,R,S,S @%d", end);
+                            instr("'1,'_,'_,'_ '0,'0,'_,'_ R,R,S,S");
+                        }
+                        else // x++
+                        {
+                            instr("'0,'_,'_,'_ '1,'0,'_,'_ R,R,S,S @%d", end);
+                            instr("'1,'_,'_,'_ '0,'1,'_,'_ R,R,S,S");
+                        }
+                        instr("FROM @%d", end);
+                        instr("'0|'1,'_,'_,'_ '0|'1,'0|'1,'_,'_ R,R,S,S");
+                        instr("'/,'_,'_,'_ '/,'/,'_,'_ L,S,S,S @%d", left);
+                        instr("FROM @%d", left);
+                        instr("'0|'1,'/,'_,'_ L,S,S,S");
+                        instr("'[,'/,'_,'_ S,S,S,S @%d", *label + 1);
+                    }
+                    return;
+                }
+                case DEC:
+                {
+                    PROD0("dec");
+                    nav_to_var(label, op[0]);
+                    instr("FROM @%d", ++*label);
+                    instr("'/|'[,'[,'_,'_ R,R,S,S @%d", ++*label);
+                    instr("'/|'[,'/,'_,'_ R,R,S,S @%d", *label);
+                    if (clean_stack) // statement
+                    {
+                        instr("FROM @%d", *label);
+                        int carry = ++*label;
+                        int left_to_end = ++*label;
+                        int end = *label + 1;
+                        instr("'1,'_,'_,'_ '0,'_,'_,'_ L,S,S,S @%d", end);
+                        instr("'0,'_,'_,'_ '1,'_,'_,'_ L,L,S,S @%d", carry);
+                        instr("FROM @%d", carry);
+                        instr("'0,'_,'_,'_ '1,'_,'_,'_ L,S,S,S");
+                        instr("'1,'_,'_,'_ '0,'_,'_,'_ L,S,S,S @%d", left_to_end);
+                        instr("FROM @%d", left_to_end);
+                        instr("'0|'1,'_,'_,'_ L,S,S,S");
+                        instr("'/|'[,'_,'_,'_ S,L,S,S @%d", end);
+                    }
+                    else // expression
+                    {
+                        instr("FROM @%d", *label);
+                        int end = ++*label;
+                        int left = ++*label;
+                        if (arity == 1) // --x
+                        {
+                            instr("'1,'_,'_,'_ '0,'0,'_,'_ R,R,S,S @%d", end);
+                            instr("'0,'_,'_,'_ '1,'1,'_,'_ R,R,S,S");
+                        }
+                        else // x--
+                        {
+                            instr("'1,'_,'_,'_ '0,'1,'_,'_ R,R,S,S @%d", end);
+                            instr("'0,'_,'_,'_ '1,'0,'_,'_ R,R,S,S");
+                        }
+                        instr("FROM @%d", end);
+                        instr("'0|'1,'_,'_,'_ '0|'1,'0|'1,'_,'_ R,R,S,S");
+                        instr("'/,'_,'_,'_ '/,'/,'_,'_ L,S,S,S @%d", left);
+                        instr("FROM @%d", left);
+                        instr("'0|'1,'/,'_,'_ L,S,S,S");
+                        instr("'[,'/,'_,'_ S,S,S,S @%d", *label + 1);
+                    }
                     return;
                 }
 

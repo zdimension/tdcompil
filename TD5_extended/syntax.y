@@ -68,7 +68,7 @@ stmt:
         | KWHILE '(' expr ')' stmt         { $$ = make_node(KWHILE, 2, $3, $5); }
         | KIF '(' expr ')' stmt    %prec "then"    { $$ = make_node(KIF, 3, $3, $5, NULL); }
         | KIF '(' expr ')' stmt KELSE stmt      { $$ = make_node(KIF, 3, $3, $5, $7); }
-        | KFOR '(' expr_opt ';' expr_opt ';' expr_opt ')' stmt { $$ = make_node(';', 2, $3, make_node(KWHILE, 2, $5, make_node(';', 2, $9, $7))); }
+        | KFOR '(' expr_opt ';' expr_opt ';' expr_opt ')' stmt { if ($3) { OPER_CLEAN_STACK($3) = true; } if ($7) { OPER_CLEAN_STACK($7) = true; } $$ = make_node(';', 2, $3, make_node(KWHILE, 2, $5, make_node(';', 2, $9, $7))); }
         | KDO stmt KWHILE '(' expr ')' ';' { $$ = make_node(KDO, 2, $2, $5); }
         | '{' stmt_list '}'                { $$ = $2; }
         ;
