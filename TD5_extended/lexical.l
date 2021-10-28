@@ -32,6 +32,12 @@
 "<="            		{ return LE; }
 "=="            		{ return EQ; }
 "!="            		{ return NE; }
+"+=" { return APL; }
+"-=" { return AMN; }
+"*=" { return AML; }
+"/=" { return ADV; }
+"++" { return INC; }
+"--" { return DEC; }
 
 "print"         		{ return KPRINT; }
 "while" { return KWHILE; }

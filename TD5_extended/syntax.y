@@ -33,11 +33,11 @@ void yyerror(const char *s);
 
 //                       Precedence rules
 
-%right '='
+%right '=' APL AMN AML ADV
 %left GE LE EQ NE '>' '<'
 %left '+' '-'
 %left '*' '/'
-%nonassoc UMINUS
+%nonassoc UMINUS INC DEC
 
 
 
@@ -45,7 +45,7 @@ void yyerror(const char *s);
 %nonassoc KELSE
 
 //                      Non terminal types
-%type   <node>          stmt expr stmt_list var expr_opt expr_all
+%type   <node>          stmt expr stmt_list var expr_opt expr_all expr_assign
 
 %%
 
@@ -86,7 +86,15 @@ stmt_list:
 
 expr:
           expr_all                  { $$ = $1; }
-        | var '=' expr          { $$ = make_node('=', 2, $1, $3); }
+        | expr_assign               { $$ = $1; }
+        ;
+
+expr_assign:
+          var '=' expr          { $$ = make_node('=', 2, $1, $3); }
+        | var APL expr          { $$ = make_node('=', 2, $1, make_node('+', 2, $1, $3)); }
+        | var AMN expr          { $$ = make_node('=', 2, $1, make_node('-', 2, $1, $3)); }
+        | var AML expr          { $$ = make_node('=', 2, $1, make_node('*', 2, $1, $3)); }
+        | var ADV expr          { $$ = make_node('=', 2, $1, make_node('/', 2, $1, $3)); }
         ;
 
 expr_all:
