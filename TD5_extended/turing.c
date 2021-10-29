@@ -128,6 +128,25 @@ void eval(ast_node* n, int* label)
 
     exec(n, label);
 }
+void pop(int n, int* label)
+{
+    if(n--)
+        return;
+
+    instr("FROM @%d", ++*label);
+    instr("'[,'/,'_,'_ S,L,S,S @%d", ++*label);
+
+    while (--n)
+    {
+        instr("FROM @%d", *label);
+        instr("'[,'0|'1,'_,'_ S,L,S,S");
+        instr("'[,'/,'_,'_ S,L,S,S @%d", ++*label);
+    }
+
+    instr("FROM @%d", *label);
+    instr("'[,'0|'1,'_,'_ S,L,S,S");
+    instr("'[,'/,'_,'_ S,S,S,S @%d", *label + 1);
+}
 
 void exec(ast_node* n, int* label)
 {
@@ -181,6 +200,11 @@ void exec(ast_node* n, int* label)
                 case UMINUS:
                 {
                     eval(op[0], label);
+                    if (clean_stack)
+                    {
+                        pop(1, label);
+                        return;
+                    }
                     PROD0("negate");
                     instr("FROM @%d", ++*label);
                     instr("'[,'/,'_,'_ '[,'/,'_,'_ S,L,S,S @%d", ++*label);
@@ -483,6 +507,80 @@ void exec(ast_node* n, int* label)
                     instr("FROM @%d", end);
                     instr("'[,'0|'1,'_,'_ S,R,S,S");
                     instr("'[,'/|'[,'_,'_ S,S,S,S @%d", *label + 1);
+                    return;
+                }
+                case AND:
+                {
+                    eval(op[0], label);
+                    eval(op[1], label);
+                    instr("FROM @%d", ++*label);
+                    instr("'[,'/,'_,'_ '[,'_,'_,'_ S,L,S,S @%d", ++*label);
+                    instr("FROM @%d", *label);
+                    int b_nonzero = ++*label;
+                    int check_a = ++*label;
+                    int b_zero = ++*label;
+                    int scroll_right = ++*label;
+                    int a_nonzero = ++*label;
+                    int write_one = ++*label;
+                    int end = *label + 1;
+                    instr("'[,'0,'_,'_ '[,'_,'_,'_ S,L,S,S");
+                    instr("'[,'1,'_,'_ '[,'_,'_,'_ S,L,S,S @%d", b_nonzero);
+                    instr("'[,'/|'[,'_,'_ S,L,S,S @%d", b_zero);
+                    instr("FROM @%d", b_nonzero);
+                    instr("'[,'0|'1,'_,'_ '[,'_,'_,'_ S,L,S,S");
+                    instr("'[,'/,'_,'_ S,L,S,S @%d", check_a);
+                    instr("FROM @%d", check_a);
+                    instr("'[,'0,'_,'_ '[,'0,'_,'_ S,L,S,S");
+                    instr("'[,'1,'_,'_ '[,'0,'_,'_ S,L,S,S @%d", a_nonzero);
+                    instr("'[,'/|'[,'_,'_ S,S,S,S @%d", b_zero);
+                    instr("FROM @%d", b_zero);
+                    instr("'[,'0|'1,'_,'_ S,L,S,S");
+                    instr("'[,'/|'[,'_,'_ S,R,S,S @%d", scroll_right);
+                    instr("FROM @%d", scroll_right);
+                    instr("'[,'0|'1,'_,'_ '[,'0,'_,'_ S,R,S,S");
+                    instr("'[,'/|'[,'_,'_ S,S,S,S @%d", end);
+                    instr("FROM @%d", a_nonzero);
+                    instr("'[,'0|'1,'_,'_ S,L,S,S");
+                    instr("'[,'/|'[,'_,'_ S,R,S,S @%d", write_one);
+                    instr("FROM @%d", write_one);
+                    instr("'[,'0|'1,'_,'_ '[,'1,'_,'_ S,R,S,S @%d", scroll_right);
+                    return;
+                }
+                case OR:
+                {
+                    eval(op[0], label);
+                    eval(op[1], label);
+                    instr("FROM @%d", ++*label);
+                    instr("'[,'/,'_,'_ '[,'_,'_,'_ S,L,S,S @%d", ++*label);
+                    instr("FROM @%d", *label);
+                    int check_a = ++*label;
+                    int b_nonzero = ++*label;
+                    int a_nonzero = ++*label;
+                    int scroll_right = ++*label;
+                    int scroll_left = ++*label;
+                    int write_one = ++*label;
+                    instr("'[,'0,'_,'_ '[,'_,'_,'_ S,L,S,S");
+                    instr("'[,'1,'_,'_ '[,'_,'_,'_ S,L,S,S @%d", b_nonzero);
+                    instr("'[,'/|'[,'_,'_ S,L,S,S @%d", check_a);
+                    instr("FROM @%d", b_nonzero);
+                    instr("'[,'0|'1,'_,'_ '[,'_,'_,'_ S,L,S,S");
+                    instr("'[,'/,'_,'_ S,L,S,S @%d", scroll_left);
+                    instr("FROM @%d", scroll_left);
+                    instr("'[,'0|'1,'_,'_ '[,'0,'_,'_ S,L,S,S");
+                    instr("'[,'/|'[,'_,'_ S,R,S,S @%d", write_one);
+                    instr("FROM @%d", check_a);
+                    instr("'[,'0,'_,'_ '[,'0,'_,'_ S,L,S,S");
+                    instr("'[,'1,'_,'_ '[,'0,'_,'_ S,L,S,S @%d", a_nonzero);
+                    instr("'[,'/|'[,'_,'_ S,R,S,S @%d", scroll_right);
+                    instr("FROM @%d", a_nonzero);
+                    instr("'[,'0|'1,'_,'_ S,L,S,S");
+                    instr("'[,'/|'[,'_,'_ S,R,S,S @%d", write_one);
+                    instr("FROM @%d", write_one);
+                    instr("'[,'0|'1,'_,'_ '[,'1,'_,'_ S,R,S,S @%d", scroll_right);
+                    int end = *label + 1;
+                    instr("FROM @%d", scroll_right);
+                    instr("'[,'0|'1,'_,'_ '[,'0,'_,'_ S,R,S,S");
+                    instr("'[,'/|'[,'_,'_ S,S,S,S @%d", end);
                     return;
                 }
                 case INC:

@@ -38,6 +38,8 @@
 "/=" { return ADV; }
 "++" { return INC; }
 "--" { return DEC; }
+"&&" { return AND; }
+"||" { return OR; }
 
 "print"         		{ return KPRINT; }
 "while" { return KWHILE; }
