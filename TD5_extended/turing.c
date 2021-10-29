@@ -248,6 +248,11 @@ void exec(ast_node* n, int* label)
                 {
                     PROD0("deref");
                     eval(op[0], label);
+                    if (clean_stack)
+                    {
+                        pop(1, label);
+                        return;
+                    }
                     deref(label);
                     instr("FROM @%d", ++*label);
                     instr("'/|'[,'/,'_,'_ R,R,S,S @%d", ++*label);
@@ -264,6 +269,10 @@ void exec(ast_node* n, int* label)
                 }
                 case REF:
                 {
+                    if (clean_stack)
+                    {
+                        return;
+                    }
                     int ptr = get_var_id(VAR_NAME(op[0]))->position;
                     if (op[1] != NULL)
                     {
@@ -288,6 +297,11 @@ void exec(ast_node* n, int* label)
                 {
                     eval(op[0], label);
                     eval(op[1], label);
+                    if (clean_stack)
+                    {
+                        pop(2, label);
+                        return;
+                    }
                     ADD:
                     PROD0("add");
                     instr("FROM @%d", ++*label);
@@ -319,6 +333,11 @@ void exec(ast_node* n, int* label)
                 {
                     eval(op[0], label);
                     eval(op[1], label);
+                    if (clean_stack)
+                    {
+                        pop(2, label);
+                        return;
+                    }
                     PROD0("sub");
                     instr("FROM @%d", ++*label);
                     instr("'[,'/,'_,'_ '[,'_,'_,'_ S,L,S,S @%d", ++*label);
@@ -349,6 +368,11 @@ void exec(ast_node* n, int* label)
                 {
                     eval(op[0], label);
                     eval(op[1], label);
+                    if (clean_stack)
+                    {
+                        pop(2, label);
+                        return;
+                    }
                     PROD0("mul");
                     instr("FROM @%d", ++*label);
                     instr("'[,'/,'_,'_ '[,'_,'_,'_ S,L,S,S @%d", ++*label);
@@ -397,12 +421,22 @@ void exec(ast_node* n, int* label)
                 case '/':
                     eval(op[0], label);
                     eval(op[1], label);
+                    if (clean_stack)
+                    {
+                        pop(2, label);
+                        return;
+                    }
                     PROD0("div");
                     return;
                 case '<':
                 {
                     eval(op[0], label);
                     eval(op[1], label);
+                    if (clean_stack)
+                    {
+                        pop(2, label);
+                        return;
+                    }
                     PROD0("cmplt");
                     COMPARISON({
                                    instr("'[,'0,'1,'_ '[,'_,'_,'_ S,L,L,S @%d", left_then_one);
@@ -415,6 +449,11 @@ void exec(ast_node* n, int* label)
                 {
                     eval(op[0], label);
                     eval(op[1], label);
+                    if (clean_stack)
+                    {
+                        pop(2, label);
+                        return;
+                    }
                     PROD0("cmpgt");
                     COMPARISON({
                                    instr("'[,'1,'0,'_ '[,'_,'_,'_ S,L,L,S @%d", left_then_one);
@@ -427,6 +466,11 @@ void exec(ast_node* n, int* label)
                 {
                     eval(op[0], label);
                     eval(op[1], label);
+                    if (clean_stack)
+                    {
+                        pop(2, label);
+                        return;
+                    }
                     PROD0("cmpge");
                     COMPARISON({
                                    instr("'[,'1,'0,'_ '[,'_,'_,'_ S,L,L,S @%d", left_then_one);
@@ -439,6 +483,11 @@ void exec(ast_node* n, int* label)
                 {
                     eval(op[0], label);
                     eval(op[1], label);
+                    if (clean_stack)
+                    {
+                        pop(2, label);
+                        return;
+                    }
                     PROD0("cmple");
                     COMPARISON({
                                    instr("'[,'0,'1,'_ '[,'_,'_,'_ S,L,L,S @%d", left_then_one);
@@ -451,6 +500,11 @@ void exec(ast_node* n, int* label)
                 {
                     eval(op[0], label);
                     eval(op[1], label);
+                    if (clean_stack)
+                    {
+                        pop(2, label);
+                        return;
+                    }
                     PROD0("cmpne");
                     instr("FROM @%d", ++*label);
                     instr("'[,'/,'_,'_ '[,'_,'_,'_ S,L,S,S @%d", ++*label);
@@ -491,6 +545,11 @@ void exec(ast_node* n, int* label)
                 {
                     eval(op[0], label);
                     eval(op[1], label);
+                    if (clean_stack)
+                    {
+                        pop(2, label);
+                        return;
+                    }
                     PROD0("cmpeq");
                     instr("FROM @%d", ++*label);
                     instr("'[,'/,'_,'_ '[,'_,'_,'_ S,L,S,S @%d", ++*label);
@@ -531,6 +590,11 @@ void exec(ast_node* n, int* label)
                 {
                     eval(op[0], label);
                     eval(op[1], label);
+                    if (clean_stack)
+                    {
+                        pop(2, label);
+                        return;
+                    }
                     instr("FROM @%d", ++*label);
                     instr("'[,'/,'_,'_ '[,'_,'_,'_ S,L,S,S @%d", ++*label);
                     instr("FROM @%d", *label);
@@ -568,6 +632,11 @@ void exec(ast_node* n, int* label)
                 {
                     eval(op[0], label);
                     eval(op[1], label);
+                    if (clean_stack)
+                    {
+                        pop(2, label);
+                        return;
+                    }
                     instr("FROM @%d", ++*label);
                     instr("'[,'/,'_,'_ '[,'_,'_,'_ S,L,S,S @%d", ++*label);
                     instr("FROM @%d", *label);
@@ -790,9 +859,6 @@ void exec(ast_node* n, int* label)
                     instr("'[,'/|'[,'_,'_ S,S,S,S @%d", *label + 1);
                     return;
                 }
-                case KREAD:
-                    PROD1S("read", VAR_NAME(op[0]));
-                    return;
                 case '=':
                 {
                     eval(op[1], label);
