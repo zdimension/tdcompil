@@ -24,102 +24,158 @@ void yyerror(const char *s);
 %union {
     float value;                 // number value
     char *var;                   // ident name
+    int chr;
     ast_node *node;              // node pointer
 };
 
 //                      Tokens
 %token  <value>         NUMBER
 %token  <var>           IDENT
-%token                  KWHILE KIF KPRINT KELSE KREAD KFOR KDO
-
+%token                  KWHILE KIF KPRINT KELSE KREAD KFOR KDO KDIM
+%token '+' '-' '*' '/' GE LE EQ NE '>' '<' REF DEREF APL AMN AML ADV INC DEC
+%token UMINUS
 //                       Precedence rules
-
-%right '=' APL AMN AML ADV
-%left GE LE EQ NE '>' '<'
-%left '+' '-'
-%left '*' '/'
-%nonassoc UMINUS INC DEC
+%left '+'
 
 
-
-%nonassoc "then"
+%nonassoc THEN
 %nonassoc KELSE
 
 //                      Non terminal types
-%type   <node>          stmt expr stmt_list var expr_opt expr_all expr_assign
+%type   <node>          stmt expr stmt_list var expr_opt lvalue ref_offset basic_expr postfix_expr unary_expr mult_expr add_expr rel_expr eq_expr assign_expr
+%type   <chr>		aug_assign
 
 %%
 
-session:
-        stmts                   { fprintf(stderr, "Bye.\n");  exit(0); }
+session
+	: stmts                   { fprintf(stderr, "Bye.\n");  exit(0); }
         ;
 
-stmts:
-          stmts stmt            { produce_code($2); free_node($2); }
+stmts
+	: stmts stmt            { produce_code($2); free_node($2); }
         | /* empty */
         ;
 
-stmt:
-         ';'                               { $$ = make_node(';', 0); }
-        | expr_assign ';'        { OPER_CLEAN_STACK($1) = true; $$ = $1; }
-        | expr_all ';'                     { $$ = $1; }
-        | KPRINT expr ';'                  { $$ = make_node(KPRINT, 1, $2); }
-        | KREAD expr ';'                  { $$ = make_node(KREAD, 1, $2); }
-        | KWHILE '(' expr ')' stmt         { $$ = make_node(KWHILE, 2, $3, $5); }
-        | KIF '(' expr ')' stmt    %prec "then"    { $$ = make_node(KIF, 3, $3, $5, NULL); }
-        | KIF '(' expr ')' stmt KELSE stmt      { $$ = make_node(KIF, 3, $3, $5, $7); }
-        | KFOR '(' expr_opt ';' expr_opt ';' expr_opt ')' stmt { if ($3) { OPER_CLEAN_STACK($3) = true; } if ($7) { OPER_CLEAN_STACK($7) = true; } $$ = make_node(';', 2, $3, make_node(KWHILE, 2, $5, make_node(';', 2, $9, $7))); }
-        | KDO stmt KWHILE '(' expr ')' ';' { $$ = make_node(KDO, 2, $2, $5); }
-        | '{' stmt_list '}'                { $$ = $2; }
+stmt
+	: ';'                               			{ $$ = make_node(';', 0); }
+        | expr ';'						{ if (AST_KIND($1) == k_operator) { OPER_CLEAN_STACK($1) = true; } $$ = $1; }
+        | KDIM var '[' NUMBER ']' ';' 				{ $$ = make_node(KDIM, 2, $2, make_number($4)); }
+//        | expr_assign ';'        				{ OPER_CLEAN_STACK($1) = true; $$ = $1; }
+//        | expr_all ';'                    			{ $$ = $1; }
+        | KPRINT expr ';'                  			{ $$ = make_node(KPRINT, 1, $2); }
+        | KREAD expr ';'                  			{ $$ = make_node(KREAD, 1, $2); }
+        | KWHILE '(' expr ')' stmt         			{ $$ = make_node(KWHILE, 2, $3, $5); }
+        | KIF '(' expr ')' stmt    %prec THEN    		{ $$ = make_node(KIF, 3, $3, $5, NULL); }
+        | KIF '(' expr ')' stmt KELSE stmt      		{ $$ = make_node(KIF, 3, $3, $5, $7); }
+        | KFOR '(' expr_opt ';' expr_opt ';' expr_opt ')' stmt 	{ if ($3) { OPER_CLEAN_STACK($3) = true; } if ($7) { OPER_CLEAN_STACK($7) = true; } $$ = make_node(';', 2, $3, make_node(KWHILE, 2, $5, make_node(';', 2, $9, $7))); }
+        | KDO stmt KWHILE '(' expr ')' ';' 			{ $$ = make_node(KDO, 2, $2, $5); }
+        | '{' stmt_list '}'                			{ $$ = $2; }
         ;
 
-expr_opt:
-          expr          { $$ = $1; }
+expr_opt
+	: expr          { $$ = $1; }
         |               { $$ = NULL; }
         ;
 
 
-stmt_list:
-          stmt                  { $$ = $1; }
+stmt_list
+	: stmt                  { $$ = $1; }
         | stmt_list stmt        { $$ = make_node(';', 2, $1, $2); }
         ;
 
+//
+//
+//expr_assign:
+//          lvalue '=' expr          { $$ = make_node('=', 2, $1, $3); }
+//        | lvalue aug_assign expr   { $$ = make_node('=', 2, $1, make_node($2, 2, $1, $3)); }
+//        | lvalue INC               { $$ = make_node(INC, 2, $1, NULL); }
+//        | lvalue DEC               { $$ = make_node(DEC, 2, $1, NULL); }
+//        ;
 
-expr:
-          expr_all                  { $$ = $1; }
-        | expr_assign               { $$ = $1; }
+aug_assign
+	: APL 	{ $$ = '+'; }
+        | AMN 	{ $$ = '-'; }
+        | AML 	{ $$ = '*'; }
+        | ADV	{ $$ = '/'; }
         ;
 
-expr_assign:
-          var '=' expr          { $$ = make_node('=', 2, $1, $3); }
-        | var APL expr          { $$ = make_node('=', 2, $1, make_node('+', 2, $1, $3)); }
-        | var AMN expr          { $$ = make_node('=', 2, $1, make_node('-', 2, $1, $3)); }
-        | var AML expr          { $$ = make_node('=', 2, $1, make_node('*', 2, $1, $3)); }
-        | var ADV expr          { $$ = make_node('=', 2, $1, make_node('/', 2, $1, $3)); }
-        | INC var               { $$ = make_node(INC, 1, $2); }
-        | DEC var               { $$ = make_node(DEC, 1, $2); }
-        | var INC               { $$ = make_node(INC, 2, $1, NULL); }
-        | var DEC               { $$ = make_node(DEC, 2, $1, NULL); }
+//expr_all:
+//          NUMBER                		{ $$ = make_number($1); }
+//        | lvalue                   		{ $$ = $1; }
+//        | expr bin_op expr %prec BINOP			{ $$ = make_node($2, 2, $1, $3); }
+//        | '(' expr ')'          		{ $$ = $2; }
+//        ;
+
+basic_expr
+	: NUMBER			{ $$ = make_number($1); }
+	| lvalue			{ $$ = $1; }
+	| '(' expr ')'			{ $$ = $2; }
+	;
+
+postfix_expr
+	: basic_expr			{ $$ = $1; }
+	| lvalue INC               	{ $$ = make_node(INC, 2, $1, NULL); }
+        | lvalue DEC               	{ $$ = make_node(DEC, 2, $1, NULL); }
         ;
 
-expr_all:
-          NUMBER                { $$ = make_number($1); }
-        | var                   { $$ = $1; }
-        | '-' expr %prec UMINUS { $$ = make_node(UMINUS, 1, $2); }
-        | expr '+' expr         { $$ = make_node('+', 2, $1, $3); }
-        | expr '-' expr         { $$ = make_node('-', 2, $1, $3); }
-        | expr '*' expr         { $$ = make_node('*', 2, $1, $3); }
-        | expr '/' expr         { $$ = make_node('/', 2, $1, $3); }
-        | expr '<' expr         { $$ = make_node('<', 2, $1, $3); }
-        | expr '>' expr         { $$ = make_node('>', 2, $1, $3); }
-        | expr GE expr          { $$ = make_node(GE, 2, $1, $3); }
-        | expr LE expr          { $$ = make_node(LE, 2, $1, $3); }
-        | expr NE expr          { $$ = make_node(NE, 2, $1, $3); }
-        | expr EQ expr          { $$ = make_node(EQ, 2, $1, $3); }
-        | '(' expr ')'          { $$ = $2; }
+unary_expr
+	: postfix_expr				{ $$ = $1; }
+	| '-' postfix_expr 	{ $$ = make_node(UMINUS, 1, $2); }
+	| INC lvalue               		{ $$ = make_node(INC, 1, $2); }
+	| DEC lvalue               		{ $$ = make_node(DEC, 1, $2); }
+	| '&' var ref_offset 		{ $$ = make_node(REF, 2, $2, $3); }
+	;
+
+mult_expr
+	: unary_expr				{ $$ = $1; }
+	| mult_expr '*' unary_expr		{ $$ = make_node('*', 2, $1, $3); }
+	| mult_expr '/' unary_expr		{ $$ = make_node('*', 2, $1, $3); }
+	;
+
+add_expr:
+	  mult_expr				{ $$ = $1; }
+	| add_expr '+' mult_expr		{ $$ = make_node('+', 2, $1, $3); }
+	| add_expr '-' mult_expr		{ $$ = make_node('-', 2, $1, $3); }
+	;
+
+rel_expr
+	: add_expr				{ $$ = $1; }
+	| rel_expr '<' add_expr			{ $$ = make_node('<', 2, $1, $3); }
+	| rel_expr '>' add_expr			{ $$ = make_node('>', 2, $1, $3); }
+	| rel_expr LE add_expr			{ $$ = make_node(LE, 2, $1, $3); }
+	| rel_expr GE add_expr			{ $$ = make_node(LE, 2, $1, $3); }
+	;
+
+eq_expr
+	: rel_expr				{ $$ = $1; }
+	| eq_expr EQ rel_expr			{ $$ = make_node(EQ, 2, $1, $3); }
+	| eq_expr NE rel_expr			{ $$ = make_node(NE, 2, $1, $3); }
+	;
+
+assign_expr
+	: eq_expr				{ $$ = $1; }
+	| lvalue '=' assign_expr			{ $$ = make_node('=', 2, $1, $3); }
+	| var aug_assign assign_expr   	{ $$ = make_node('=', 2, $1, make_node($2, 2, $1, $3)); }
+	;
+
+expr
+	: assign_expr				{ $$ = $1; }
+	;
+
+ref_offset
+	: '[' expr ']'				{ $$ = $2; }
+        |					{ $$ = NULL; }
         ;
 
-var:       IDENT                { $$ = make_ident($1); }
+lvalue
+	: var	   			{ $$ = $1; }
+   //     | '*' expr %prec DEREF 	{ $$ = make_node(DEREF, 1, $2); }
+        | lvalue '[' expr ']'    	{ $$ = make_node(DEREF, 1, make_node('+', 2, $1, $3)); }
+        ;
+
+
+var
+    	:  IDENT                { $$ = make_ident($1); }
         ;
 
 

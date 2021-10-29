@@ -1,8 +1,11 @@
 {
-    y = 0;
-    for (x = 0; x < 10; ++x)
-    {
-        y = y + x;
-    }
-    print y;
+    i = 10;
+    dim arr[10];
+    arr[0] = 0;
+    arr[1] = 1;
+    ptr = &arr[2];
+    while (--i)
+        *(ptr++) = *(ptr - 2) + *(ptr - 3);
+
+    print arr[9];
 }

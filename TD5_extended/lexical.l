@@ -25,7 +25,7 @@
 
 	/* ---- Single char tokens ---- */
 
-[-()<>=+*/;{}.]			{ return *yytext; }
+[-()\[\]<>=+*/;{}.&]			{ return *yytext; }
 
 	/* ---- "complex" tokens ---- */
 ">="				{ return GE; }
@@ -46,6 +46,7 @@
 "read" { return KREAD; }
 "for" { return KFOR; }
 "do" { return KDO; }
+"dim" { return KDIM; }
 
 	/* ---- Idents ---- */
 [a-zA-Z]+			{ yylval.var = strdup(yytext); return IDENT; }

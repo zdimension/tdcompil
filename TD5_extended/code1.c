@@ -21,13 +21,13 @@
 struct var_cell
 {        // Type for representing variables
     char* name;
-    float value;
+    double value;
     struct var_cell* next;
 };
 
 static struct var_cell* all = NULL;
 
-static float get_ident_value(char* id)
+static double get_ident_value(char* id)
 {
     for (struct var_cell* cur = all; cur; cur = cur->next)
     {
@@ -38,7 +38,7 @@ static float get_ident_value(char* id)
     return 0;
 }
 
-static float* get_ident_ref(char* id)
+static double* get_ident_ref(char* id)
 {
     for (struct var_cell* cur = all; cur; cur = cur->next)
     {
@@ -49,7 +49,7 @@ static float* get_ident_ref(char* id)
     return NULL;
 }
 
-static float set_ident_value(char* id, float value)
+static double set_ident_value(char* id, double value)
 {
     for (struct var_cell* cur = all; cur; cur = cur->next)
     {
@@ -79,7 +79,7 @@ static float set_ident_value(char* id, float value)
 // ----------------------------------------------------------------------
 //		Tree evaluation
 // ----------------------------------------------------------------------
-float eval(ast_node* n)
+double eval(ast_node* n)
 {
     if (!n)
         return 1;
@@ -123,12 +123,12 @@ float eval(ast_node* n)
 
                 case INC:
                 {
-                    float* ref = get_ident_ref(VAR_NAME(op[0]));
+                    double* ref = get_ident_ref(VAR_NAME(op[0]));
                     return arity == 1 ? ++*ref : (*ref)++;
                 }
                 case DEC:
                 {
-                    float* ref = get_ident_ref(VAR_NAME(op[0]));
+                    double* ref = get_ident_ref(VAR_NAME(op[0]));
                     return arity == 1 ? --*ref : (*ref)--;
                 }
 
@@ -143,7 +143,7 @@ float eval(ast_node* n)
                     }
                 case KPRINT:
                 {
-                    float result = eval(op[0]);
+                    double result = eval(op[0]);
                     if (result == (long) result)
                         printf("%ld\n", (long) result);
                     else
@@ -169,7 +169,7 @@ float eval(ast_node* n)
                 {
                     char* line = NULL;
                     char* end = NULL;
-                    float flt;
+                    double flt;
                     while (
                             (printf("%s? ", VAR_NAME(op[0])), scanf("%m[^\n]%*c", &line)) < 1 ||
                             !line || !*line ||

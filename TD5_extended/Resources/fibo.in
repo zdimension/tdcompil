@@ -15,5 +15,5 @@
     }
 
     # output
-    result = y;
+    print y;
 }

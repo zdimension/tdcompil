@@ -64,25 +64,41 @@ instr("'[,'_,'_,'_ '[,'1,'_,'_ S,R,S,S @%d", zero);\
 struct var_list
 {
     const char* name;
+    int position;
+    int size;
     struct var_list* next;
 };
 
 struct var_list* head = NULL, * tail = NULL;
 
 void nav_to_var(int* label, struct ast_node* op);
+void deref(int* label);
 
-int get_var_id(const char* name)
+struct var_list* get_var_id(const char* name)
 {
-    int i = 0;
-    for (struct var_list* ptr = head; ptr; ptr = ptr->next, i++)
+    for (struct var_list* ptr = head; ptr; ptr = ptr->next)
     {
         if (!strcmp(ptr->name, name))
         {
-            return i;
+            return ptr;
         }
     }
     fprintf(stderr, "VAR NOT FOUND: %s\n", name);
     abort();
+}
+
+void push_number(int value, int* label)
+{
+    instr("FROM @%d", ++(*label));
+    instr("'/|'[,'[,'_,'_ S,R,S,S @%d", ++*label);
+    instr("'/|'[,'/,'_,'_ S,R,S,S @%d", *label);
+    instr("FROM @%d", *label);
+    for (int i = 0; i < INT_WIDTH; i++, value /= 2)
+    {
+        instr("'/|'[,'_,'_,'_ '/|'[,'%d,'_,'_ S,R,S,S @%d", value & 1, ++*label);
+        instr("FROM @%d", *label);
+    }
+    instr("'/|'[,'_,'_,'_ '/|'[,'/,'_,'_ S,S,S,S @%d", *label + 1);
 }
 
 void eval(ast_node* n, int* label)
@@ -99,35 +115,31 @@ void eval(ast_node* n, int* label)
     {
         case k_number:
         {
-            instr("FROM @%d", ++(*label));
             PROD1F("push", NUMBER_VALUE(n));
-            int value = NUMBER_VALUE(n);
-            instr("'/|'[,'[,'_,'_ S,R,S,S @%d", ++*label);
-            instr("'/|'[,'/,'_,'_ S,R,S,S @%d", *label);
-            instr("FROM @%d", *label);
-            for (int i = 0; i < INT_WIDTH; i++, value /= 2)
-            {
-                instr("'/|'[,'_,'_,'_ '/|'[,'%d,'_,'_ S,R,S,S @%d", value & 1, ++*label);
-                instr("FROM @%d", *label);
-            }
-            instr("'/|'[,'_,'_,'_ '/|'[,'/,'_,'_ S,S,S,S @%d", *label + 1);
+            push_number(NUMBER_VALUE(n), label);
             return;
         }
         case k_ident:
         {
-            instr("FROM @%d", ++(*label));
-            instr("'[,'/|'[,'_,'_ S,S,S,S @%d", *label + 1);
+            struct var_list* ptr = get_var_id(VAR_NAME(n));
             PROD1S("load", VAR_NAME(n));
-            nav_to_var(label, n);
-            instr("FROM @%d", ++*label);
-            instr("'/|'[,'/,'_,'_ R,R,S,S @%d", ++*label);
-            instr("'/|'[,'[,'_,'_ R,R,S,S @%d", *label);
-            instr("FROM @%d", *label);
-            instr("'0|'1,'_,'_,'_ '0|'1,'0|'1,'_,'_ R,R,S,S");
-            instr("'/,'_,'_,'_ '/,'/,'_,'_ L,S,S,S @%d", ++*label);
-            instr("FROM @%d", *label);
-            instr("'/|'0|'1,'/,'_,'_ L,S,S,S");
-            instr("'[,'/,'_,'_ S,S,S,S @%d", *label + 1);
+            if (ptr->size != 1) // array
+            {
+                push_number(ptr->position, label);
+            }
+            else
+            {
+                nav_to_var(label, n);
+                instr("FROM @%d", ++*label);
+                instr("'/|'[,'/,'_,'_ R,R,S,S @%d", ++*label);
+                instr("'/|'[,'[,'_,'_ R,R,S,S @%d", *label);
+                instr("FROM @%d", *label);
+                instr("'0|'1,'_,'_,'_ '0|'1,'0|'1,'_,'_ R,R,S,S");
+                instr("'/,'_,'_,'_ '/,'/,'_,'_ L,S,S,S @%d", ++*label);
+                instr("FROM @%d", *label);
+                instr("'/|'0|'1,'/,'_,'_ L,S,S,S");
+                instr("'[,'/,'_,'_ S,S,S,S @%d", *label + 1);
+            }
             return;
         }
         case k_operator:
@@ -141,8 +153,6 @@ void eval(ast_node* n, int* label)
                 /* Expressions */
                 case UMINUS:
                 {
-                    instr("FROM @%d", ++(*label));
-                    instr("'[,'/|'[,'_,'_ S,S,S,S @%d", *label + 1);
                     eval(op[0], label);
                     PROD0("negate");
                     instr("FROM @%d", ++*label);
@@ -165,10 +175,51 @@ void eval(ast_node* n, int* label)
                     instr("'[,'/,'_,'_ S,S,S,S @%d", *label + 1);
                     return;
                 }
+                case DEREF:
+                {
+                    PROD0("deref");
+                    eval(op[0], label);
+                    deref(label);
+                    instr("FROM @%d", ++*label);
+                    instr("'/|'[,'/,'_,'_ R,R,S,S @%d", ++*label);
+                    instr("'/|'[,'[,'_,'_ R,R,S,S @%d", *label);
+                    instr("FROM @%d", *label);
+                    instr("'0|'1,'0,'_,'_ '0|'1,'0|'1,'_,'_ R,R,S,S");
+                    instr("'0|'1,'1,'_,'_ '0|'1,'0|'1,'_,'_ R,R,S,S");
+                    instr("'0|'1,'_,'_,'_ '0|'1,'0|'1,'_,'_ R,R,S,S");
+                    instr("'/,'_,'_,'_ '/,'/,'_,'_ L,S,S,S @%d", ++*label);
+                    instr("FROM @%d", *label);
+                    instr("'0|'1|'/,'/,'_,'_ L,S,S,S");
+                    instr("'[,'/,'_,'_ S,S,S,S @%d", *label + 1);
+                    return;
+                }
+                case REF:
+                {
+                    int ptr = get_var_id(VAR_NAME(op[0]))->position;
+                    if (op[1] != NULL)
+                    {
+                        if (AST_KIND(op[1]) == k_number)
+                        {
+                            push_number(ptr + (int) NUMBER_VALUE(op[1]), label);
+                        }
+                        else
+                        {
+                            push_number(ptr, label);
+                            eval(op[1], label);
+                            goto ADD;
+                        }
+                    }
+                    else
+                    {
+                        push_number(ptr, label);
+                    }
+                    return;
+                }
                 case '+':
                 {
                     eval(op[0], label);
                     eval(op[1], label);
+                    ADD:
                     PROD0("add");
                     instr("FROM @%d", ++*label);
                     instr("'[,'/,'_,'_ '[,'_,'_,'_ S,L,S,S @%d", ++*label);
@@ -637,9 +688,11 @@ void eval(ast_node* n, int* label)
                         instr("'0|'1,'/,'_,'_ L,S,S,S");
                         instr("'/|'[,'/,'_,'_ S,S,S,S @%d", *label + 1);
                     }
-                    PROD1S("store", VAR_NAME(op[0]));
+                    PROD0("store");
                     return;
                 }
+                case KDIM:
+                    return;
                 default:
                     error_msg("Houston, we have a problem: unattended token %d",
                               OPER_OPERATOR(n));
@@ -653,17 +706,81 @@ void eval(ast_node* n, int* label)
 
 void nav_to_var(int* label, struct ast_node* op)
 {
-    int vid = get_var_id(VAR_NAME(op));
-    while (vid-- > 0)
+    if (AST_KIND(op) == k_ident)
     {
-        instr("FROM @%d", ++*label);
-        instr("'/|'[,'/,'_,'_ R,S,S,S @%d", ++*label);
-        instr("'/|'[,'[,'_,'_ R,S,S,S @%d", *label);
-        instr("FROM @%d", *label);
-        instr("'0|'1,'/,'_,'_ R,S,S,S");
-        instr("'0|'1,'[,'_,'_ R,S,S,S");
-        instr("'/,'/|'[,'_,'_ S,S,S,S @%d", *label + 1);
+        int vid = get_var_id(VAR_NAME(op))->position;
+        while (vid-- > 0)
+        {
+            instr("FROM @%d", ++*label);
+            instr("'/|'[,'/,'_,'_ R,S,S,S @%d", ++*label);
+            instr("'/|'[,'[,'_,'_ R,S,S,S @%d", *label);
+            instr("FROM @%d", *label);
+            instr("'0|'1,'/,'_,'_ R,S,S,S");
+            instr("'0|'1,'[,'_,'_ R,S,S,S");
+            instr("'/,'/|'[,'_,'_ S,S,S,S @%d", *label + 1);
+        }
     }
+    else if (AST_KIND(op) == k_operator && OPER_OPERATOR(op) == DEREF)
+    {
+        eval(OPER_OPERANDS(op)[0], label);
+        deref(label);
+    }
+    else
+    {
+        error_msg("Invaid lvalue");
+        abort();
+    }
+}
+
+void deref(int* label)
+{
+    instr("FROM @%d", ++*label);
+    instr("'[,'/,'_,'_ '[,'_,'_,'_ S,L,S,S @%d", ++*label);
+    instr("FROM @%d", *label);
+    instr("'[,'0|'1,'_,'_ '[,'_,'0|'1,'_ S,L,L,S");
+    instr("'[,'/|'[,'_,'_ S,S,R,S @%d", ++*label);
+    int start = *label;
+    instr("FROM @%d", start);
+    int dec0 = ++*label;
+    int dec = ++*label;
+    int dec2 = ++*label;
+    int end = ++*label;
+    instr("'/|'[,'[,'1,'_ '/|'[,'[,'0,'_ S,S,L,S @%d", dec0);
+    instr("'/|'[,'[,'0,'_ '/|'[,'[,'1,'_ S,S,R,S");
+    instr("'/|'[,'[,'_,'_ S,S,L,S @%d", end);
+    instr("'/|'[,'/,'1,'_ '/|'[,'/,'0,'_ S,S,L,S @%d", dec0);
+    instr("'/|'[,'/,'0,'_ '/|'[,'/,'1,'_ S,S,R,S");
+    instr("'/|'[,'/,'_,'_ S,S,L,S @%d", end);
+    instr("FROM @%d", dec0);
+    instr("'[,'/,'0|'1,'_ S,S,L,S");
+    instr("'[,'[,'0|'1,'_ S,S,L,S");
+    instr("'/,'/,'0|'1,'_ S,S,L,S");
+    instr("'/,'[,'0|'1,'_ S,S,L,S");
+    instr("'/|'[,'/,'_,'_ R,S,S,S @%d", dec);
+    instr("'/|'[,'[,'_,'_ R,S,S,S @%d", dec);
+    instr("FROM @%d", dec);
+    instr("'0,'[,'0|'1,'_ R,S,L,S");
+    instr("'1,'[,'0|'1,'_ R,S,L,S");
+    instr("'0,'/|'[,'_,'_ R,S,S,S");
+    instr("'1,'/|'[,'_,'_ R,S,S,S");
+    instr("'/,'[,'0|'1,'_ S,S,L,S @%d", dec2);
+    instr("'/,'/,'0|'1,'_ S,S,L,S @%d", dec2);
+    instr("'/,'/|'[,'_,'_ S,S,S,S @%d", dec2);
+    instr("'[,'[,'0|'1,'_ S,S,L,S @%d", dec2);
+    instr("'[,'/,'0|'1,'_ S,S,L,S @%d", dec2);
+    instr("'[,'/|'[,'_,'_ S,S,S,S @%d", dec2);
+    instr("FROM @%d", dec2);
+    instr("'/,'[,'0|'1,'_ S,S,L,S");
+    instr("'/,'/,'0|'1,'_ S,S,L,S");
+    instr("'/,'/|'[,'_,'_ S,S,R,S @%d", start);
+    instr("'[,'[,'0|'1,'_ S,S,L,S");
+    instr("'[,'/,'0|'1,'_ S,S,L,S");
+    instr("'[,'/|'[,'_,'_ S,S,R,S @%d", start);
+    instr("FROM @%d", end);
+    instr("'/|'[,'/,'1,'_ '/|'[,'/,'_,'_ S,S,L,S");
+    instr("'/|'[,'/,'_,'_ S,S,S,S @%d", *label + 1);
+    instr("'/|'[,'[,'1,'_ '/|'[,'[,'_,'_ S,S,L,S");
+    instr("'/|'[,'[,'_,'_ S,S,S,S @%d", *label + 1);
 }
 
 
@@ -674,11 +791,12 @@ void traverse_vars(ast_node* n)
 
     if (AST_KIND(n) == k_operator)
     {
-        if (OPER_OPERATOR(n) == '=')
+        if ((OPER_OPERATOR(n) == '=' || OPER_OPERATOR(n) == KDIM) && AST_KIND(OPER_OPERANDS(n)[0]) == k_ident)
         {
             const char* name = VAR_NAME(OPER_OPERANDS(n)[0]);
             bool found = false;
-            for (struct var_list* ptr = head; ptr; ptr = ptr->next)
+            int i = 0;
+            for (struct var_list* ptr = head; ptr; i += ptr->size, ptr = ptr->next)
             {
                 if (!strcmp(ptr->name, name))
                 {
@@ -690,6 +808,8 @@ void traverse_vars(ast_node* n)
             {
                 struct var_list* newNode = malloc(sizeof(struct var_list));
                 newNode->name = name;
+                newNode->position = i;
+                newNode->size = OPER_OPERATOR(n) == KDIM ? NUMBER_VALUE(OPER_OPERANDS(n)[1]) : 1;
                 newNode->next = NULL;
                 if (head == NULL)
                 {
@@ -721,11 +841,10 @@ void produce_code(ast_node* n)
     traverse_vars(n);
 
     {
-        int i = 0;
         printf("# Memory map\n");
-        for (struct var_list* ptr = head; ptr; ptr = ptr->next, i++)
+        for (struct var_list* ptr = head; ptr; ptr = ptr->next)
         {
-            printf("# %4d %s\n", i, ptr->name);
+            printf("# %4d %s\n", ptr->position, ptr->name);
         }
     }
 
@@ -738,13 +857,16 @@ void produce_code(ast_node* n)
 
     for (struct var_list* ptr = head; ptr; ptr = ptr->next)
     {
-        for (int i = 0; i < INT_WIDTH; i++)
+        for (int j = 0; j < ptr->size; j++)
         {
+            for (int i = 0; i < INT_WIDTH; i++)
+            {
+                instr("FROM @%d", label);
+                instr("'_,'[,'_,'_ '0,'[,'_,'_ R,S,S,S @%d", ++label);
+            }
             instr("FROM @%d", label);
-            instr("'_,'[,'_,'_ '0,'[,'_,'_ R,S,S,S @%d", ++label);
+            instr("'_,'[,'_,'_ '/,'[,'_,'_ R,S,S,S @%d", ++label);
         }
-        instr("FROM @%d", label);
-        instr("'_,'[,'_,'_ '/,'[,'_,'_ R,S,S,S @%d", ++label);
     }
     instr("FROM @%d", label);
     instr("'_|'/|'0,'[,'_,'_ L,S,S,S");

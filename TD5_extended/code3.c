@@ -70,6 +70,18 @@ int eval(ast_node* n, int* label)
                 /* Expressions */
                 case UMINUS:
                     return link(KEYWORD("[-]"), op0);
+                case INC:
+                    return link(KEYWORD(arity == 1 ? "pre++" : "post++"), op0);
+                case DEC:
+                    return link(KEYWORD(arity == 1 ? "pre--" : "post--"), op0);
+                case DEREF:
+                    return link(KEYWORD("[*]"), op0);
+                case REF:
+                    return arity == 1
+                           ? link(KEYWORD("[&]"), op0)
+                           : link2(KEYWORD("[&]"), op0, op1);
+                case KDIM:
+                    return link2(KEYWORD("dim"), op0, op1);
                 case GE:
                 case LE:
                 case EQ:
