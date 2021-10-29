@@ -32,7 +32,7 @@ void yyerror(const char *s);
 %token  <value>         NUMBER
 %token  <var>           IDENT
 %token                  KWHILE KIF KPRINT KELSE KREAD KFOR KDO KDIM
-%token '+' '-' '*' '/' GE LE EQ NE '>' '<' REF DEREF APL AMN AML ADV INC DEC
+%token '+' '-' '*' '/' GE LE EQ NE '>' '<' REF DEREF APL AMN AML ADV INC DEC AND OR
 %token UMINUS
 //                       Precedence rules
 %left '+'
@@ -43,6 +43,7 @@ void yyerror(const char *s);
 
 //                      Non terminal types
 %type   <node>          stmt expr stmt_list var expr_opt ref_offset basic_expr postfix_expr unary_expr mult_expr add_expr rel_expr eq_expr assign_expr
+%type	<node>		l_and_expr l_or_expr
 %type   <chr>		aug_assign
 
 %%
@@ -154,8 +155,17 @@ eq_expr
 	| eq_expr NE rel_expr			{ $$ = make_node(NE, 2, $1, $3); }
 	;
 
-assign_expr
+l_and_expr
 	: eq_expr				{ $$ = $1; }
+	| l_and_expr AND eq_expr		{ $$ = make_node(AND, 2, $1, $3); }
+
+l_or_expr
+	: l_and_expr				{ $$ = $1; }
+	| l_or_expr OR l_and_expr		{ $$ = make_node(OR, 2, $1, $3); }
+	;
+
+assign_expr
+	: l_or_expr				{ $$ = $1; }
 	| unary_expr '=' assign_expr		{ $$ = make_node('=', 2, $1, $3); }
 	| unary_expr aug_assign assign_expr   	{ $$ = make_node('=', 2, $1, make_node($2, 2, $1, $3)); }
 	;
