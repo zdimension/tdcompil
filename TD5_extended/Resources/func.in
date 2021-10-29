@@ -1,0 +1,8 @@
+{
+    func sq(x)
+    {
+        return x*x;
+    }
+
+    print sq(4);
+}

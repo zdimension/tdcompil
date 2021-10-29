@@ -1,0 +1,21 @@
+# Memory map
+# -352713328 sq
+NEW "generated" 4		# line 904
+START @INIT		# line 905
+END @END "END"		# line 906
+END @DEFAULT "default option"		# line 907
+FROM @INIT		# line 908
+'_,'_,'_,'_ '[,'[,'_,'_ R,S,S,S @0		# line 909
+FROM @0		# line 926
+'_|'/|'0,'[,'_,'_ L,S,S,S		# line 927
+'[,'[,'_,'_ S,S,S,S @1		# line 928
+# KIND = 2		# line 139
+# ; first		# line 579
+# KIND = 2		# line 139
+# ; second		# line 581
+# KIND = 2		# line 139
+# KIND = 2		# line 139
+#	print
+FROM @1		# line 932
+'[,'/,'_,'_ S,S,S,S @END		# line 933
+'[,'[,'_,'_ S,S,S,S @END		# line 934

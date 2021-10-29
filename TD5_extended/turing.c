@@ -61,24 +61,41 @@ instr("FROM @%d", one);\
 instr("'[,'_,'_,'_ '[,'1,'_,'_ S,R,S,S @%d", zero);\
 }
 
+enum var_type
+{
+    T_VAR,
+    T_FUNC
+};
+
 struct var_list
 {
     const char* name;
-    int position;
-    int size;
+    enum var_type type;
+    union
+    {
+        struct
+        {
+            int position;
+            int size;
+        };
+        struct ast_node* arglist;
+    };
     struct var_list* next;
 };
 
 struct var_list* head = NULL, * tail = NULL;
 
 void nav_to_var(int* label, struct ast_node* op);
+
 void deref(int* label);
+
 void exec(ast_node* n, int* label);
+
 struct var_list* get_var_id(const char* name)
 {
     for (struct var_list* ptr = head; ptr; ptr = ptr->next)
     {
-        if (!strcmp(ptr->name, name))
+        if (ptr->type == T_VAR && !strcmp(ptr->name, name))
         {
             return ptr;
         }
@@ -702,11 +719,14 @@ void exec(ast_node* n, int* label)
                     return;
                 }
                 case KDIM:
+                case KFUNC:
+                    return;
+                case '(':
                     return;
                 default:
                     error_msg("Houston, we have a problem: unattended token %d\n",
                               OPER_OPERATOR(n));
-                    return;
+                    abort();
             }
         }
         default:
@@ -794,6 +814,24 @@ void deref(int* label)
 }
 
 
+struct var_list* add_var()
+{
+    struct var_list* newNode = malloc(sizeof(struct var_list));
+    newNode->next = NULL;
+    if (head == NULL)
+    {
+        head = newNode;
+        tail = newNode;
+    }
+    else
+    {
+        (tail)->next = newNode;
+        tail = newNode;
+    }
+    return newNode;
+}
+
+
 void traverse_vars(ast_node* n)
 {
     if (!n)
@@ -806,36 +844,41 @@ void traverse_vars(ast_node* n)
             const char* name = VAR_NAME(OPER_OPERANDS(n)[0]);
             bool found = false;
             int i = 0;
-            for (struct var_list* ptr = head; ptr; i += ptr->size, ptr = ptr->next)
+            for (struct var_list* ptr = head; ptr; ptr = ptr->next)
             {
-                if (!strcmp(ptr->name, name))
+                if (ptr->type == T_VAR)
                 {
-                    found = true;
-                    break;
+                    if (!strcmp(ptr->name, name))
+                    {
+                        found = true;
+                        break;
+                    }
+                    i += ptr->size;
                 }
             }
             if (!found)
             {
-                struct var_list* newNode = malloc(sizeof(struct var_list));
+                struct var_list* newNode = add_var();
                 newNode->name = name;
+                newNode->type = T_VAR;
                 newNode->position = i;
                 newNode->size = OPER_OPERATOR(n) == KDIM ? NUMBER_VALUE(OPER_OPERANDS(n)[1]) : 1;
-                newNode->next = NULL;
-                if (head == NULL)
-                {
-                    head = newNode;
-                    tail = newNode;
-                }
-                else
-                {
-                    (tail)->next = newNode;
-                    tail = newNode;
-                }
             }
         }
 
-        for (int i = 0; i < OPER_ARITY(n); i++)
-            traverse_vars(OPER_OPERANDS(n)[i]);
+        if (OPER_OPERATOR(n) == KFUNC)
+        {
+            struct var_list* newNode = add_var();
+            newNode->name = VAR_NAME(OPER_OPERANDS(n)[0]);
+            newNode->type = T_FUNC;
+            newNode->arglist = OPER_OPERANDS(n)[1];
+            newNode->size = OPER_OPERATOR(n) == KDIM ? NUMBER_VALUE(OPER_OPERANDS(n)[1]) : 1;
+        }
+        else
+        {
+            for (int i = 0; i < OPER_ARITY(n); i++)
+                traverse_vars(OPER_OPERANDS(n)[i]);
+        }
     }
 }
 
@@ -848,6 +891,13 @@ void produce_code(ast_node* n)
 {
     int label = 0;
 
+
+
+    instr("NEW \"generated\" 4");
+    instr("START @INIT");
+    instr("END @END \"END\"");
+    instr("END @DEFAULT \"default option\"");
+
     traverse_vars(n);
 
     {
@@ -858,15 +908,13 @@ void produce_code(ast_node* n)
         }
     }
 
-    instr("NEW \"generated\" 4");
-    instr("START @INIT");
-    instr("END @END \"END\"");
-    instr("END @DEFAULT \"default option\"");
     instr("FROM @INIT");
     instr("'_,'_,'_,'_ '[,'[,'_,'_ R,S,S,S @0");
 
     for (struct var_list* ptr = head; ptr; ptr = ptr->next)
     {
+        if (ptr->type != T_VAR)
+            continue;
         for (int j = 0; j < ptr->size; j++)
         {
             for (int i = 0; i < INT_WIDTH; i++)

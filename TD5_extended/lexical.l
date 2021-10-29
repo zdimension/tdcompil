@@ -47,6 +47,8 @@
 "for" { return KFOR; }
 "do" { return KDO; }
 "dim" { return KDIM; }
+"return" { return KRETURN; }
+"func" { return KFUNC; }
 
 	/* ---- Idents ---- */
 [a-zA-Z]+			{ yylval.var = strdup(yytext); return IDENT; }

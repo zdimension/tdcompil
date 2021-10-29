@@ -31,7 +31,7 @@ void yyerror(const char *s);
 //                      Tokens
 %token  <value>         NUMBER
 %token  <var>           IDENT
-%token                  KWHILE KIF KPRINT KELSE KREAD KFOR KDO KDIM
+%token                  KWHILE KIF KPRINT KELSE KREAD KFOR KDO KDIM KFUNC KRETURN
 %token '+' '-' '*' '/' GE LE EQ NE '>' '<' REF DEREF APL AMN AML ADV INC DEC
 %token UMINUS
 //                       Precedence rules
@@ -43,6 +43,7 @@ void yyerror(const char *s);
 
 //                      Non terminal types
 %type   <node>          stmt expr stmt_list var expr_opt ref_offset basic_expr postfix_expr unary_expr mult_expr add_expr rel_expr eq_expr assign_expr
+%type	<node> 		param_list param_list_ne arg_list arg_list_ne
 %type   <chr>		aug_assign
 
 %%
@@ -64,13 +65,35 @@ stmt
 //        | expr_all ';'                    			{ $$ = $1; }
         | KPRINT expr ';'                  			{ $$ = make_node(KPRINT, 1, $2); }
         | KREAD expr ';'                  			{ $$ = make_node(KREAD, 1, $2); }
+        | KRETURN expr ';'                  			{ $$ = make_node(KRETURN, 1, $2); }
         | KWHILE '(' expr ')' stmt         			{ $$ = make_node(KWHILE, 2, $3, $5); }
         | KIF '(' expr ')' stmt    %prec THEN    		{ $$ = make_node(KIF, 3, $3, $5, NULL); }
         | KIF '(' expr ')' stmt KELSE stmt      		{ $$ = make_node(KIF, 3, $3, $5, $7); }
         | KFOR '(' expr_opt ';' expr_opt ';' expr_opt ')' stmt 	{ if ($3) { OPER_CLEAN_STACK($3) = true; } if ($7) { OPER_CLEAN_STACK($7) = true; } $$ = make_node(';', 2, $3, make_node(KWHILE, 2, $5, make_node(';', 2, $9, $7))); }
         | KDO stmt KWHILE '(' expr ')' ';' 			{ $$ = make_node(KDO, 2, $2, $5); }
+        | KFUNC var '(' param_list ')' '{' stmt_list '}'	{ $$ = make_node(KFUNC, 3, $2, $4, $7); }
         | '{' stmt_list '}'                			{ $$ = $2; }
         ;
+
+param_list
+	: 							{ $$ = NULL; }
+	| param_list_ne
+	;
+
+param_list_ne
+	: var							{ $$ = make_node(',', 1, $1); }
+	| var ',' param_list_ne					{ $$ = make_node(',', 2, $1, $3); }
+	;
+
+arg_list
+	: 							{ $$ = NULL; }
+	| arg_list_ne
+	;
+
+arg_list_ne
+	: expr							{ $$ = make_node(',', 1, $1); }
+	| expr ',' arg_list_ne					{ $$ = make_node(',', 2, $1, $3); }
+	;
 
 expr_opt
 	: expr          { $$ = $1; }
@@ -109,6 +132,7 @@ aug_assign
 basic_expr
 	: NUMBER			{ $$ = make_number($1); }
 	| var				{ $$ = $1; }
+	| var '(' arg_list ')'		{ $$ = make_node('(', 2, $1, $3); }
 	| '(' expr ')'			{ $$ = $2; }
 	;
 
