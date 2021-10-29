@@ -706,7 +706,7 @@ void exec(ast_node* n, int* label)
                 default:
                     error_msg("Houston, we have a problem: unattended token %d\n",
                               OPER_OPERATOR(n));
-                    return;
+                    abort();
             }
         }
         default:
