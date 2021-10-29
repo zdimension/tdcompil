@@ -155,7 +155,7 @@ void eval(ast_node* n, int* label)
                     PROD1S("store", VAR_NAME(op[0]));
                     return;
                 default:
-                    error_msg("Houston, we have a problem: unattended token %d",
+                    error_msg("Houston, we have a problem: unattended token %d\n",
                               OPER_OPERATOR(n));
                     return;
             }

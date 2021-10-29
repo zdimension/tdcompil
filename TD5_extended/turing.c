@@ -73,7 +73,7 @@ struct var_list* head = NULL, * tail = NULL;
 
 void nav_to_var(int* label, struct ast_node* op);
 void deref(int* label);
-
+void exec(ast_node* n, int* label);
 struct var_list* get_var_id(const char* name)
 {
     for (struct var_list* ptr = head; ptr; ptr = ptr->next)
@@ -107,6 +107,16 @@ void eval(ast_node* n, int* label)
     {
         fprintf(stderr, "Null node eval\n");
         abort();
+    }
+
+    exec(n, label);
+}
+
+void exec(ast_node* n, int* label)
+{
+    if (!n)
+    {
+        return;
     }
 
     instr("# KIND = %d", AST_KIND(n));
@@ -550,9 +560,9 @@ void eval(ast_node* n, int* label)
                     else
                     {
                         instr("# ; first");
-                        eval(op[0], label);
+                        exec(op[0], label);
                         instr("# ; second");
-                        eval(op[1], label);
+                        exec(op[1], label);
                         return;
                     }
                 case KPRINT:
@@ -562,7 +572,7 @@ void eval(ast_node* n, int* label)
                 case KDO:
                 {
                     int start = *label + 1;
-                    eval(op[0], label);
+                    exec(op[0], label);
                     eval(op[1], label);
                     instr("FROM @%d", ++*label);
                     instr("'[,'/|'[,'_,'_ '[,'_,'_,'_ S,L,S,S @%d", ++*label);
@@ -596,7 +606,7 @@ void eval(ast_node* n, int* label)
                     int is_nonzero = *label + 1;
                     instr("'[,'/|'[,'_,'_ S,S,S,S @%d", is_nonzero);
 
-                    eval(op[1], label);
+                    exec(op[1], label);
 
                     instr("FROM @%d", ++*label); // after is_non_zero
                     instr("'[,'/|'[,'_,'_ S,S,S,S @%d", start);
@@ -694,7 +704,7 @@ void eval(ast_node* n, int* label)
                 case KDIM:
                     return;
                 default:
-                    error_msg("Houston, we have a problem: unattended token %d",
+                    error_msg("Houston, we have a problem: unattended token %d\n",
                               OPER_OPERATOR(n));
                     return;
             }
@@ -727,7 +737,7 @@ void nav_to_var(int* label, struct ast_node* op)
     }
     else
     {
-        error_msg("Invaid lvalue");
+        error_msg("Expected lvalue\n");
         abort();
     }
 }

@@ -19,13 +19,8 @@
   <component name="ChangeListManager">
     <list default="true" id="a6805983-d57b-442f-a29f-dcb10bd9ca72" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/CMakeLists.txt" beforeDir="false" afterPath="$PROJECT_DIR$/CMakeLists.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Resources/fibo.in" beforeDir="false" afterPath="$PROJECT_DIR$/Resources/fibo.in" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Resources/tests.am" beforeDir="false" afterPath="$PROJECT_DIR$/Resources/tests.am" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Resources/tests.in" beforeDir="false" afterPath="$PROJECT_DIR$/Resources/tests.in" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/code1.c" beforeDir="false" afterPath="$PROJECT_DIR$/code1.c" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/code3.c" beforeDir="false" afterPath="$PROJECT_DIR$/code3.c" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lexical.l" beforeDir="false" afterPath="$PROJECT_DIR$/lexical.l" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/syntax.y" beforeDir="false" afterPath="$PROJECT_DIR$/syntax.y" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/turing.c" beforeDir="false" afterPath="$PROJECT_DIR$/turing.c" afterDir="false" />
     </list>
@@ -118,7 +113,7 @@
       <option name="presentableId" value="Default" />
       <updated>1635462525936</updated>
       <workItem from="1635462528254" duration="2637000" />
-      <workItem from="1635489578651" duration="17556000" />
+      <workItem from="1635489578651" duration="18343000" />
     </task>
     <servers />
   </component>

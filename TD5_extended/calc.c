@@ -84,7 +84,7 @@ static ast_node* allocate_node(int size)
 
     if (!p)
     {
-        error_msg("out of memory");
+        error_msg("out of memory\n");
         exit(1);
     }
     return p;

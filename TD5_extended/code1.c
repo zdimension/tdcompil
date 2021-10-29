@@ -185,7 +185,7 @@ double eval(ast_node* n)
                 case '=':
                     return set_ident_value(VAR_NAME(op[0]), eval(op[1]));
                 default:
-                    error_msg("Houston, we have a problem: unattended token %d",
+                    error_msg("Houston, we have a problem: unattended token %d\n",
                               OPER_OPERATOR(n));
                     abort();
             }

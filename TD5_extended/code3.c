@@ -116,7 +116,7 @@ int eval(ast_node* n, int* label)
                 case KREAD:
                     return link(KEYWORD("read"), op0);
                 default:
-                    error_msg("Houston, we have a problem: unattended token %d",
+                    error_msg("Houston, we have a problem: unattended token %d\n",
                               OPER_OPERATOR(n));
                     return -1;
             }

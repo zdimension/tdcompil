@@ -37,12 +37,12 @@ void yyerror(const char *s);
 //                       Precedence rules
 %left '+'
 
-
+%precedence DEREF
 %nonassoc THEN
 %nonassoc KELSE
 
 //                      Non terminal types
-%type   <node>          stmt expr stmt_list var expr_opt lvalue ref_offset basic_expr postfix_expr unary_expr mult_expr add_expr rel_expr eq_expr assign_expr
+%type   <node>          stmt expr stmt_list var expr_opt ref_offset basic_expr postfix_expr unary_expr mult_expr add_expr rel_expr eq_expr assign_expr
 %type   <chr>		aug_assign
 
 %%
@@ -108,22 +108,24 @@ aug_assign
 
 basic_expr
 	: NUMBER			{ $$ = make_number($1); }
-	| lvalue			{ $$ = $1; }
+	| var				{ $$ = $1; }
 	| '(' expr ')'			{ $$ = $2; }
 	;
 
 postfix_expr
-	: basic_expr			{ $$ = $1; }
-	| lvalue INC               	{ $$ = make_node(INC, 2, $1, NULL); }
-        | lvalue DEC               	{ $$ = make_node(DEC, 2, $1, NULL); }
+	: basic_expr				{ $$ = $1; }
+	| postfix_expr INC               	{ $$ = make_node(INC, 2, $1, NULL); }
+        | postfix_expr DEC               	{ $$ = make_node(DEC, 2, $1, NULL); }
+        | postfix_expr '[' expr ']'   	 	{ $$ = make_node(DEREF, 1, make_node('+', 2, $1, $3)); }
         ;
 
 unary_expr
 	: postfix_expr				{ $$ = $1; }
-	| '-' postfix_expr 	{ $$ = make_node(UMINUS, 1, $2); }
-	| INC lvalue               		{ $$ = make_node(INC, 1, $2); }
-	| DEC lvalue               		{ $$ = make_node(DEC, 1, $2); }
-	| '&' var ref_offset 		{ $$ = make_node(REF, 2, $2, $3); }
+	| '-' postfix_expr 			{ $$ = make_node(UMINUS, 1, $2); }
+	| '*' postfix_expr 			{ $$ = make_node(DEREF, 1, $2); }
+	| INC postfix_expr               	{ $$ = make_node(INC, 1, $2); }
+	| DEC postfix_expr               	{ $$ = make_node(DEC, 1, $2); }
+	| '&' var ref_offset 			{ $$ = make_node(REF, 2, $2, $3); }
 	;
 
 mult_expr
@@ -143,7 +145,7 @@ rel_expr
 	| rel_expr '<' add_expr			{ $$ = make_node('<', 2, $1, $3); }
 	| rel_expr '>' add_expr			{ $$ = make_node('>', 2, $1, $3); }
 	| rel_expr LE add_expr			{ $$ = make_node(LE, 2, $1, $3); }
-	| rel_expr GE add_expr			{ $$ = make_node(LE, 2, $1, $3); }
+	| rel_expr GE add_expr			{ $$ = make_node(GE, 2, $1, $3); }
 	;
 
 eq_expr
@@ -154,8 +156,8 @@ eq_expr
 
 assign_expr
 	: eq_expr				{ $$ = $1; }
-	| lvalue '=' assign_expr			{ $$ = make_node('=', 2, $1, $3); }
-	| var aug_assign assign_expr   	{ $$ = make_node('=', 2, $1, make_node($2, 2, $1, $3)); }
+	| unary_expr '=' assign_expr		{ $$ = make_node('=', 2, $1, $3); }
+	| unary_expr aug_assign assign_expr   	{ $$ = make_node('=', 2, $1, make_node($2, 2, $1, $3)); }
 	;
 
 expr
@@ -167,11 +169,11 @@ ref_offset
         |					{ $$ = NULL; }
         ;
 
-lvalue
-	: var	   			{ $$ = $1; }
-   //     | '*' expr %prec DEREF 	{ $$ = make_node(DEREF, 1, $2); }
-        | lvalue '[' expr ']'    	{ $$ = make_node(DEREF, 1, make_node('+', 2, $1, $3)); }
-        ;
+//lvalue
+//	: var	   			{ $$ = $1; }
+//        | '*' expr	%prec DEREF	{ $$ = make_node(DEREF, 1, $2); }
+//        | lvalue '[' expr ']'    	{ $$ = make_node(DEREF, 1, make_node('+', 2, $1, $3)); }
+//        ;
 
 
 var
