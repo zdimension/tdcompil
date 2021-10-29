@@ -16,9 +16,9 @@
   <component name="ChangeListManager">
     <list default="true" id="a6805983-d57b-442f-a29f-dcb10bd9ca72" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/CMakeLists.txt" beforeDir="false" afterPath="$PROJECT_DIR$/CMakeLists.txt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Resources/tests.am" beforeDir="false" afterPath="$PROJECT_DIR$/Resources/tests.am" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Resources/tests.in" beforeDir="false" afterPath="$PROJECT_DIR$/Resources/tests.in" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/turing.c" beforeDir="false" afterPath="$PROJECT_DIR$/turing.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lexical.c" beforeDir="false" afterPath="$PROJECT_DIR$/lexical.c" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -50,13 +50,14 @@
     <property name="cf.first.check.clang-format" value="false" />
     <property name="cidr.known.project.marker" value="true" />
     <property name="cmake.loaded.for.project" value="true" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
     <property name="nodejs_package_manager_path" value="npm" />
     <property name="settings.editor.selected.configurable" value="preferences.lookFeel" />
   </component>
   <component name="RunManager" selected="CMake Application.turing">
-    <configuration default="true" type="CLionExternalRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" PASS_PARENT_ENVS_2="true">
+    <configuration default="true" type="CMakeRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" PASS_PARENT_ENVS_2="true">
       <method v="2">
-        <option name="CLION.EXTERNAL.BUILD" enabled="true" />
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
       </method>
     </configuration>
     <configuration name="calc1" type="CMakeRunConfiguration" factoryName="Application" PROGRAM_PARAMS="Resources/tests.in" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" WORKING_DIR="file://$ContentRoot$" PASS_PARENT_ENVS_2="true" PROJECT_NAME="TD5_extended" TARGET_NAME="calc1" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="TD5_extended" RUN_TARGET_NAME="calc1">
@@ -100,6 +101,7 @@
       <option name="presentableId" value="Default" />
       <updated>1635462525936</updated>
       <workItem from="1635462528254" duration="2637000" />
+      <workItem from="1635489578651" duration="422000" />
     </task>
     <servers />
   </component>
