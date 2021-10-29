@@ -67,6 +67,12 @@ enum var_type
     T_FUNC
 };
 
+struct call_site_list
+{
+    int return_address;
+    struct call_site_list* next;
+};
+
 struct var_list
 {
     const char* name;
@@ -78,10 +84,22 @@ struct var_list
             int position;
             int size;
         };
-        struct ast_node* arglist;
+        struct
+        {
+            struct ast_node* arglist;
+            struct call_site_list* callsites;
+        };
     };
     struct var_list* next;
 };
+
+void add_call_site(struct call_site_list** list, int return_address)
+{
+    struct call_site_list* newNode = malloc(sizeof(struct call_site_list));
+    newNode->return_address = return_address;
+    newNode->next = *list;
+    *list = newNode;
+}
 
 struct var_list* head = NULL, * tail = NULL;
 
@@ -970,6 +988,7 @@ void traverse_vars(ast_node* n)
             newNode->name = VAR_NAME(OPER_OPERANDS(n)[0]);
             newNode->type = T_FUNC;
             newNode->arglist = OPER_OPERANDS(n)[1];
+            newNode->callsites = NULL;
             newNode->size = OPER_OPERATOR(n) == KDIM ? NUMBER_VALUE(OPER_OPERANDS(n)[1]) : 1;
         }
         else
@@ -988,8 +1007,6 @@ void traverse_vars(ast_node* n)
 void produce_code(ast_node* n)
 {
     int label = 0;
-
-
 
     instr("NEW \"generated\" 4");
     instr("START @INIT");
