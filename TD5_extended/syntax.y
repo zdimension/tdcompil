@@ -128,11 +128,12 @@ aug_assign
     ;
 
 basic_expr
-	: NUMBER						{ $$ = make_number($1); }
-	| var							{ $$ = $1; }
-	| var '(' arg_list ')'			{ $$ = make_node('(', 2, $1, $3); }
-	| '(' expr ')'					{ $$ = $2; }
-	| '{' stmt_list expr '}'		{ $$ = make_node(';', 2, $2, make_node(KPRINT, 1, $3)); }
+	: NUMBER												{ $$ = make_number($1); }
+	| var													{ $$ = $1; }
+	| var '(' arg_list ')'									{ $$ = make_node('(', 2, $1, $3); }
+	| '(' expr ')'											{ $$ = $2; }
+	| '{' stmt_list expr '}'								{ $$ = make_node(';', 2, $2, make_node(KPRINT, 1, $3)); }
+    | KIF '(' expr ')' '{' expr '}' KELSE '{' expr '}'      { $$ = make_node(KIF, 3, $3, $6, $10); }
 	;
 
 postfix_expr

@@ -52,6 +52,8 @@ FROM @18		# line 1593
 '[,'[,'_,'_ S,S,S,S @19		# line 1595
 #	------ BEGIN: program
 # KIND = 2 (k_operator)		# line 438
+#	; first
+# KIND = 2 (k_operator)		# line 438
 #	store
 #	evaluating right-hand value
 # KIND = 2 (k_operator)		# line 438
@@ -206,7 +208,55 @@ FROM @63		# line 1213
 '/|'0|'1,'[,'_,'_ L,S,S,S		# line 1214
 '/|'0|'1,'/,'_,'_ L,S,S,S		# line 1215
 '[,'/|'[,'_,'_ S,S,S,S @64		# line 1216
+#	; second
+# KIND = 2 (k_operator)		# line 438
+#	statically evaluated
+#	store
+#	evaluating right-hand value
+# KIND = 1 (k_number)		# line 438
+#	statically evaluated
+#	push	6
+FROM @64		# line 155
+'/|'[,'[,'_,'_ S,R,S,S @65		# line 156
+'/|'[,'/,'_,'_ S,R,S,S @65		# line 157
+FROM @65		# line 158
+'/|'[,'_,'_,'_ '/|'[,'0,'_,'_ S,R,S,S @66		# line 161
+FROM @66		# line 162
+'/|'[,'_,'_,'_ '/|'[,'1,'_,'_ S,R,S,S @67		# line 161
+FROM @67		# line 162
+'/|'[,'_,'_,'_ '/|'[,'1,'_,'_ S,R,S,S @68		# line 161
+FROM @68		# line 162
+'/|'[,'_,'_,'_ '/|'[,'0,'_,'_ S,R,S,S @69		# line 161
+FROM @69		# line 162
+'/|'[,'_,'_,'_ '/|'[,'0,'_,'_ S,R,S,S @70		# line 161
+FROM @70		# line 162
+'/|'[,'_,'_,'_ '/|'[,'0,'_,'_ S,R,S,S @71		# line 161
+FROM @71		# line 162
+'/|'[,'_,'_,'_ '/|'[,'0,'_,'_ S,R,S,S @72		# line 161
+FROM @72		# line 162
+'/|'[,'_,'_,'_ '/|'[,'0,'_,'_ S,R,S,S @73		# line 161
+FROM @73		# line 162
+'/|'[,'_,'_,'_ '/|'[,'/,'_,'_ S,S,S,S @74		# line 164
+FROM @74		# line 1191
+'0|'1|'/,'/,'_,'_ L,S,S,S		# line 1192
+'[,'/,'_,'_ S,S,S,S @75		# line 1193
+# navigating to x		# line 1329
+#	navigating to left of stack head
+FROM @75		# line 1196
+'/|'[,'/,'_,'_ S,L,S,S @76		# line 1197
+FROM @76		# line 1198
+'/,'0|'1,'_,'_ S,L,S,S		# line 1199
+'[,'0|'1,'_,'_ S,L,S,S		# line 1200
+'/,'/|'[,'_,'_ R,R,S,S @77		# line 1201
+'[,'/|'[,'_,'_ R,R,S,S @77		# line 1202
+FROM @77		# line 1220
+'0|'1,'0,'_,'_ '0,'0,'_,'_ R,R,S,S		# line 1221
+'0|'1,'1,'_,'_ '1,'1,'_,'_ R,R,S,S		# line 1222
+'/,'/,'_,'_ L,S,S,S @78		# line 1223
+FROM @78		# line 1224
+'0|'1,'/,'_,'_ L,S,S,S		# line 1225
+'/|'[,'/,'_,'_ S,S,S,S @79		# line 1226
 #	------ END: program
-FROM @64		# line 1603
+FROM @79		# line 1603
 '[,'/,'_,'_ S,S,S,S @END		# line 1604
 '[,'[,'_,'_ S,S,S,S @END		# line 1605
