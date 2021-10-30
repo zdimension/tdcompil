@@ -44,7 +44,7 @@ void yyerror(const char *s);
 
 //                      Non terminal types
 %type   <node>		stmt expr stmt_list var expr_opt ref_offset basic_expr postfix_expr unary_expr mult_expr add_expr rel_expr eq_expr assign_expr
-%type	<node> 		l_and_expr l_or_expr
+%type	<node> 		l_and_expr l_or_expr stmt_list_opt
 %type 	<list>		param_list param_list_ne arg_list arg_list_ne
 %type   <chr>		aug_assign
 
@@ -71,8 +71,8 @@ stmt
     | KIF '(' expr ')' stmt KELSE stmt      				{ $$ = make_node(KIF, 3, $3, $5, $7); }
     | KFOR '(' expr_opt ';' expr_opt ';' expr_opt ')' stmt 	{ if ($3) { OPER_CLEAN_STACK($3) = true; } if ($7) { OPER_CLEAN_STACK($7) = true; } $$ = make_node(';', 2, $3, make_node(KWHILE, 2, $5, make_node(';', 2, $9, $7))); }
     | KDO stmt KWHILE '(' expr ')' ';' 						{ $$ = make_node(KDO, 2, $2, $5); }
-    | KFUNC var '(' param_list ')' stmt		{ $$ = make_node(KFUNC, 3, $2, $4, $6); }
-    | '{' stmt_list '}'                						{ $$ = $2; }
+    | func_type var '(' param_list ')' stmt					{ $$ = make_node(KFUNC, 3, $2, $4, $6); }
+    | '{' stmt_list_opt '}'                					{ $$ = $2; }
     ;
 
 param_list
@@ -100,6 +100,10 @@ expr_opt
     |              					{ $$ = NULL; }
     ;
 
+stmt_list_opt
+	: 								{ $$ = NULL; }
+	| stmt_list						{ $$ = $1; }
+	;
 
 stmt_list
     : stmt                  		{ $$ = $1; }
