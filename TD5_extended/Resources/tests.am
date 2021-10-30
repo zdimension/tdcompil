@@ -3,8 +3,7 @@ START @INIT		# line 1267
 END @END "END"		# line 1268
 END @DEFAULT "default option"		# line 1269
 # Memory map
-#    0 sum
-#    1 x
+#    0 x
 FROM @INIT		# line 1282
 '_,'_,'_,'_ '[,'[,'_,'_ R,S,S,S @0		# line 1283
 FROM @0		# line 1291
@@ -25,672 +24,76 @@ FROM @7		# line 1291
 '_,'[,'_,'_ '0,'[,'_,'_ R,S,S,S @8		# line 1292
 FROM @8		# line 1294
 '_,'[,'_,'_ '/,'[,'_,'_ R,S,S,S @9		# line 1295
-FROM @9		# line 1291
-'_,'[,'_,'_ '0,'[,'_,'_ R,S,S,S @10		# line 1292
-FROM @10		# line 1291
-'_,'[,'_,'_ '0,'[,'_,'_ R,S,S,S @11		# line 1292
-FROM @11		# line 1291
-'_,'[,'_,'_ '0,'[,'_,'_ R,S,S,S @12		# line 1292
-FROM @12		# line 1291
-'_,'[,'_,'_ '0,'[,'_,'_ R,S,S,S @13		# line 1292
-FROM @13		# line 1291
-'_,'[,'_,'_ '0,'[,'_,'_ R,S,S,S @14		# line 1292
-FROM @14		# line 1291
-'_,'[,'_,'_ '0,'[,'_,'_ R,S,S,S @15		# line 1292
-FROM @15		# line 1291
-'_,'[,'_,'_ '0,'[,'_,'_ R,S,S,S @16		# line 1292
-FROM @16		# line 1291
-'_,'[,'_,'_ '0,'[,'_,'_ R,S,S,S @17		# line 1292
-FROM @17		# line 1294
-'_,'[,'_,'_ '/,'[,'_,'_ R,S,S,S @18		# line 1295
-FROM @18		# line 1298
+FROM @9		# line 1298
 '_|'/|'0,'[,'_,'_ L,S,S,S		# line 1299
-'[,'[,'_,'_ S,S,S,S @19		# line 1300
-# KIND = 2		# line 199
+'[,'[,'_,'_ S,S,S,S @10		# line 1300
+# KIND = 2 (k_operator)		# line 199
 #	; first
-# KIND = 2		# line 199
-#	; first
-# KIND = 2		# line 199
-#	; first
-# KIND = 2		# line 199
-#	; first
-# KIND = 2		# line 199
-#	; first
-# KIND = 2		# line 199
-#	; first
-# KIND = 2		# line 199
+# KIND = 2 (k_operator)		# line 199
 #	store
 #	evaluating right-hand value
-# KIND = 1		# line 199
-#	push	0
-FROM @19		# line 148
-'/|'[,'[,'_,'_ S,R,S,S @20		# line 149
-'/|'[,'/,'_,'_ S,R,S,S @20		# line 150
-FROM @20		# line 151
-'/|'[,'_,'_,'_ '/|'[,'0,'_,'_ S,R,S,S @21		# line 154
-FROM @21		# line 155
-'/|'[,'_,'_,'_ '/|'[,'0,'_,'_ S,R,S,S @22		# line 154
-FROM @22		# line 155
-'/|'[,'_,'_,'_ '/|'[,'0,'_,'_ S,R,S,S @23		# line 154
-FROM @23		# line 155
-'/|'[,'_,'_,'_ '/|'[,'0,'_,'_ S,R,S,S @24		# line 154
-FROM @24		# line 155
-'/|'[,'_,'_,'_ '/|'[,'0,'_,'_ S,R,S,S @25		# line 154
-FROM @25		# line 155
-'/|'[,'_,'_,'_ '/|'[,'0,'_,'_ S,R,S,S @26		# line 154
-FROM @26		# line 155
-'/|'[,'_,'_,'_ '/|'[,'0,'_,'_ S,R,S,S @27		# line 154
-FROM @27		# line 155
-'/|'[,'_,'_,'_ '/|'[,'0,'_,'_ S,R,S,S @28		# line 154
-FROM @28		# line 155
-'/|'[,'_,'_,'_ '/|'[,'/,'_,'_ S,S,S,S @29		# line 157
-FROM @29		# line 937
+# KIND = 1 (k_number)		# line 199
+#	push	65
+FROM @10		# line 148
+'/|'[,'[,'_,'_ S,R,S,S @11		# line 149
+'/|'[,'/,'_,'_ S,R,S,S @11		# line 150
+FROM @11		# line 151
+'/|'[,'_,'_,'_ '/|'[,'1,'_,'_ S,R,S,S @12		# line 154
+FROM @12		# line 155
+'/|'[,'_,'_,'_ '/|'[,'0,'_,'_ S,R,S,S @13		# line 154
+FROM @13		# line 155
+'/|'[,'_,'_,'_ '/|'[,'0,'_,'_ S,R,S,S @14		# line 154
+FROM @14		# line 155
+'/|'[,'_,'_,'_ '/|'[,'0,'_,'_ S,R,S,S @15		# line 154
+FROM @15		# line 155
+'/|'[,'_,'_,'_ '/|'[,'0,'_,'_ S,R,S,S @16		# line 154
+FROM @16		# line 155
+'/|'[,'_,'_,'_ '/|'[,'0,'_,'_ S,R,S,S @17		# line 154
+FROM @17		# line 155
+'/|'[,'_,'_,'_ '/|'[,'1,'_,'_ S,R,S,S @18		# line 154
+FROM @18		# line 155
+'/|'[,'_,'_,'_ '/|'[,'0,'_,'_ S,R,S,S @19		# line 154
+FROM @19		# line 155
+'/|'[,'_,'_,'_ '/|'[,'/,'_,'_ S,S,S,S @20		# line 157
+FROM @20		# line 937
 '0|'1|'/,'/,'_,'_ L,S,S,S		# line 938
-'[,'/,'_,'_ S,S,S,S @30		# line 939
-# navigating to sum		# line 1075
+'[,'/,'_,'_ S,S,S,S @21		# line 939
+# navigating to x		# line 1075
 #	navigating to left of stack head
-FROM @30		# line 942
-'/|'[,'/,'_,'_ S,L,S,S @31		# line 943
-FROM @31		# line 944
+FROM @21		# line 942
+'/|'[,'/,'_,'_ S,L,S,S @22		# line 943
+FROM @22		# line 944
 '/,'0|'1,'_,'_ S,L,S,S		# line 945
 '[,'0|'1,'_,'_ S,L,S,S		# line 946
-'/,'/|'[,'_,'_ R,R,S,S @32		# line 947
-'[,'/|'[,'_,'_ R,R,S,S @32		# line 948
-FROM @32		# line 951
+'/,'/|'[,'_,'_ R,R,S,S @23		# line 947
+'[,'/|'[,'_,'_ R,R,S,S @23		# line 948
+FROM @23		# line 951
 '0|'1,'0,'_,'_ '0,'_,'_,'_ R,R,S,S		# line 952
 '0|'1,'1,'_,'_ '1,'_,'_,'_ R,R,S,S		# line 953
-'/,'/,'_,'_ '/,'_,'_,'_ L,L,S,S @33		# line 954
-FROM @33		# line 955
+'/,'/,'_,'_ '/,'_,'_,'_ L,L,S,S @24		# line 954
+FROM @24		# line 955
 '/|'0|'1|'[,'_,'_,'_ L,L,S,S		# line 956
-'/|'0|'1|'[,'/,'_,'_ S,S,S,S @34		# line 957
-'/|'0|'1|'[,'[,'_,'_ S,S,S,S @34		# line 958
-FROM @34		# line 959
+'/|'0|'1|'[,'/,'_,'_ S,S,S,S @25		# line 957
+'/|'0|'1|'[,'[,'_,'_ S,S,S,S @25		# line 958
+FROM @25		# line 959
 '/|'0|'1,'[,'_,'_ L,S,S,S		# line 960
 '/|'0|'1,'/,'_,'_ L,S,S,S		# line 961
-'[,'/|'[,'_,'_ S,S,S,S @35		# line 962
+'[,'/|'[,'_,'_ S,S,S,S @26		# line 962
 #	; second
-# KIND = 2		# line 199
-#	for
-# KIND = 2		# line 199
-#	store
-#	evaluating right-hand value
-# KIND = 1		# line 199
-#	push	0
-FROM @35		# line 148
-'/|'[,'[,'_,'_ S,R,S,S @36		# line 149
-'/|'[,'/,'_,'_ S,R,S,S @36		# line 150
-FROM @36		# line 151
-'/|'[,'_,'_,'_ '/|'[,'0,'_,'_ S,R,S,S @37		# line 154
-FROM @37		# line 155
-'/|'[,'_,'_,'_ '/|'[,'0,'_,'_ S,R,S,S @38		# line 154
-FROM @38		# line 155
-'/|'[,'_,'_,'_ '/|'[,'0,'_,'_ S,R,S,S @39		# line 154
-FROM @39		# line 155
-'/|'[,'_,'_,'_ '/|'[,'0,'_,'_ S,R,S,S @40		# line 154
-FROM @40		# line 155
-'/|'[,'_,'_,'_ '/|'[,'0,'_,'_ S,R,S,S @41		# line 154
-FROM @41		# line 155
-'/|'[,'_,'_,'_ '/|'[,'0,'_,'_ S,R,S,S @42		# line 154
-FROM @42		# line 155
-'/|'[,'_,'_,'_ '/|'[,'0,'_,'_ S,R,S,S @43		# line 154
-FROM @43		# line 155
-'/|'[,'_,'_,'_ '/|'[,'0,'_,'_ S,R,S,S @44		# line 154
-FROM @44		# line 155
-'/|'[,'_,'_,'_ '/|'[,'/,'_,'_ S,S,S,S @45		# line 157
-FROM @45		# line 937
-'0|'1|'/,'/,'_,'_ L,S,S,S		# line 938
-'[,'/,'_,'_ S,S,S,S @46		# line 939
-# navigating to x		# line 1075
-FROM @46		# line 1079
-'/|'[,'/,'_,'_ R,S,S,S @47		# line 1080
-'/|'[,'[,'_,'_ R,S,S,S @47		# line 1081
-FROM @47		# line 1082
-'0|'1,'/,'_,'_ R,S,S,S		# line 1083
-'0|'1,'[,'_,'_ R,S,S,S		# line 1084
-'/,'/|'[,'_,'_ S,S,S,S @48		# line 1085
-#	navigating to left of stack head
-FROM @48		# line 942
-'/|'[,'/,'_,'_ S,L,S,S @49		# line 943
-FROM @49		# line 944
-'/,'0|'1,'_,'_ S,L,S,S		# line 945
-'[,'0|'1,'_,'_ S,L,S,S		# line 946
-'/,'/|'[,'_,'_ R,R,S,S @50		# line 947
-'[,'/|'[,'_,'_ R,R,S,S @50		# line 948
-FROM @50		# line 951
-'0|'1,'0,'_,'_ '0,'_,'_,'_ R,R,S,S		# line 952
-'0|'1,'1,'_,'_ '1,'_,'_,'_ R,R,S,S		# line 953
-'/,'/,'_,'_ '/,'_,'_,'_ L,L,S,S @51		# line 954
-FROM @51		# line 955
-'/|'0|'1|'[,'_,'_,'_ L,L,S,S		# line 956
-'/|'0|'1|'[,'/,'_,'_ S,S,S,S @52		# line 957
-'/|'0|'1|'[,'[,'_,'_ S,S,S,S @52		# line 958
-FROM @52		# line 959
-'/|'0|'1,'[,'_,'_ L,S,S,S		# line 960
-'/|'0|'1,'/,'_,'_ L,S,S,S		# line 961
-'[,'/|'[,'_,'_ S,S,S,S @53		# line 962
-FROM @53		# line 851
-'[,'/|'[,'_,'_ S,S,S,S @54		# line 852
-#	evaluating 'for' condition
-# KIND = 2		# line 199
-#	cmplt
-# KIND = 0		# line 199
-#	load	x
-# navigating to x		# line 1075
-FROM @54		# line 1079
-'/|'[,'/,'_,'_ R,S,S,S @55		# line 1080
-'/|'[,'[,'_,'_ R,S,S,S @55		# line 1081
-FROM @55		# line 1082
-'0|'1,'/,'_,'_ R,S,S,S		# line 1083
-'0|'1,'[,'_,'_ R,S,S,S		# line 1084
-'/,'/|'[,'_,'_ S,S,S,S @56		# line 1085
-FROM @56		# line 220
-'/|'[,'/,'_,'_ R,R,S,S @57		# line 221
-'/|'[,'[,'_,'_ R,R,S,S @57		# line 222
-FROM @57		# line 223
-'0|'1,'_,'_,'_ '0|'1,'0|'1,'_,'_ R,R,S,S		# line 224
-'/,'_,'_,'_ '/,'/,'_,'_ L,S,S,S @58		# line 225
-FROM @58		# line 226
-'/|'0|'1,'/,'_,'_ L,S,S,S		# line 227
-'[,'/,'_,'_ S,S,S,S @59		# line 228
-# KIND = 1		# line 199
-#	push	10
-FROM @59		# line 148
-'/|'[,'[,'_,'_ S,R,S,S @60		# line 149
-'/|'[,'/,'_,'_ S,R,S,S @60		# line 150
-FROM @60		# line 151
-'/|'[,'_,'_,'_ '/|'[,'0,'_,'_ S,R,S,S @61		# line 154
-FROM @61		# line 155
-'/|'[,'_,'_,'_ '/|'[,'1,'_,'_ S,R,S,S @62		# line 154
-FROM @62		# line 155
-'/|'[,'_,'_,'_ '/|'[,'0,'_,'_ S,R,S,S @63		# line 154
-FROM @63		# line 155
-'/|'[,'_,'_,'_ '/|'[,'1,'_,'_ S,R,S,S @64		# line 154
-FROM @64		# line 155
-'/|'[,'_,'_,'_ '/|'[,'0,'_,'_ S,R,S,S @65		# line 154
-FROM @65		# line 155
-'/|'[,'_,'_,'_ '/|'[,'0,'_,'_ S,R,S,S @66		# line 154
-FROM @66		# line 155
-'/|'[,'_,'_,'_ '/|'[,'0,'_,'_ S,R,S,S @67		# line 154
-FROM @67		# line 155
-'/|'[,'_,'_,'_ '/|'[,'0,'_,'_ S,R,S,S @68		# line 154
-FROM @68		# line 155
-'/|'[,'_,'_,'_ '/|'[,'/,'_,'_ S,S,S,S @69		# line 157
-FROM @69		# line 465
-'[,'/,'_,'_ '[,'_,'_,'_ S,L,S,S @70		# line 465
-FROM @70		# line 465
-'[,'0|'1,'_,'_ '[,'_,'0|'1,'_ S,L,L,S		# line 465
-'[,'/,'_,'_ S,S,R,S @71		# line 465
-FROM @71		# line 465
-'[,'/,'0|'1,'_ S,S,R,S		# line 465
-'[,'/,'_,'_ S,L,L,S @72		# line 465
-FROM @72		# line 465
-'[,'0|'1,'0|'1,'_ '[,'_,'_,'_ S,L,L,S		# line 465
-'[,'0,'1,'_ '[,'_,'_,'_ S,L,L,S @73		# line 466
-'[,'1,'0,'_ '[,'_,'_,'_ S,L,L,S @74		# line 467
-'[,'/|'[,'_,'_ '[,'/|'[,'_,'_ S,R,S,S @76		# line 468
-FROM @76		# line 465
-'[,'_,'_,'_ '[,'0,'_,'_ S,R,S,S		# line 465
-'[,'/,'_,'_ S,S,S,S @77		# line 465
-FROM @74		# line 465
-'[,'0|'1,'0,'_ '[,'_,'_,'_ S,L,L,S		# line 465
-'[,'0|'1,'1,'_ '[,'_,'_,'_ S,L,L,S		# line 465
-'[,'/|'[,'_,'_ S,R,S,S @76		# line 465
-FROM @73		# line 465
-'[,'0|'1,'0,'_ '[,'_,'_,'_ S,L,L,S		# line 465
-'[,'0|'1,'1,'_ '[,'_,'_,'_ S,L,L,S		# line 465
-'[,'/|'[,'_,'_ S,R,S,S @75		# line 465
-FROM @75		# line 465
-'[,'_,'_,'_ '[,'1,'_,'_ S,R,S,S @76		# line 465
-FROM @77		# line 857
-'[,'/|'[,'_,'_ '[,'_,'_,'_ S,L,S,S @78		# line 858
-FROM @78		# line 859
-'[,'0,'_,'_ '[,'_,'_,'_ S,L,S,S		# line 860
-'[,'1,'_,'_ '[,'_,'_,'_ S,L,S,S @79		# line 862
-'[,'/|'[,'_,'_ S,S,S,S @53_break		# line 863
-FROM @79		# line 864
-'[,'0|'1,'_,'_ '[,'_,'_,'_ S,L,S,S		# line 865
-'[,'/|'[,'_,'_ S,S,S,S @80		# line 867
-#	running 'for' code
-# KIND = 2		# line 199
-#	store
-#	evaluating right-hand value
-# KIND = 2		# line 199
-#	add
-# KIND = 0		# line 199
-#	load	sum
-# navigating to sum		# line 1075
-FROM @80		# line 220
-'/|'[,'/,'_,'_ R,R,S,S @81		# line 221
-'/|'[,'[,'_,'_ R,R,S,S @81		# line 222
-FROM @81		# line 223
-'0|'1,'_,'_,'_ '0|'1,'0|'1,'_,'_ R,R,S,S		# line 224
-'/,'_,'_,'_ '/,'/,'_,'_ L,S,S,S @82		# line 225
-FROM @82		# line 226
-'/|'0|'1,'/,'_,'_ L,S,S,S		# line 227
-'[,'/,'_,'_ S,S,S,S @83		# line 228
-# KIND = 0		# line 199
-#	load	x
-# navigating to x		# line 1075
-FROM @83		# line 1079
-'/|'[,'/,'_,'_ R,S,S,S @84		# line 1080
-'/|'[,'[,'_,'_ R,S,S,S @84		# line 1081
-FROM @84		# line 1082
-'0|'1,'/,'_,'_ R,S,S,S		# line 1083
-'0|'1,'[,'_,'_ R,S,S,S		# line 1084
-'/,'/|'[,'_,'_ S,S,S,S @85		# line 1085
-FROM @85		# line 220
-'/|'[,'/,'_,'_ R,R,S,S @86		# line 221
-'/|'[,'[,'_,'_ R,R,S,S @86		# line 222
-FROM @86		# line 223
-'0|'1,'_,'_,'_ '0|'1,'0|'1,'_,'_ R,R,S,S		# line 224
-'/,'_,'_,'_ '/,'/,'_,'_ L,S,S,S @87		# line 225
-FROM @87		# line 226
-'/|'0|'1,'/,'_,'_ L,S,S,S		# line 227
-'[,'/,'_,'_ S,S,S,S @88		# line 228
-FROM @88		# line 331
-'[,'/,'_,'_ '[,'_,'_,'_ S,L,S,S @89		# line 332
-FROM @89		# line 333
-'[,'0|'1,'_,'_ '[,'_,'0|'1,'_ S,L,L,S		# line 334
-'[,'/,'_,'_ S,L,S,S @90		# line 335
-FROM @90		# line 336
-'[,'0|'1,'_,'_ S,L,S,S		# line 337
-'[,'/|'[,'_,'_ S,R,R,S @91		# line 338
-FROM @91		# line 342
-'[,'0,'0,'_ '[,'0,'_,'_ S,R,R,S		# line 343
-'[,'0|'1,'1|'0,'_ '[,'1,'_,'_ S,R,R,S		# line 344
-'[,'1,'1,'_ '[,'0,'_,'_ S,R,R,S @93		# line 345
-'[,'/,'_,'_ S,S,S,S @92		# line 346
-FROM @93		# line 347
-'[,'0,'0,'_ '[,'1,'_,'_ S,R,R,S @91		# line 348
-'[,'0|'1,'1|'0,'_ '[,'0,'_,'_ S,R,R,S		# line 349
-'[,'1,'1,'_ '[,'1,'_,'_ S,R,R,S		# line 350
-'[,'/,'_,'_ S,S,S,S @92		# line 351
-FROM @92		# line 352
-'[,'/,'_,'_ S,S,S,S @94		# line 353
-FROM @94		# line 937
-'0|'1|'/,'/,'_,'_ L,S,S,S		# line 938
-'[,'/,'_,'_ S,S,S,S @95		# line 939
-# navigating to sum		# line 1075
-#	navigating to left of stack head
-FROM @95		# line 942
-'/|'[,'/,'_,'_ S,L,S,S @96		# line 943
-FROM @96		# line 944
-'/,'0|'1,'_,'_ S,L,S,S		# line 945
-'[,'0|'1,'_,'_ S,L,S,S		# line 946
-'/,'/|'[,'_,'_ R,R,S,S @97		# line 947
-'[,'/|'[,'_,'_ R,R,S,S @97		# line 948
-FROM @97		# line 951
-'0|'1,'0,'_,'_ '0,'_,'_,'_ R,R,S,S		# line 952
-'0|'1,'1,'_,'_ '1,'_,'_,'_ R,R,S,S		# line 953
-'/,'/,'_,'_ '/,'_,'_,'_ L,L,S,S @98		# line 954
-FROM @98		# line 955
-'/|'0|'1|'[,'_,'_,'_ L,L,S,S		# line 956
-'/|'0|'1|'[,'/,'_,'_ S,S,S,S @99		# line 957
-'/|'0|'1|'[,'[,'_,'_ S,S,S,S @99		# line 958
-FROM @99		# line 959
-'/|'0|'1,'[,'_,'_ L,S,S,S		# line 960
-'/|'0|'1,'/,'_,'_ L,S,S,S		# line 961
-'[,'/|'[,'_,'_ S,S,S,S @100		# line 962
-FROM @53_continue		# line 871
-'[,'/|'[,'_,'_ S,S,S,S @100		# line 872
-#	evaluating 'for' increment
-# KIND = 2		# line 199
-#	inc
-# navigating to x		# line 1075
-FROM @100		# line 1079
-'/|'[,'/,'_,'_ R,S,S,S @101		# line 1080
-'/|'[,'[,'_,'_ R,S,S,S @101		# line 1081
-FROM @101		# line 1082
-'0|'1,'/,'_,'_ R,S,S,S		# line 1083
-'0|'1,'[,'_,'_ R,S,S,S		# line 1084
-'/,'/|'[,'_,'_ S,S,S,S @102		# line 1085
-FROM @102		# line 703
-'/|'[,'[,'_,'_ R,R,S,S @103		# line 704
-'/|'[,'/,'_,'_ R,R,S,S @103		# line 705
-FROM @103		# line 708
-'0,'_,'_,'_ '1,'_,'_,'_ L,S,S,S @104		# line 711
-'1,'_,'_,'_ '0,'_,'_,'_ R,S,S,S		# line 712
-FROM @104		# line 713
-'0|'1|'/,'_,'_,'_ L,S,S,S		# line 714
-'[,'_,'_,'_ S,L,S,S @105		# line 715
-FROM @105		# line 879
-'[,'/|'[,'_,'_ S,S,S,S @53		# line 880
-FROM @53_break		# line 882
-'[,'/|'[,'_,'_ S,S,S,S @106		# line 883
-#	; second
-# KIND = 2		# line 199
+# KIND = 2 (k_operator)		# line 199
 #	print
-# KIND = 0		# line 199
-#	load	sum
-# navigating to sum		# line 1075
-FROM @106		# line 220
-'/|'[,'/,'_,'_ R,R,S,S @107		# line 221
-'/|'[,'[,'_,'_ R,R,S,S @107		# line 222
-FROM @107		# line 223
-'0|'1,'_,'_,'_ '0|'1,'0|'1,'_,'_ R,R,S,S		# line 224
-'/,'_,'_,'_ '/,'/,'_,'_ L,S,S,S @108		# line 225
-FROM @108		# line 226
-'/|'0|'1,'/,'_,'_ L,S,S,S		# line 227
-'[,'/,'_,'_ S,S,S,S @109		# line 228
-#	; second
-# KIND = 2		# line 199
-#	store
-#	evaluating right-hand value
-# KIND = 1		# line 199
-#	push	0
-FROM @109		# line 148
-'/|'[,'[,'_,'_ S,R,S,S @110		# line 149
-'/|'[,'/,'_,'_ S,R,S,S @110		# line 150
-FROM @110		# line 151
-'/|'[,'_,'_,'_ '/|'[,'0,'_,'_ S,R,S,S @111		# line 154
-FROM @111		# line 155
-'/|'[,'_,'_,'_ '/|'[,'0,'_,'_ S,R,S,S @112		# line 154
-FROM @112		# line 155
-'/|'[,'_,'_,'_ '/|'[,'0,'_,'_ S,R,S,S @113		# line 154
-FROM @113		# line 155
-'/|'[,'_,'_,'_ '/|'[,'0,'_,'_ S,R,S,S @114		# line 154
-FROM @114		# line 155
-'/|'[,'_,'_,'_ '/|'[,'0,'_,'_ S,R,S,S @115		# line 154
-FROM @115		# line 155
-'/|'[,'_,'_,'_ '/|'[,'0,'_,'_ S,R,S,S @116		# line 154
-FROM @116		# line 155
-'/|'[,'_,'_,'_ '/|'[,'0,'_,'_ S,R,S,S @117		# line 154
-FROM @117		# line 155
-'/|'[,'_,'_,'_ '/|'[,'0,'_,'_ S,R,S,S @118		# line 154
-FROM @118		# line 155
-'/|'[,'_,'_,'_ '/|'[,'/,'_,'_ S,S,S,S @119		# line 157
-FROM @119		# line 937
-'0|'1|'/,'/,'_,'_ L,S,S,S		# line 938
-'[,'/,'_,'_ S,S,S,S @120		# line 939
-# navigating to sum		# line 1075
-#	navigating to left of stack head
-FROM @120		# line 942
-'/|'[,'/,'_,'_ S,L,S,S @121		# line 943
-FROM @121		# line 944
-'/,'0|'1,'_,'_ S,L,S,S		# line 945
-'[,'0|'1,'_,'_ S,L,S,S		# line 946
-'/,'/|'[,'_,'_ R,R,S,S @122		# line 947
-'[,'/|'[,'_,'_ R,R,S,S @122		# line 948
-FROM @122		# line 951
-'0|'1,'0,'_,'_ '0,'_,'_,'_ R,R,S,S		# line 952
-'0|'1,'1,'_,'_ '1,'_,'_,'_ R,R,S,S		# line 953
-'/,'/,'_,'_ '/,'_,'_,'_ L,L,S,S @123		# line 954
-FROM @123		# line 955
-'/|'0|'1|'[,'_,'_,'_ L,L,S,S		# line 956
-'/|'0|'1|'[,'/,'_,'_ S,S,S,S @124		# line 957
-'/|'0|'1|'[,'[,'_,'_ S,S,S,S @124		# line 958
-FROM @124		# line 959
-'/|'0|'1,'[,'_,'_ L,S,S,S		# line 960
-'/|'0|'1,'/,'_,'_ L,S,S,S		# line 961
-'[,'/|'[,'_,'_ S,S,S,S @125		# line 962
-#	; second
-# KIND = 2		# line 199
-#	store
-#	evaluating right-hand value
-# KIND = 1		# line 199
-#	push	0
-FROM @125		# line 148
-'/|'[,'[,'_,'_ S,R,S,S @126		# line 149
-'/|'[,'/,'_,'_ S,R,S,S @126		# line 150
-FROM @126		# line 151
-'/|'[,'_,'_,'_ '/|'[,'0,'_,'_ S,R,S,S @127		# line 154
-FROM @127		# line 155
-'/|'[,'_,'_,'_ '/|'[,'0,'_,'_ S,R,S,S @128		# line 154
-FROM @128		# line 155
-'/|'[,'_,'_,'_ '/|'[,'0,'_,'_ S,R,S,S @129		# line 154
-FROM @129		# line 155
-'/|'[,'_,'_,'_ '/|'[,'0,'_,'_ S,R,S,S @130		# line 154
-FROM @130		# line 155
-'/|'[,'_,'_,'_ '/|'[,'0,'_,'_ S,R,S,S @131		# line 154
-FROM @131		# line 155
-'/|'[,'_,'_,'_ '/|'[,'0,'_,'_ S,R,S,S @132		# line 154
-FROM @132		# line 155
-'/|'[,'_,'_,'_ '/|'[,'0,'_,'_ S,R,S,S @133		# line 154
-FROM @133		# line 155
-'/|'[,'_,'_,'_ '/|'[,'0,'_,'_ S,R,S,S @134		# line 154
-FROM @134		# line 155
-'/|'[,'_,'_,'_ '/|'[,'/,'_,'_ S,S,S,S @135		# line 157
-FROM @135		# line 937
-'0|'1|'/,'/,'_,'_ L,S,S,S		# line 938
-'[,'/,'_,'_ S,S,S,S @136		# line 939
-# navigating to x		# line 1075
-FROM @136		# line 1079
-'/|'[,'/,'_,'_ R,S,S,S @137		# line 1080
-'/|'[,'[,'_,'_ R,S,S,S @137		# line 1081
-FROM @137		# line 1082
-'0|'1,'/,'_,'_ R,S,S,S		# line 1083
-'0|'1,'[,'_,'_ R,S,S,S		# line 1084
-'/,'/|'[,'_,'_ S,S,S,S @138		# line 1085
-#	navigating to left of stack head
-FROM @138		# line 942
-'/|'[,'/,'_,'_ S,L,S,S @139		# line 943
-FROM @139		# line 944
-'/,'0|'1,'_,'_ S,L,S,S		# line 945
-'[,'0|'1,'_,'_ S,L,S,S		# line 946
-'/,'/|'[,'_,'_ R,R,S,S @140		# line 947
-'[,'/|'[,'_,'_ R,R,S,S @140		# line 948
-FROM @140		# line 951
-'0|'1,'0,'_,'_ '0,'_,'_,'_ R,R,S,S		# line 952
-'0|'1,'1,'_,'_ '1,'_,'_,'_ R,R,S,S		# line 953
-'/,'/,'_,'_ '/,'_,'_,'_ L,L,S,S @141		# line 954
-FROM @141		# line 955
-'/|'0|'1|'[,'_,'_,'_ L,L,S,S		# line 956
-'/|'0|'1|'[,'/,'_,'_ S,S,S,S @142		# line 957
-'/|'0|'1|'[,'[,'_,'_ S,S,S,S @142		# line 958
-FROM @142		# line 959
-'/|'0|'1,'[,'_,'_ L,S,S,S		# line 960
-'/|'0|'1,'/,'_,'_ L,S,S,S		# line 961
-'[,'/|'[,'_,'_ S,S,S,S @143		# line 962
-#	; second
-# KIND = 2		# line 199
-#	for
-#	empty node
-FROM @143		# line 851
-'[,'/|'[,'_,'_ S,S,S,S @144		# line 852
-#	evaluating 'for' condition
-# KIND = 2		# line 199
-#	cmplt
-# KIND = 0		# line 199
+# KIND = 0 (k_ident)		# line 199
 #	load	x
 # navigating to x		# line 1075
-FROM @144		# line 1079
-'/|'[,'/,'_,'_ R,S,S,S @145		# line 1080
-'/|'[,'[,'_,'_ R,S,S,S @145		# line 1081
-FROM @145		# line 1082
-'0|'1,'/,'_,'_ R,S,S,S		# line 1083
-'0|'1,'[,'_,'_ R,S,S,S		# line 1084
-'/,'/|'[,'_,'_ S,S,S,S @146		# line 1085
-FROM @146		# line 220
-'/|'[,'/,'_,'_ R,R,S,S @147		# line 221
-'/|'[,'[,'_,'_ R,R,S,S @147		# line 222
-FROM @147		# line 223
+FROM @26		# line 220
+'/|'[,'/,'_,'_ R,R,S,S @27		# line 221
+'/|'[,'[,'_,'_ R,R,S,S @27		# line 222
+FROM @27		# line 223
 '0|'1,'_,'_,'_ '0|'1,'0|'1,'_,'_ R,R,S,S		# line 224
-'/,'_,'_,'_ '/,'/,'_,'_ L,S,S,S @148		# line 225
-FROM @148		# line 226
+'/,'_,'_,'_ '/,'/,'_,'_ L,S,S,S @28		# line 225
+FROM @28		# line 226
 '/|'0|'1,'/,'_,'_ L,S,S,S		# line 227
-'[,'/,'_,'_ S,S,S,S @149		# line 228
-# KIND = 1		# line 199
-#	push	10
-FROM @149		# line 148
-'/|'[,'[,'_,'_ S,R,S,S @150		# line 149
-'/|'[,'/,'_,'_ S,R,S,S @150		# line 150
-FROM @150		# line 151
-'/|'[,'_,'_,'_ '/|'[,'0,'_,'_ S,R,S,S @151		# line 154
-FROM @151		# line 155
-'/|'[,'_,'_,'_ '/|'[,'1,'_,'_ S,R,S,S @152		# line 154
-FROM @152		# line 155
-'/|'[,'_,'_,'_ '/|'[,'0,'_,'_ S,R,S,S @153		# line 154
-FROM @153		# line 155
-'/|'[,'_,'_,'_ '/|'[,'1,'_,'_ S,R,S,S @154		# line 154
-FROM @154		# line 155
-'/|'[,'_,'_,'_ '/|'[,'0,'_,'_ S,R,S,S @155		# line 154
-FROM @155		# line 155
-'/|'[,'_,'_,'_ '/|'[,'0,'_,'_ S,R,S,S @156		# line 154
-FROM @156		# line 155
-'/|'[,'_,'_,'_ '/|'[,'0,'_,'_ S,R,S,S @157		# line 154
-FROM @157		# line 155
-'/|'[,'_,'_,'_ '/|'[,'0,'_,'_ S,R,S,S @158		# line 154
-FROM @158		# line 155
-'/|'[,'_,'_,'_ '/|'[,'/,'_,'_ S,S,S,S @159		# line 157
-FROM @159		# line 465
-'[,'/,'_,'_ '[,'_,'_,'_ S,L,S,S @160		# line 465
-FROM @160		# line 465
-'[,'0|'1,'_,'_ '[,'_,'0|'1,'_ S,L,L,S		# line 465
-'[,'/,'_,'_ S,S,R,S @161		# line 465
-FROM @161		# line 465
-'[,'/,'0|'1,'_ S,S,R,S		# line 465
-'[,'/,'_,'_ S,L,L,S @162		# line 465
-FROM @162		# line 465
-'[,'0|'1,'0|'1,'_ '[,'_,'_,'_ S,L,L,S		# line 465
-'[,'0,'1,'_ '[,'_,'_,'_ S,L,L,S @163		# line 466
-'[,'1,'0,'_ '[,'_,'_,'_ S,L,L,S @164		# line 467
-'[,'/|'[,'_,'_ '[,'/|'[,'_,'_ S,R,S,S @166		# line 468
-FROM @166		# line 465
-'[,'_,'_,'_ '[,'0,'_,'_ S,R,S,S		# line 465
-'[,'/,'_,'_ S,S,S,S @167		# line 465
-FROM @164		# line 465
-'[,'0|'1,'0,'_ '[,'_,'_,'_ S,L,L,S		# line 465
-'[,'0|'1,'1,'_ '[,'_,'_,'_ S,L,L,S		# line 465
-'[,'/|'[,'_,'_ S,R,S,S @166		# line 465
-FROM @163		# line 465
-'[,'0|'1,'0,'_ '[,'_,'_,'_ S,L,L,S		# line 465
-'[,'0|'1,'1,'_ '[,'_,'_,'_ S,L,L,S		# line 465
-'[,'/|'[,'_,'_ S,R,S,S @165		# line 465
-FROM @165		# line 465
-'[,'_,'_,'_ '[,'1,'_,'_ S,R,S,S @166		# line 465
-FROM @167		# line 857
-'[,'/|'[,'_,'_ '[,'_,'_,'_ S,L,S,S @168		# line 858
-FROM @168		# line 859
-'[,'0,'_,'_ '[,'_,'_,'_ S,L,S,S		# line 860
-'[,'1,'_,'_ '[,'_,'_,'_ S,L,S,S @169		# line 862
-'[,'/|'[,'_,'_ S,S,S,S @143_break		# line 863
-FROM @169		# line 864
-'[,'0|'1,'_,'_ '[,'_,'_,'_ S,L,S,S		# line 865
-'[,'/|'[,'_,'_ S,S,S,S @170		# line 867
-#	running 'for' code
-# KIND = 2		# line 199
-#	; first
-# KIND = 2		# line 199
-#	store
-#	evaluating right-hand value
-# KIND = 2		# line 199
-#	add
-# KIND = 0		# line 199
-#	load	sum
-# navigating to sum		# line 1075
-FROM @170		# line 220
-'/|'[,'/,'_,'_ R,R,S,S @171		# line 221
-'/|'[,'[,'_,'_ R,R,S,S @171		# line 222
-FROM @171		# line 223
-'0|'1,'_,'_,'_ '0|'1,'0|'1,'_,'_ R,R,S,S		# line 224
-'/,'_,'_,'_ '/,'/,'_,'_ L,S,S,S @172		# line 225
-FROM @172		# line 226
-'/|'0|'1,'/,'_,'_ L,S,S,S		# line 227
-'[,'/,'_,'_ S,S,S,S @173		# line 228
-# KIND = 0		# line 199
-#	load	x
-# navigating to x		# line 1075
-FROM @173		# line 1079
-'/|'[,'/,'_,'_ R,S,S,S @174		# line 1080
-'/|'[,'[,'_,'_ R,S,S,S @174		# line 1081
-FROM @174		# line 1082
-'0|'1,'/,'_,'_ R,S,S,S		# line 1083
-'0|'1,'[,'_,'_ R,S,S,S		# line 1084
-'/,'/|'[,'_,'_ S,S,S,S @175		# line 1085
-FROM @175		# line 220
-'/|'[,'/,'_,'_ R,R,S,S @176		# line 221
-'/|'[,'[,'_,'_ R,R,S,S @176		# line 222
-FROM @176		# line 223
-'0|'1,'_,'_,'_ '0|'1,'0|'1,'_,'_ R,R,S,S		# line 224
-'/,'_,'_,'_ '/,'/,'_,'_ L,S,S,S @177		# line 225
-FROM @177		# line 226
-'/|'0|'1,'/,'_,'_ L,S,S,S		# line 227
-'[,'/,'_,'_ S,S,S,S @178		# line 228
-FROM @178		# line 331
-'[,'/,'_,'_ '[,'_,'_,'_ S,L,S,S @179		# line 332
-FROM @179		# line 333
-'[,'0|'1,'_,'_ '[,'_,'0|'1,'_ S,L,L,S		# line 334
-'[,'/,'_,'_ S,L,S,S @180		# line 335
-FROM @180		# line 336
-'[,'0|'1,'_,'_ S,L,S,S		# line 337
-'[,'/|'[,'_,'_ S,R,R,S @181		# line 338
-FROM @181		# line 342
-'[,'0,'0,'_ '[,'0,'_,'_ S,R,R,S		# line 343
-'[,'0|'1,'1|'0,'_ '[,'1,'_,'_ S,R,R,S		# line 344
-'[,'1,'1,'_ '[,'0,'_,'_ S,R,R,S @183		# line 345
-'[,'/,'_,'_ S,S,S,S @182		# line 346
-FROM @183		# line 347
-'[,'0,'0,'_ '[,'1,'_,'_ S,R,R,S @181		# line 348
-'[,'0|'1,'1|'0,'_ '[,'0,'_,'_ S,R,R,S		# line 349
-'[,'1,'1,'_ '[,'1,'_,'_ S,R,R,S		# line 350
-'[,'/,'_,'_ S,S,S,S @182		# line 351
-FROM @182		# line 352
-'[,'/,'_,'_ S,S,S,S @184		# line 353
-FROM @184		# line 937
-'0|'1|'/,'/,'_,'_ L,S,S,S		# line 938
-'[,'/,'_,'_ S,S,S,S @185		# line 939
-# navigating to sum		# line 1075
-#	navigating to left of stack head
-FROM @185		# line 942
-'/|'[,'/,'_,'_ S,L,S,S @186		# line 943
-FROM @186		# line 944
-'/,'0|'1,'_,'_ S,L,S,S		# line 945
-'[,'0|'1,'_,'_ S,L,S,S		# line 946
-'/,'/|'[,'_,'_ R,R,S,S @187		# line 947
-'[,'/|'[,'_,'_ R,R,S,S @187		# line 948
-FROM @187		# line 951
-'0|'1,'0,'_,'_ '0,'_,'_,'_ R,R,S,S		# line 952
-'0|'1,'1,'_,'_ '1,'_,'_,'_ R,R,S,S		# line 953
-'/,'/,'_,'_ '/,'_,'_,'_ L,L,S,S @188		# line 954
-FROM @188		# line 955
-'/|'0|'1|'[,'_,'_,'_ L,L,S,S		# line 956
-'/|'0|'1|'[,'/,'_,'_ S,S,S,S @189		# line 957
-'/|'0|'1|'[,'[,'_,'_ S,S,S,S @189		# line 958
-FROM @189		# line 959
-'/|'0|'1,'[,'_,'_ L,S,S,S		# line 960
-'/|'0|'1,'/,'_,'_ L,S,S,S		# line 961
-'[,'/|'[,'_,'_ S,S,S,S @190		# line 962
-#	; second
-# KIND = 2		# line 199
-#	inc
-# navigating to x		# line 1075
-FROM @190		# line 1079
-'/|'[,'/,'_,'_ R,S,S,S @191		# line 1080
-'/|'[,'[,'_,'_ R,S,S,S @191		# line 1081
-FROM @191		# line 1082
-'0|'1,'/,'_,'_ R,S,S,S		# line 1083
-'0|'1,'[,'_,'_ R,S,S,S		# line 1084
-'/,'/|'[,'_,'_ S,S,S,S @192		# line 1085
-FROM @192		# line 703
-'/|'[,'[,'_,'_ R,R,S,S @193		# line 704
-'/|'[,'/,'_,'_ R,R,S,S @193		# line 705
-FROM @193		# line 708
-'0,'_,'_,'_ '1,'_,'_,'_ L,S,S,S @194		# line 711
-'1,'_,'_,'_ '0,'_,'_,'_ R,S,S,S		# line 712
-FROM @194		# line 713
-'0|'1|'/,'_,'_,'_ L,S,S,S		# line 714
-'[,'_,'_,'_ S,L,S,S @195		# line 715
-FROM @143_continue		# line 871
-'[,'/|'[,'_,'_ S,S,S,S @195		# line 872
-FROM @195		# line 879
-'[,'/|'[,'_,'_ S,S,S,S @143		# line 880
-FROM @143_break		# line 882
-'[,'/|'[,'_,'_ S,S,S,S @196		# line 883
-#	; second
-# KIND = 2		# line 199
-#	print
-# KIND = 0		# line 199
-#	load	sum
-# navigating to sum		# line 1075
-FROM @196		# line 220
-'/|'[,'/,'_,'_ R,R,S,S @197		# line 221
-'/|'[,'[,'_,'_ R,R,S,S @197		# line 222
-FROM @197		# line 223
-'0|'1,'_,'_,'_ '0|'1,'0|'1,'_,'_ R,R,S,S		# line 224
-'/,'_,'_,'_ '/,'/,'_,'_ L,S,S,S @198		# line 225
-FROM @198		# line 226
-'/|'0|'1,'/,'_,'_ L,S,S,S		# line 227
-'[,'/,'_,'_ S,S,S,S @199		# line 228
-FROM @199		# line 1306
+'[,'/,'_,'_ S,S,S,S @29		# line 228
+FROM @29		# line 1306
 '[,'/,'_,'_ S,S,S,S @END		# line 1307
 '[,'[,'_,'_ S,S,S,S @END		# line 1308

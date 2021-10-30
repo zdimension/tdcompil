@@ -23,6 +23,18 @@
 [0-9]+\.?[0-9]*(e[+-]?[0-9]+)?	{ yylval.value = atof(yytext); return NUMBER; }
 \.[0-9]+(e[+-]?[0-9]+)?		{ yylval.value = atof(yytext); return NUMBER; }
 
+\'\\a\'	{ yylval.value = '\a'; return NUMBER; }
+\'\\b\'	{ yylval.value = '\b'; return NUMBER; }
+\'\\e\'	{ yylval.value = '\e'; return NUMBER; }
+\'\\f\'	{ yylval.value = '\f'; return NUMBER; }
+\'\\n\'	{ yylval.value = '\n'; return NUMBER; }
+\'\\r\'	{ yylval.value = '\r'; return NUMBER; }
+\'\\t\'	{ yylval.value = '\t'; return NUMBER; }
+\'\\v\'	{ yylval.value = '\v'; return NUMBER; }
+\'\\'\'	{ yylval.value = '\''; return NUMBER; }
+\'\\\\\'	{ yylval.value = '\\'; return NUMBER; }
+\'[^\']\' { yylval.value = yytext[1]; return NUMBER; }
+
 	/* ---- Single char tokens ---- */
 
 [-()\[\]<>=+*/;{}.&]			{ return *yytext; }
