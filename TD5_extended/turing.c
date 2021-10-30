@@ -195,12 +195,11 @@ void pop(int n)
     instr("'[,'/|'[,'_,'_ S,S,S,S @%d", label + 1);
 }
 
-#define IS_NUM(node) (AST_KIND(node) == k_number)
-#define IS_VAL(node, val) (IS_NUM(node) && NUMBER_VALUE(node) == (val))
-
 #define RETURN(x) do{*result = x; return true;}while(0)
 bool static_fold(ast_node* n, struct stack_frame* frame, ast_node** result)
 {
+    *result = n;
+
     if (!n)
         return false;
 
