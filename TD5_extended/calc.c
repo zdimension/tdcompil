@@ -121,6 +121,16 @@ void error_msg(const char* format, ...)
     va_end(ap);
 }
 
+void info_msg(const char* format, ...)
+{
+    va_list ap;
+
+    fprintf(stderr, "*** Info on line %d: ", yylineno);
+    va_start(ap, format);
+    vfprintf(stderr, format, ap);
+    va_end(ap);
+}
+
 
 struct linked_list* make_list(ast_node* value)
 {

@@ -393,7 +393,17 @@ bool static_fold(ast_node* n, struct stack_frame* frame, ast_node** result)
                 {
                     if (AST_KIND(o[1].folded) == k_ident && !strcmp(VAR_NAME(op[0]), VAR_NAME(o[1].folded)))
                     {
+                        info_msg("Assignment has no effect\n");
                         RETURN(op[0]);
+                    }
+                    return false;
+                }
+                case KIF:
+                {
+                    if (o[0].is_num)
+                    {
+                        info_msg("Condition is always %s\n", o[0].value ? "true" : "false");
+                        RETURN(o[0].value ? op[1] : op[2]);
                     }
                     return false;
                 }
@@ -416,6 +426,7 @@ int static_eval(ast_node* n)
     return NUMBER_VALUE(n);
 }
 
+#define USELESS() do{info_msg("Line has no effect\n");return;}while(0)
 void exec(ast_node* n, struct stack_frame* frame, struct loop_info* loop)
 {
     if (!n)
@@ -444,7 +455,7 @@ void exec(ast_node* n, struct stack_frame* frame, struct loop_info* loop)
         {
             PROD1F("push", NUMBER_VALUE(n));
             if (clean_stack)
-                return;
+                USELESS();
             push_number(NUMBER_VALUE(n));
             return;
         }
@@ -452,7 +463,7 @@ void exec(ast_node* n, struct stack_frame* frame, struct loop_info* loop)
         {
             PROD1S("load", VAR_NAME(n));
             if (clean_stack)
-                return;
+                USELESS();
             struct var_list* ptr = get_var_id(VAR_NAME(n), frame->vars);
             if (ptr->size != 1) // array
             {
@@ -488,7 +499,7 @@ void exec(ast_node* n, struct stack_frame* frame, struct loop_info* loop)
                     if (clean_stack)
                     {
                         pop(1);
-                        return;
+                        USELESS();
                     }
                     instr("FROM @%d", ++label);
                     instr("'[,'/,'_,'_ '[,'/,'_,'_ S,L,S,S @%d", ++label);
@@ -517,7 +528,7 @@ void exec(ast_node* n, struct stack_frame* frame, struct loop_info* loop)
                     if (clean_stack)
                     {
                         pop(1);
-                        return;
+                        USELESS();
                     }
                     deref();
                     instr("FROM @%d", ++label);
@@ -538,7 +549,7 @@ void exec(ast_node* n, struct stack_frame* frame, struct loop_info* loop)
                     PROD0("ref");
                     if (clean_stack)
                     {
-                        return;
+                        USELESS();
                     }
                     int ptr = get_var_id(VAR_NAME(op[0]), frame->vars)->position;
                     if (op[1] != NULL)
@@ -568,7 +579,7 @@ void exec(ast_node* n, struct stack_frame* frame, struct loop_info* loop)
                     if (clean_stack)
                     {
                         pop(2);
-                        return;
+                        USELESS();
                     }
                     ADD:
                     instr("FROM @%d", ++label);
@@ -604,7 +615,7 @@ void exec(ast_node* n, struct stack_frame* frame, struct loop_info* loop)
                     if (clean_stack)
                     {
                         pop(2);
-                        return;
+                        USELESS();
                     }
                     instr("FROM @%d", ++label);
                     instr("'[,'/,'_,'_ '[,'_,'_,'_ S,L,S,S @%d", ++label);
@@ -639,7 +650,7 @@ void exec(ast_node* n, struct stack_frame* frame, struct loop_info* loop)
                     if (clean_stack)
                     {
                         pop(2);
-                        return;
+                        USELESS();
                     }
                     instr("FROM @%d", ++label);
                     instr("'[,'/,'_,'_ '[,'_,'_,'_ S,L,S,S @%d", ++label);
@@ -692,7 +703,7 @@ void exec(ast_node* n, struct stack_frame* frame, struct loop_info* loop)
                     if (clean_stack)
                     {
                         pop(2);
-                        return;
+                        USELESS();
                     }
                     return;
                 case '<':
@@ -720,7 +731,7 @@ void exec(ast_node* n, struct stack_frame* frame, struct loop_info* loop)
                     if (clean_stack)
                     {
                         pop(2);
-                        return;
+                        USELESS();
                     }
                     COMPARISON({
                                    instr("'[,'1,'0,'_ '[,'_,'_,'_ S,L,L,S @%d", left_then_one);
@@ -737,7 +748,7 @@ void exec(ast_node* n, struct stack_frame* frame, struct loop_info* loop)
                     if (clean_stack)
                     {
                         pop(2);
-                        return;
+                        USELESS();
                     }
                     COMPARISON({
                                    instr("'[,'1,'0,'_ '[,'_,'_,'_ S,L,L,S @%d", left_then_one);
@@ -754,7 +765,7 @@ void exec(ast_node* n, struct stack_frame* frame, struct loop_info* loop)
                     if (clean_stack)
                     {
                         pop(2);
-                        return;
+                        USELESS();
                     }
                     COMPARISON({
                                    instr("'[,'0,'1,'_ '[,'_,'_,'_ S,L,L,S @%d", left_then_one);
@@ -771,7 +782,7 @@ void exec(ast_node* n, struct stack_frame* frame, struct loop_info* loop)
                     if (clean_stack)
                     {
                         pop(2);
-                        return;
+                        USELESS();
                     }
                     instr("FROM @%d", ++label);
                     instr("'[,'/,'_,'_ '[,'_,'_,'_ S,L,S,S @%d", ++label);
@@ -816,7 +827,7 @@ void exec(ast_node* n, struct stack_frame* frame, struct loop_info* loop)
                     if (clean_stack)
                     {
                         pop(2);
-                        return;
+                        USELESS();
                     }
                     instr("FROM @%d", ++label);
                     instr("'[,'/,'_,'_ '[,'_,'_,'_ S,L,S,S @%d", ++label);
@@ -861,7 +872,7 @@ void exec(ast_node* n, struct stack_frame* frame, struct loop_info* loop)
                     if (clean_stack)
                     {
                         pop(2);
-                        return;
+                        USELESS();
                     }
                     instr("FROM @%d", ++label);
                     instr("'[,'/,'_,'_ '[,'_,'_,'_ S,L,S,S @%d", ++label);
@@ -904,7 +915,7 @@ void exec(ast_node* n, struct stack_frame* frame, struct loop_info* loop)
                     if (clean_stack)
                     {
                         pop(2);
-                        return;
+                        USELESS();
                     }
                     instr("FROM @%d", ++label);
                     instr("'[,'/,'_,'_ '[,'_,'_,'_ S,L,S,S @%d", ++label);
