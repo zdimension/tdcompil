@@ -88,6 +88,11 @@ struct var_list
     int size;
 } * globals_head = NULL, * globals_tail = NULL;
 
+struct loop_info
+{
+    int address;
+};
+
 int label = 0;
 
 struct func_list
@@ -112,11 +117,11 @@ struct call_site_list* add_call_site(struct call_site_list** list)
     return newNode;
 }
 
-void nav_to_var(struct ast_node* op, struct stack_frame* frame);
+void nav_to_var(struct ast_node* op, struct stack_frame* frame, struct loop_info* loop);
 
 void deref();
 
-void exec(ast_node* n, struct stack_frame* frame);
+void exec(ast_node* n, struct stack_frame* frame, struct loop_info* loop);
 
 struct linked_list_header* find_symbol(struct linked_list_header* list, const char* name)
 {
@@ -160,7 +165,7 @@ void eval(ast_node* n, struct stack_frame* frame)
         abort();
     }
 
-    exec(n, frame);
+    exec(n, frame, NULL);
 }
 
 void pop(int n)
@@ -183,7 +188,7 @@ void pop(int n)
     instr("'[,'/|'[,'_,'_ S,S,S,S @%d", label + 1);
 }
 
-void exec(ast_node* n, struct stack_frame* frame)
+void exec(ast_node* n, struct stack_frame* frame, struct loop_info* loop)
 {
     if (!n)
     {
@@ -211,7 +216,7 @@ void exec(ast_node* n, struct stack_frame* frame)
             }
             else
             {
-                nav_to_var(n, frame);
+                nav_to_var(n, frame, NULL);
                 instr("FROM @%d", ++label);
                 instr("'/|'[,'/,'_,'_ R,R,S,S @%d", ++label);
                 instr("'/|'[,'[,'_,'_ R,R,S,S @%d", label);
@@ -694,7 +699,7 @@ void exec(ast_node* n, struct stack_frame* frame)
                 case INC:
                 {
                     PROD0("inc");
-                    nav_to_var(op[0], frame);
+                    nav_to_var(op[0], frame, NULL);
                     instr("FROM @%d", ++label);
                     instr("'/|'[,'[,'_,'_ R,R,S,S @%d", ++label);
                     instr("'/|'[,'/,'_,'_ R,R,S,S @%d", label);
@@ -736,7 +741,7 @@ void exec(ast_node* n, struct stack_frame* frame)
                 case DEC:
                 {
                     PROD0("dec");
-                    nav_to_var(op[0], frame);
+                    nav_to_var(op[0], frame, NULL);
                     instr("FROM @%d", ++label);
                     instr("'/|'[,'[,'_,'_ R,R,S,S @%d", ++label);
                     instr("'/|'[,'/,'_,'_ R,R,S,S @%d", label);
@@ -786,24 +791,47 @@ void exec(ast_node* n, struct stack_frame* frame)
                     else
                     {
                         PROD0("; first");
-                        exec(op[0], frame);
+                        exec(op[0], frame, loop);
                         PROD0("; second");
-                        exec(op[1], frame);
+                        exec(op[1], frame, loop);
                         return;
                     }
                 case KPRINT:
                     PROD0("print");
                     eval(op[0], frame);
                     return;
+                case KBREAK:
+                    PROD0("break");
+                    if (!loop)
+                    {
+                        error_msg("Break statement only permitted in loop\n");
+                        exit(1);
+                    }
+                    instr("FROM @%d", ++label);
+                    instr("'[,'/|'[,'_,'_ S,S,S,S @%d_break", loop->address);
+                    return;
+                case KCONTINUE:
+                    PROD0("continue");
+                    if (!loop)
+                    {
+                        error_msg("Continue statement only permitted in loop\n");
+                        exit(1);
+                    }
+                    instr("FROM @%d", ++label);
+                    instr("'[,'/|'[,'_,'_ S,S,S,S @%d_continue", loop->address);
+                    return;
                 case KDO:
                 {
                     PROD0("do");
                     int start = label + 1;
-                    exec(op[0], frame);
+                    struct loop_info loop_info = {.address = start};
+                    exec(op[0], frame, &loop_info);
+                    instr("FROM @%d_continue", start);
+                    instr("'[,'/|'[,'_,'_ S,S,S,S @%d", label + 1);
                     eval(op[1], frame);
                     instr("FROM @%d", ++label);
-                    instr("'[,'/|'[,'_,'_ '[,'_,'_,'_ S,L,S,S @%d", ++label);
-                    instr("FROM @%d", label);
+                    instr("'[,'/|'[,'_,'_ '[,'_,'_,'_ S,L,S,S @%d_break", start);
+                    instr("FROM @%d_break", start);
                     instr("'[,'0,'_,'_ '[,'_,'_,'_ S,L,S,S");
                     int one_found = ++label;
                     int end = label + 1;
@@ -834,7 +862,7 @@ void exec(ast_node* n, struct stack_frame* frame)
                     int is_nonzero = label + 1;
                     instr("'[,'/|'[,'_,'_ S,S,S,S @%d", is_nonzero);
 
-                    exec(op[1], frame);
+                    exec(op[1], frame, loop);
 
                     instr("FROM @%d", ++label); // after is_non_zero
                     instr("'[,'/|'[,'_,'_ S,S,S,S @%d", start);
@@ -865,7 +893,7 @@ void exec(ast_node* n, struct stack_frame* frame)
                     int is_nonzero = label + 1;
                     instr("'[,'/|'[,'_,'_ S,S,S,S @%d", is_nonzero);
 
-                    eval(op[1], frame);
+                    exec(op[1], frame, loop);
 
                     instr("FROM @%d", ++label); // after is_non_zero
                     instr("'[,'/|'[,'_,'_ S,S,S,S @%d", end);
@@ -877,7 +905,7 @@ void exec(ast_node* n, struct stack_frame* frame)
                         instr("'[,'/|'[,'_,'_ S,S,S,S @%d", zero_id);
                         // else
 
-                        eval(op[2], frame);
+                        exec(op[2], frame, loop);
 
                         instr("FROM @%d", ++label);
                         instr("'[,'/|'[,'_,'_ S,S,S,S @%d", label + 1);
@@ -893,7 +921,7 @@ void exec(ast_node* n, struct stack_frame* frame)
                     instr("FROM @%d", ++label);
                     instr("'0|'1|'/,'/,'_,'_ L,S,S,S");
                     instr("'[,'/,'_,'_ S,S,S,S @%d", label + 1);
-                    nav_to_var(op[0], frame);
+                    nav_to_var(op[0], frame, NULL);
                     instr("FROM @%d", ++label);
                     instr("'/|'[,'/,'_,'_ S,L,S,S @%d", ++label);
                     instr("FROM @%d", label);
@@ -1022,7 +1050,7 @@ void exec(ast_node* n, struct stack_frame* frame)
     }
 }
 
-void nav_to_var(struct ast_node* op, struct stack_frame* frame)
+void nav_to_var(struct ast_node* op, struct stack_frame* frame, struct loop_info* loop)
 {
     if (AST_KIND(op) == k_ident)
     {
@@ -1268,7 +1296,7 @@ void produce_code(ast_node* n)
         instr("FROM @F%d", ptr->header.id);
         instr("'[,'/|'[,'_,'_ S,S,S,S @%d", label + 1);
         struct stack_frame local_frame = {.vars = ptr->locals_head, .function = ptr};
-        exec(ptr->code, &local_frame);
+        exec(ptr->code, &local_frame, NULL);
         instr("FROM @%d", ++label);
         instr("'[,'/|'[,'_,'_ S,S,S,S @F%dret", ptr->header.id);
     }

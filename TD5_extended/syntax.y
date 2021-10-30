@@ -32,7 +32,7 @@ void yyerror(const char *s);
 //                      Tokens
 %token  <value>         NUMBER
 %token  <var>           IDENT
-%token                  KWHILE KIF KPRINT KELSE KREAD KFOR KDO KDIM KFUNC KRETURN KPROC
+%token                  KWHILE KIF KPRINT KELSE KREAD KFOR KDO KDIM KFUNC KRETURN KPROC KBREAK KCONTINUE
 %token '+' '-' '*' '/' GE LE EQ NE '>' '<' REF DEREF APL AMN AML ADV INC DEC AND OR
 %token UMINUS
 //                       Precedence rules
@@ -66,6 +66,8 @@ stmt
     | KPRINT expr ';'                  						{ $$ = make_node(KPRINT, 1, $2); }
     | KREAD expr ';'                  						{ $$ = make_node(KREAD, 1, $2); }
     | KRETURN expr_opt ';'                  				{ $$ = make_node(KRETURN, 1, $2); }
+    | KBREAK ';'											{ $$ = make_node(KBREAK, 0); }
+    | KCONTINUE ';'											{ $$ = make_node(KCONTINUE, 0); }
     | KWHILE '(' expr ')' stmt         						{ $$ = make_node(KWHILE, 2, $3, $5); }
     | KIF '(' expr ')' stmt    %prec THEN    				{ $$ = make_node(KIF, 3, $3, $5, NULL); }
     | KIF '(' expr ')' stmt KELSE stmt      				{ $$ = make_node(KIF, 3, $3, $5, $7); }
