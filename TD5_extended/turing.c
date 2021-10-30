@@ -86,6 +86,7 @@ struct var_list
     struct linked_list_header header;
     int position;
     int size;
+    char* initial;
 } * globals_head = NULL, * globals_tail = NULL;
 
 struct loop_info
@@ -1171,7 +1172,15 @@ struct linked_list_header* add_symbol(struct linked_list_header** head, struct l
 #define ADD_SYM(type, head, tail) ((type*) add_symbol((struct linked_list_header**)(head), (struct linked_list_header**)(tail), sizeof(type)))
 
 
-void check_add_var(const char* name, int size, struct var_list** vars_head, struct var_list** vars_tail)
+/**
+ *
+ * @param name
+ * @param size
+ * @param vars_head
+ * @param vars_tail
+ * @return NULL if the variable already exists
+ */
+struct var_list* check_add_var(const char* name, int size, struct var_list** vars_head, struct var_list** vars_tail)
 {
     bool found = false;
     int i = 0;
@@ -1193,7 +1202,10 @@ void check_add_var(const char* name, int size, struct var_list** vars_head, stru
         newNode->header.name = name;
         newNode->position = i;
         newNode->size = size;
+        newNode->initial = NULL;
+        return newNode;
     }
+    return NULL;
 }
 
 
@@ -1207,7 +1219,24 @@ void traverse_vars(ast_node* n, struct var_list** vars_head, struct var_list** v
         if ((OPER_OPERATOR(n) == '=' || OPER_OPERATOR(n) == KDIM) && AST_KIND(OPER_OPERANDS(n)[0]) == k_ident)
         {
             const char* name = VAR_NAME(OPER_OPERANDS(n)[0]);
-            check_add_var(name, OPER_OPERATOR(n) == KDIM ? NUMBER_VALUE(OPER_OPERANDS(n)[1]) : 1, vars_head, vars_tail);
+            if (OPER_OPERATOR(n) == '=')
+            {
+                check_add_var(name, 1, vars_head, vars_tail);
+            }
+            else
+            {
+                struct var_list* var = check_add_var(name, NUMBER_VALUE(OPER_OPERANDS(n)[1]), vars_head, vars_tail);
+                if (!var)
+                {
+                    error_msg("Cannot redeclare array\n");
+                    exit(1);
+                }
+                struct ast_node* initial = OPER_OPERANDS(n)[2];
+                if (initial)
+                {
+                    var->initial = VAR_NAME(initial);
+                }
+            }
         }
 
         if (OPER_OPERATOR(n) != KFUNC && OPER_OPERATOR(n) != KPROC)
@@ -1243,8 +1272,6 @@ void traverse_funcs(ast_node* n)
 
             traverse_vars(newNode->code, &newNode->locals_head, &newNode->locals_tail);
             traverse_funcs(newNode->code);
-
-
         }
         else
         {
@@ -1273,9 +1300,10 @@ void produce_code(ast_node* n)
 
     {
         printf("# Memory map\n");
+        printf("# POSITION  SIZE  NAME\n");
         for (struct var_list* ptr = globals_head; ptr; ptr = (struct var_list*) ptr->header.next)
         {
-            printf("# %4d %s\n", ptr->position, ptr->header.name);
+            printf("# %8d  %4d  %s\n", ptr->position, ptr->size, ptr->header.name);
         }
     }
 
@@ -1284,19 +1312,32 @@ void produce_code(ast_node* n)
 
     for (struct var_list* ptr = globals_head; ptr; ptr = (struct var_list*) ptr->header.next)
     {
-        for (int j = 0; j < ptr->size; j++)
+        char* str = ptr->initial;
+        for (int j = 0; j < ptr->size; j++, (str && *str && str++))
         {
-            for (int i = 0; i < INT_WIDTH; i++)
+            if (str && *str)
             {
-                instr("FROM @%d", label);
-                instr("'_,'[,'_,'_ '0,'[,'_,'_ R,S,S,S @%d", ++label);
+                char value = *str;
+                for (int i = 0; i < INT_WIDTH; i++, value >>= 1)
+                {
+                    instr("FROM @%d", label);
+                    instr("'_,'[,'_,'_ '%d,'[,'_,'_ R,S,S,S @%d", value & 1, ++label);
+                }
+            }
+            else
+            {
+                for (int i = 0; i < INT_WIDTH; i++)
+                {
+                    instr("FROM @%d", label);
+                    instr("'_,'[,'_,'_ '0,'[,'_,'_ R,S,S,S @%d", ++label);
+                }
             }
             instr("FROM @%d", label);
             instr("'_,'[,'_,'_ '/,'[,'_,'_ R,S,S,S @%d", ++label);
         }
     }
     instr("FROM @%d", label);
-    instr("'_|'/|'0,'[,'_,'_ L,S,S,S");
+    instr("'_|'/|'0|'1,'[,'_,'_ L,S,S,S");
     instr("'[,'[,'_,'_ S,S,S,S @%d", label + 1);
 
     struct stack_frame global_frame = {.vars = globals_head, .function = NULL};

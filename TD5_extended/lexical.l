@@ -34,6 +34,7 @@
 \'\\'\'	{ yylval.value = '\''; return NUMBER; }
 \'\\\\\'	{ yylval.value = '\\'; return NUMBER; }
 \'[^\']\' { yylval.value = yytext[1]; return NUMBER; }
+\"[^\"]*\" { yylval.var = strndup(yytext + 1, strlen(yytext) - 2); return STRING; }
 
 	/* ---- Single char tokens ---- */
 

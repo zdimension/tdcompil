@@ -25,18 +25,6 @@ static const char* name##_NAMES[] =\
     items(ENUM_NAME)\
 };
 
-#define TOKENS(F) \
-    F(INT) \
-    F(PLUS) \
-    F(MINUS) \
-    F(MULT) \
-    F(DIV) \
-    F(OPEN) \
-    F(CLOSE) \
-    F(EQUAL) \
-    F(EOL) \
-    F(INVALID)
-
 
 /// The various kind of node we can have: ident, number, operator
 #define KINDS(F) \
@@ -69,7 +57,7 @@ struct ast_ident
     char* name;            // name of the ident
 };
 
-#define VAR_NAME(p)        (((struct ast_ident *) p)->name)
+#define VAR_NAME(p)        (((struct ast_ident *) (p))->name)
 
 ast_node* make_ident(char* str);    // make a ident node
 
@@ -83,7 +71,7 @@ struct ast_number
     float value;            // value of the number
 };
 
-#define NUMBER_VALUE(p)    (((struct ast_number *) p)->value)
+#define NUMBER_VALUE(p)    (((struct ast_number *) (p))->value)
 
 ast_node* make_number(float f);    // make a number node
 
@@ -100,10 +88,10 @@ struct ast_operator
     ast_node* operands[0];    // array of operands
 };
 
-#define OPER_OPERATOR(p)    (((struct ast_operator *) p)->operator)
-#define OPER_ARITY(p)        (((struct ast_operator *) p)->arity)
-#define OPER_CLEAN_STACK(p)        (((struct ast_operator *) p)->clean_stack)
-#define OPER_OPERANDS(p)    (((struct ast_operator *) p)->operands)
+#define OPER_OPERATOR(p)    (((struct ast_operator *) (p))->operator)
+#define OPER_ARITY(p)        (((struct ast_operator *) (p))->arity)
+#define OPER_CLEAN_STACK(p)        (((struct ast_operator *) (p))->clean_stack)
+#define OPER_OPERANDS(p)    (((struct ast_operator *) (p))->operands)
 
 ast_node* make_node(int operator, int arity, ...); // make an operator node
 
