@@ -177,7 +177,7 @@ void eval(ast_node* n, struct stack_frame* frame)
 
 void pop(int n)
 {
-    if (n--)
+    if (!n)
         return;
 
     instr("FROM @%d", ++label);
