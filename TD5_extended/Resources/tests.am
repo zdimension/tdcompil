@@ -1,38 +1,38 @@
-NEW "generated" 4		# line 1218
-START @INIT		# line 1219
-END @END "END"		# line 1220
-END @DEFAULT "default option"		# line 1221
+NEW "generated" 4		# line 1220
+START @INIT		# line 1221
+END @END "END"		# line 1222
+END @DEFAULT "default option"		# line 1223
 # Memory map
 #    0 x
-FROM @INIT		# line 1234
-'_,'_,'_,'_ '[,'[,'_,'_ R,S,S,S @0		# line 1235
-FROM @0		# line 1243
-'_,'[,'_,'_ '0,'[,'_,'_ R,S,S,S @1		# line 1244
-FROM @1		# line 1243
-'_,'[,'_,'_ '0,'[,'_,'_ R,S,S,S @2		# line 1244
-FROM @2		# line 1243
-'_,'[,'_,'_ '0,'[,'_,'_ R,S,S,S @3		# line 1244
-FROM @3		# line 1243
-'_,'[,'_,'_ '0,'[,'_,'_ R,S,S,S @4		# line 1244
-FROM @4		# line 1243
-'_,'[,'_,'_ '0,'[,'_,'_ R,S,S,S @5		# line 1244
-FROM @5		# line 1243
-'_,'[,'_,'_ '0,'[,'_,'_ R,S,S,S @6		# line 1244
-FROM @6		# line 1243
-'_,'[,'_,'_ '0,'[,'_,'_ R,S,S,S @7		# line 1244
-FROM @7		# line 1243
-'_,'[,'_,'_ '0,'[,'_,'_ R,S,S,S @8		# line 1244
-FROM @8		# line 1246
-'_,'[,'_,'_ '/,'[,'_,'_ R,S,S,S @9		# line 1247
-FROM @9		# line 1250
-'_|'/|'0,'[,'_,'_ L,S,S,S		# line 1251
-'[,'[,'_,'_ S,S,S,S @10		# line 1252
-# KIND = 2		# line 192
+FROM @INIT		# line 1236
+'_,'_,'_,'_ '[,'[,'_,'_ R,S,S,S @0		# line 1237
+FROM @0		# line 1245
+'_,'[,'_,'_ '0,'[,'_,'_ R,S,S,S @1		# line 1246
+FROM @1		# line 1245
+'_,'[,'_,'_ '0,'[,'_,'_ R,S,S,S @2		# line 1246
+FROM @2		# line 1245
+'_,'[,'_,'_ '0,'[,'_,'_ R,S,S,S @3		# line 1246
+FROM @3		# line 1245
+'_,'[,'_,'_ '0,'[,'_,'_ R,S,S,S @4		# line 1246
+FROM @4		# line 1245
+'_,'[,'_,'_ '0,'[,'_,'_ R,S,S,S @5		# line 1246
+FROM @5		# line 1245
+'_,'[,'_,'_ '0,'[,'_,'_ R,S,S,S @6		# line 1246
+FROM @6		# line 1245
+'_,'[,'_,'_ '0,'[,'_,'_ R,S,S,S @7		# line 1246
+FROM @7		# line 1245
+'_,'[,'_,'_ '0,'[,'_,'_ R,S,S,S @8		# line 1246
+FROM @8		# line 1248
+'_,'[,'_,'_ '/,'[,'_,'_ R,S,S,S @9		# line 1249
+FROM @9		# line 1252
+'_|'/|'0,'[,'_,'_ L,S,S,S		# line 1253
+'[,'[,'_,'_ S,S,S,S @10		# line 1254
+# KIND = 2		# line 194
 #	; first
-# KIND = 2		# line 192
+# KIND = 2		# line 194
 #	proc
 #	; second
-# KIND = 2		# line 192
+# KIND = 2		# line 194
 #	store
-# KIND = 2		# line 192
+# KIND = 2		# line 194
 #	call

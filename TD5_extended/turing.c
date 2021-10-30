@@ -30,20 +30,20 @@
 #define instr(format, ...) printf (format "\t\t# line %d\n", ## __VA_ARGS__, __LINE__)
 
 #define COMPARISON(code) { \
-instr("FROM @%d", ++*label);\
-instr("'[,'/,'_,'_ '[,'_,'_,'_ S,L,S,S @%d", ++*label);\
-instr("FROM @%d", *label);\
+instr("FROM @%d", ++label);\
+instr("'[,'/,'_,'_ '[,'_,'_,'_ S,L,S,S @%d", ++label);\
+instr("FROM @%d", label);\
 instr("'[,'0|'1,'_,'_ '[,'_,'0|'1,'_ S,L,L,S");\
-instr("'[,'/,'_,'_ S,S,R,S @%d", ++*label);\
-instr("FROM @%d", *label);\
+instr("'[,'/,'_,'_ S,S,R,S @%d", ++label);\
+instr("FROM @%d", label);\
 instr("'[,'/,'0|'1,'_ S,S,R,S");\
-instr("'[,'/,'_,'_ S,L,L,S @%d", ++*label);\
-instr("FROM @%d", *label);\
-int left_then_one = ++*label;\
-int left_then_zero = ++*label;\
-int one = ++*label;\
-int zero = ++*label;\
-int end = *label + 1;\
+instr("'[,'/,'_,'_ S,L,L,S @%d", ++label);\
+instr("FROM @%d", label);\
+int left_then_one = ++label;\
+int left_then_zero = ++label;\
+int one = ++label;\
+int zero = ++label;\
+int end = label + 1;\
 instr("'[,'0|'1,'0|'1,'_ '[,'_,'_,'_ S,L,L,S");\
 code \
 instr("FROM @%d", zero);\
@@ -88,6 +88,8 @@ struct var_list
     int size;
 } * globals_head = NULL, * globals_tail = NULL;
 
+int label = 0;
+
 struct func_list
 {
     struct linked_list_header header;
@@ -110,11 +112,11 @@ struct call_site_list* add_call_site(struct call_site_list** list)
     return newNode;
 }
 
-void nav_to_var(int* label, struct ast_node* op, struct stack_frame* frame);
+void nav_to_var(struct ast_node* op, struct stack_frame* frame);
 
-void deref(int* label);
+void deref();
 
-void exec(ast_node* n, int* label, struct stack_frame* frame);
+void exec(ast_node* n, struct stack_frame* frame);
 
 struct linked_list_header* find_symbol(struct linked_list_header* list, const char* name)
 {
@@ -136,21 +138,21 @@ struct var_list* get_var_id(const char* name, struct var_list* frame)
     return FIND_SYM(struct var_list, frame, name);
 }
 
-void push_number(int value, int* label)
+void push_number(int value)
 {
-    instr("FROM @%d", ++(*label));
-    instr("'/|'[,'[,'_,'_ S,R,S,S @%d", ++*label);
-    instr("'/|'[,'/,'_,'_ S,R,S,S @%d", *label);
-    instr("FROM @%d", *label);
+    instr("FROM @%d", ++(label));
+    instr("'/|'[,'[,'_,'_ S,R,S,S @%d", ++label);
+    instr("'/|'[,'/,'_,'_ S,R,S,S @%d", label);
+    instr("FROM @%d", label);
     for (int i = 0; i < INT_WIDTH; i++, value /= 2)
     {
-        instr("'/|'[,'_,'_,'_ '/|'[,'%d,'_,'_ S,R,S,S @%d", value & 1, ++*label);
-        instr("FROM @%d", *label);
+        instr("'/|'[,'_,'_,'_ '/|'[,'%d,'_,'_ S,R,S,S @%d", value & 1, ++label);
+        instr("FROM @%d", label);
     }
-    instr("'/|'[,'_,'_,'_ '/|'[,'/,'_,'_ S,S,S,S @%d", *label + 1);
+    instr("'/|'[,'_,'_,'_ '/|'[,'/,'_,'_ S,S,S,S @%d", label + 1);
 }
 
-void eval(ast_node* n, int* label, struct stack_frame* frame)
+void eval(ast_node* n, struct stack_frame* frame)
 {
     if (!n)
     {
@@ -158,30 +160,30 @@ void eval(ast_node* n, int* label, struct stack_frame* frame)
         abort();
     }
 
-    exec(n, label, frame);
+    exec(n, frame);
 }
 
-void pop(int n, int* label)
+void pop(int n)
 {
     if (n--)
         return;
 
-    instr("FROM @%d", ++*label);
-    instr("'[,'/,'_,'_ '[,'_,'_,'_ S,L,S,S @%d", ++*label);
+    instr("FROM @%d", ++label);
+    instr("'[,'/,'_,'_ '[,'_,'_,'_ S,L,S,S @%d", ++label);
 
     while (--n)
     {
-        instr("FROM @%d", *label);
+        instr("FROM @%d", label);
         instr("'[,'0|'1,'_,'_ '[,'_,'_,'_ S,L,S,S");
-        instr("'[,'/,'_,'_ '[,'_,'_,'_ S,L,S,S @%d", ++*label);
+        instr("'[,'/,'_,'_ '[,'_,'_,'_ S,L,S,S @%d", ++label);
     }
 
-    instr("FROM @%d", *label);
+    instr("FROM @%d", label);
     instr("'[,'0|'1,'_,'_ '[,'_,'_,'_ S,L,S,S");
-    instr("'[,'/|'[,'_,'_ S,S,S,S @%d", *label + 1);
+    instr("'[,'/|'[,'_,'_ S,S,S,S @%d", label + 1);
 }
 
-void exec(ast_node* n, int* label, struct stack_frame* frame)
+void exec(ast_node* n, struct stack_frame* frame)
 {
     if (!n)
     {
@@ -196,7 +198,7 @@ void exec(ast_node* n, int* label, struct stack_frame* frame)
         case k_number:
         {
             PROD1F("push", NUMBER_VALUE(n));
-            push_number(NUMBER_VALUE(n), label);
+            push_number(NUMBER_VALUE(n));
             return;
         }
         case k_ident:
@@ -205,20 +207,20 @@ void exec(ast_node* n, int* label, struct stack_frame* frame)
             PROD1S("load", VAR_NAME(n));
             if (ptr->size != 1) // array
             {
-                push_number(ptr->position, label);
+                push_number(ptr->position);
             }
             else
             {
-                nav_to_var(label, n, frame);
-                instr("FROM @%d", ++*label);
-                instr("'/|'[,'/,'_,'_ R,R,S,S @%d", ++*label);
-                instr("'/|'[,'[,'_,'_ R,R,S,S @%d", *label);
-                instr("FROM @%d", *label);
+                nav_to_var(n, frame);
+                instr("FROM @%d", ++label);
+                instr("'/|'[,'/,'_,'_ R,R,S,S @%d", ++label);
+                instr("'/|'[,'[,'_,'_ R,R,S,S @%d", label);
+                instr("FROM @%d", label);
                 instr("'0|'1,'_,'_,'_ '0|'1,'0|'1,'_,'_ R,R,S,S");
-                instr("'/,'_,'_,'_ '/,'/,'_,'_ L,S,S,S @%d", ++*label);
-                instr("FROM @%d", *label);
+                instr("'/,'_,'_,'_ '/,'/,'_,'_ L,S,S,S @%d", ++label);
+                instr("FROM @%d", label);
                 instr("'/|'0|'1,'/,'_,'_ L,S,S,S");
-                instr("'[,'/,'_,'_ S,S,S,S @%d", *label + 1);
+                instr("'[,'/,'_,'_ S,S,S,S @%d", label + 1);
             }
             return;
         }
@@ -234,20 +236,20 @@ void exec(ast_node* n, int* label, struct stack_frame* frame)
                 case UMINUS:
                 {
                     PROD0("negate");
-                    eval(op[0], label, frame);
+                    eval(op[0], frame);
                     if (clean_stack)
                     {
-                        pop(1, label);
+                        pop(1);
                         return;
                     }
-                    instr("FROM @%d", ++*label);
-                    instr("'[,'/,'_,'_ '[,'/,'_,'_ S,L,S,S @%d", ++*label);
-                    instr("FROM @%d", *label);
+                    instr("FROM @%d", ++label);
+                    instr("'[,'/,'_,'_ '[,'/,'_,'_ S,L,S,S @%d", ++label);
+                    instr("FROM @%d", label);
                     instr("'[,'0|'1,'_,'_ S,L,S,S");
-                    instr("'[,'/|'[,'_,'_ S,R,S,S @%d", ++*label);
-                    int no_carry = *label;
-                    int end = ++*label;
-                    int carry = ++*label;
+                    instr("'[,'/|'[,'_,'_ S,R,S,S @%d", ++label);
+                    int no_carry = label;
+                    int end = ++label;
+                    int carry = ++label;
                     instr("FROM @%d", no_carry);
                     instr("'[,'0,'_,'_ '[,'0,'_,'_ S,R,S,S");
                     instr("'[,'1,'_,'_ '[,'1,'_,'_ S,R,S,S @%d", carry);
@@ -257,30 +259,30 @@ void exec(ast_node* n, int* label, struct stack_frame* frame)
                     instr("'[,'1,'_,'_ '[,'0,'_,'_ S,R,S,S");
                     instr("'[,'/,'_,'_ S,S,S,S @%d", end);
                     instr("FROM @%d", end);
-                    instr("'[,'/,'_,'_ S,S,S,S @%d", *label + 1);
+                    instr("'[,'/,'_,'_ S,S,S,S @%d", label + 1);
                     return;
                 }
                 case DEREF:
                 {
                     PROD0("deref");
-                    eval(op[0], label, frame);
+                    eval(op[0], frame);
                     if (clean_stack)
                     {
-                        pop(1, label);
+                        pop(1);
                         return;
                     }
-                    deref(label);
-                    instr("FROM @%d", ++*label);
-                    instr("'/|'[,'/,'_,'_ R,R,S,S @%d", ++*label);
-                    instr("'/|'[,'[,'_,'_ R,R,S,S @%d", *label);
-                    instr("FROM @%d", *label);
+                    deref();
+                    instr("FROM @%d", ++label);
+                    instr("'/|'[,'/,'_,'_ R,R,S,S @%d", ++label);
+                    instr("'/|'[,'[,'_,'_ R,R,S,S @%d", label);
+                    instr("FROM @%d", label);
                     instr("'0|'1,'0,'_,'_ '0|'1,'0|'1,'_,'_ R,R,S,S");
                     instr("'0|'1,'1,'_,'_ '0|'1,'0|'1,'_,'_ R,R,S,S");
                     instr("'0|'1,'_,'_,'_ '0|'1,'0|'1,'_,'_ R,R,S,S");
-                    instr("'/,'_,'_,'_ '/,'/,'_,'_ L,S,S,S @%d", ++*label);
-                    instr("FROM @%d", *label);
+                    instr("'/,'_,'_,'_ '/,'/,'_,'_ L,S,S,S @%d", ++label);
+                    instr("FROM @%d", label);
                     instr("'0|'1|'/,'/,'_,'_ L,S,S,S");
-                    instr("'[,'/,'_,'_ S,S,S,S @%d", *label + 1);
+                    instr("'[,'/,'_,'_ S,S,S,S @%d", label + 1);
                     return;
                 }
                 case REF:
@@ -295,43 +297,43 @@ void exec(ast_node* n, int* label, struct stack_frame* frame)
                     {
                         if (AST_KIND(op[1]) == k_number)
                         {
-                            push_number(ptr + (int) NUMBER_VALUE(op[1]), label);
+                            push_number(ptr + (int) NUMBER_VALUE(op[1]));
                         }
                         else
                         {
-                            push_number(ptr, label);
-                            eval(op[1], label, frame);
+                            push_number(ptr);
+                            eval(op[1], frame);
                             goto ADD;
                         }
                     }
                     else
                     {
-                        push_number(ptr, label);
+                        push_number(ptr);
                     }
                     return;
                 }
                 case '+':
                 {
                     PROD0("add");
-                    eval(op[0], label, frame);
-                    eval(op[1], label, frame);
+                    eval(op[0], frame);
+                    eval(op[1], frame);
                     if (clean_stack)
                     {
-                        pop(2, label);
+                        pop(2);
                         return;
                     }
                     ADD:
-                    instr("FROM @%d", ++*label);
-                    instr("'[,'/,'_,'_ '[,'_,'_,'_ S,L,S,S @%d", ++*label);
-                    instr("FROM @%d", *label);
+                    instr("FROM @%d", ++label);
+                    instr("'[,'/,'_,'_ '[,'_,'_,'_ S,L,S,S @%d", ++label);
+                    instr("FROM @%d", label);
                     instr("'[,'0|'1,'_,'_ '[,'_,'0|'1,'_ S,L,L,S");
-                    instr("'[,'/,'_,'_ S,L,S,S @%d", ++*label);
-                    instr("FROM @%d", *label);
+                    instr("'[,'/,'_,'_ S,L,S,S @%d", ++label);
+                    instr("FROM @%d", label);
                     instr("'[,'0|'1,'_,'_ S,L,S,S");
-                    instr("'[,'/|'[,'_,'_ S,R,R,S @%d", ++*label);
-                    int no_carry = *label;
-                    int end = ++*label;
-                    int carry = ++*label;
+                    instr("'[,'/|'[,'_,'_ S,R,R,S @%d", ++label);
+                    int no_carry = label;
+                    int end = ++label;
+                    int carry = ++label;
                     instr("FROM @%d", no_carry);
                     instr("'[,'0,'0,'_ '[,'0,'_,'_ S,R,R,S");
                     instr("'[,'0|'1,'1|'0,'_ '[,'1,'_,'_ S,R,R,S");
@@ -343,30 +345,30 @@ void exec(ast_node* n, int* label, struct stack_frame* frame)
                     instr("'[,'1,'1,'_ '[,'1,'_,'_ S,R,R,S");
                     instr("'[,'/,'_,'_ S,S,S,S @%d", end);
                     instr("FROM @%d", end);
-                    instr("'[,'/,'_,'_ S,S,S,S @%d", *label + 1);
+                    instr("'[,'/,'_,'_ S,S,S,S @%d", label + 1);
                     return;
                 }
                 case '-':
                 {
                     PROD0("sub");
-                    eval(op[0], label, frame);
-                    eval(op[1], label, frame);
+                    eval(op[0], frame);
+                    eval(op[1], frame);
                     if (clean_stack)
                     {
-                        pop(2, label);
+                        pop(2);
                         return;
                     }
-                    instr("FROM @%d", ++*label);
-                    instr("'[,'/,'_,'_ '[,'_,'_,'_ S,L,S,S @%d", ++*label);
-                    instr("FROM @%d", *label);
+                    instr("FROM @%d", ++label);
+                    instr("'[,'/,'_,'_ '[,'_,'_,'_ S,L,S,S @%d", ++label);
+                    instr("FROM @%d", label);
                     instr("'[,'0|'1,'_,'_ '[,'_,'0|'1,'_ S,L,L,S");
-                    instr("'[,'/,'_,'_ S,L,S,S @%d", ++*label);
-                    instr("FROM @%d", *label);
+                    instr("'[,'/,'_,'_ S,L,S,S @%d", ++label);
+                    instr("FROM @%d", label);
                     instr("'[,'0|'1,'_,'_ S,L,S,S");
-                    instr("'[,'/|'[,'_,'_ S,R,R,S @%d", ++*label);
-                    int no_carry = *label;
-                    int end = ++*label;
-                    int carry = ++*label;
+                    instr("'[,'/|'[,'_,'_ S,R,R,S @%d", ++label);
+                    int no_carry = label;
+                    int end = ++label;
+                    int carry = ++label;
                     instr("FROM @%d", no_carry);
                     instr("'[,'0|'1,'0,'_ '[,'0|'1,'_,'_ S,R,R,S");
                     instr("'[,'0,'1,'_ '[,'1,'_,'_ S,R,R,S @%d", carry);
@@ -378,32 +380,32 @@ void exec(ast_node* n, int* label, struct stack_frame* frame)
                     instr("'[,'0,'1,'_ '[,'0,'_,'_ S,R,R,S");
                     instr("'[,'/,'_,'_ S,S,S,S @%d", end);
                     instr("FROM @%d", end);
-                    instr("'[,'/,'_,'_ S,S,S,S @%d", *label + 1);
+                    instr("'[,'/,'_,'_ S,S,S,S @%d", label + 1);
                     return;
                 }
                 case '*':
                 {
                     PROD0("mul");
-                    eval(op[0], label, frame);
-                    eval(op[1], label, frame);
+                    eval(op[0], frame);
+                    eval(op[1], frame);
                     if (clean_stack)
                     {
-                        pop(2, label);
+                        pop(2);
                         return;
                     }
-                    instr("FROM @%d", ++*label);
-                    instr("'[,'/,'_,'_ '[,'_,'_,'_ S,L,S,S @%d", ++*label);
-                    instr("FROM @%d", *label);
+                    instr("FROM @%d", ++label);
+                    instr("'[,'/,'_,'_ '[,'_,'_,'_ S,L,S,S @%d", ++label);
+                    instr("FROM @%d", label);
                     instr("'[,'0|'1,'_,'_ '[,'_,'0|'1,'_ S,L,L,S");
-                    instr("'[,'/,'_,'_ S,L,S,S @%d", ++*label);
-                    instr("FROM @%d", *label);
+                    instr("'[,'/,'_,'_ S,L,S,S @%d", ++label);
+                    instr("FROM @%d", label);
                     instr("'[,'0|'1,'_,'_ '[,'0,'_,'0|'1 S,L,S,L");
-                    instr("'[,'/|'[,'_,'_ S,R,R,R @%d", ++*label);
-                    int loop = *label;
-                    int no_carry = ++*label;
-                    int carry = ++*label;
-                    int next = ++*label;
-                    int end = *label + 1;
+                    instr("'[,'/|'[,'_,'_ S,R,R,R @%d", ++label);
+                    int loop = label;
+                    int no_carry = ++label;
+                    int carry = ++label;
+                    int next = ++label;
+                    int end = label + 1;
                     instr("FROM @%d", loop);
                     instr("'[,'0,'1|'0,'0 '[,'0,'1|'0,'# S,R,S,R");
                     instr("'[,'1,'1|'0,'0 '[,'1,'1|'0,'# S,R,S,R");
@@ -437,22 +439,22 @@ void exec(ast_node* n, int* label, struct stack_frame* frame)
                 }
                 case '/':
                     PROD0("div");
-                    eval(op[0], label, frame);
-                    eval(op[1], label, frame);
+                    eval(op[0], frame);
+                    eval(op[1], frame);
                     if (clean_stack)
                     {
-                        pop(2, label);
+                        pop(2);
                         return;
                     }
                     return;
                 case '<':
                 {
                     PROD0("cmplt");
-                    eval(op[0], label, frame);
-                    eval(op[1], label, frame);
+                    eval(op[0], frame);
+                    eval(op[1], frame);
                     if (clean_stack)
                     {
-                        pop(2, label);
+                        pop(2);
                         return;
                     }
                     COMPARISON({
@@ -465,11 +467,11 @@ void exec(ast_node* n, int* label, struct stack_frame* frame)
                 case '>':
                 {
                     PROD0("cmpgt");
-                    eval(op[0], label, frame);
-                    eval(op[1], label, frame);
+                    eval(op[0], frame);
+                    eval(op[1], frame);
                     if (clean_stack)
                     {
-                        pop(2, label);
+                        pop(2);
                         return;
                     }
                     COMPARISON({
@@ -482,11 +484,11 @@ void exec(ast_node* n, int* label, struct stack_frame* frame)
                 case GE:
                 {
                     PROD0("cmpge");
-                    eval(op[0], label, frame);
-                    eval(op[1], label, frame);
+                    eval(op[0], frame);
+                    eval(op[1], frame);
                     if (clean_stack)
                     {
-                        pop(2, label);
+                        pop(2);
                         return;
                     }
                     COMPARISON({
@@ -499,11 +501,11 @@ void exec(ast_node* n, int* label, struct stack_frame* frame)
                 case LE:
                 {
                     PROD0("cmple");
-                    eval(op[0], label, frame);
-                    eval(op[1], label, frame);
+                    eval(op[0], frame);
+                    eval(op[1], frame);
                     if (clean_stack)
                     {
-                        pop(2, label);
+                        pop(2);
                         return;
                     }
                     COMPARISON({
@@ -516,28 +518,28 @@ void exec(ast_node* n, int* label, struct stack_frame* frame)
                 case NE:
                 {
                     PROD0("cmpne");
-                    eval(op[0], label, frame);
-                    eval(op[1], label, frame);
+                    eval(op[0], frame);
+                    eval(op[1], frame);
                     if (clean_stack)
                     {
-                        pop(2, label);
+                        pop(2);
                         return;
                     }
-                    instr("FROM @%d", ++*label);
-                    instr("'[,'/,'_,'_ '[,'_,'_,'_ S,L,S,S @%d", ++*label);
-                    instr("FROM @%d", *label);
+                    instr("FROM @%d", ++label);
+                    instr("'[,'/,'_,'_ '[,'_,'_,'_ S,L,S,S @%d", ++label);
+                    instr("FROM @%d", label);
                     instr("'[,'0|'1,'_,'_ '[,'_,'0|'1,'_ S,L,L,S");
-                    instr("'[,'/,'_,'_ S,L,S,S @%d", ++*label);
-                    instr("FROM @%d", *label);
+                    instr("'[,'/,'_,'_ S,L,S,S @%d", ++label);
+                    instr("FROM @%d", label);
                     instr("'[,'0|'1,'_,'_ S,L,S,S");
-                    instr("'[,'/|'[,'_,'_ S,R,R,S @%d", ++*label);
-                    instr("FROM @%d", *label);
-                    int not_equal = ++*label;
-                    int end = ++*label;
+                    instr("'[,'/|'[,'_,'_ S,R,R,S @%d", ++label);
+                    instr("FROM @%d", label);
+                    int not_equal = ++label;
+                    int end = ++label;
                     instr("'[,'0|'1,'0|'1,'_ '[,'0|'1,'_,'_ S,R,R,S");
                     instr("'[,'0|'1,'1|'0,'_ '[,'0|'1,'_,'_ S,R,R,S @%d", not_equal);
-                    instr("'[,'/,'_,'_ S,L,S,S @%d", ++*label);
-                    instr("FROM @%d", *label); // equal
+                    instr("'[,'/,'_,'_ S,L,S,S @%d", ++label);
+                    instr("FROM @%d", label); // equal
                     instr("'[,'0|'1,'_,'_ '[,'0,'_,'_ S,L,S,S");
                     instr("'[,'/|'[,'_,'_ S,R,S,S @%d", end);
                     instr("FROM @%d", not_equal);
@@ -545,48 +547,48 @@ void exec(ast_node* n, int* label, struct stack_frame* frame)
                     instr("'[,'0|'1,'1,'_ '[,'0|'1,'_,'_ S,R,R,S");
                     instr("'[,'/,'0|'1,'_ '[,'/,'_,'_ S,S,R,S");
                     instr("'[,'0|'1,'_,'_ S,R,S,S");
-                    instr("'[,'/,'_,'_ S,L,S,S @%d", ++*label);
-                    instr("FROM @%d", *label);
+                    instr("'[,'/,'_,'_ S,L,S,S @%d", ++label);
+                    instr("FROM @%d", label);
                     for (int i = 0; i < INT_WIDTH - 1; i++)
                     {
-                        instr("'[,'0|'1,'_,'_ '[,'0,'_,'_ S,L,S,S @%d", ++*label);
-                        instr("FROM @%d", *label);
+                        instr("'[,'0|'1,'_,'_ '[,'0,'_,'_ S,L,S,S @%d", ++label);
+                        instr("FROM @%d", label);
                     }
                     instr("'[,'0|'1,'_,'_ '[,'1,'_,'_ S,R,S,S @%d", end);
                     instr("FROM @%d", end);
                     instr("'[,'0|'1,'_,'_ S,R,S,S");
-                    instr("'[,'/|'[,'_,'_ S,S,S,S @%d", *label + 1);
+                    instr("'[,'/|'[,'_,'_ S,S,S,S @%d", label + 1);
                     return;
                 }
                 case EQ:
                 {
                     PROD0("cmpeq");
-                    eval(op[0], label, frame);
-                    eval(op[1], label, frame);
+                    eval(op[0], frame);
+                    eval(op[1], frame);
                     if (clean_stack)
                     {
-                        pop(2, label);
+                        pop(2);
                         return;
                     }
-                    instr("FROM @%d", ++*label);
-                    instr("'[,'/,'_,'_ '[,'_,'_,'_ S,L,S,S @%d", ++*label);
-                    instr("FROM @%d", *label);
+                    instr("FROM @%d", ++label);
+                    instr("'[,'/,'_,'_ '[,'_,'_,'_ S,L,S,S @%d", ++label);
+                    instr("FROM @%d", label);
                     instr("'[,'0|'1,'_,'_ '[,'_,'0|'1,'_ S,L,L,S");
-                    instr("'[,'/,'_,'_ S,L,S,S @%d", ++*label);
-                    instr("FROM @%d", *label);
+                    instr("'[,'/,'_,'_ S,L,S,S @%d", ++label);
+                    instr("FROM @%d", label);
                     instr("'[,'0|'1,'_,'_ S,L,S,S");
-                    instr("'[,'/|'[,'_,'_ S,R,R,S @%d", ++*label);
-                    instr("FROM @%d", *label);
-                    int not_equal = ++*label;
-                    int end = ++*label;
+                    instr("'[,'/|'[,'_,'_ S,R,R,S @%d", ++label);
+                    instr("FROM @%d", label);
+                    int not_equal = ++label;
+                    int end = ++label;
                     instr("'[,'0|'1,'0|'1,'_ '[,'0|'1,'_,'_ S,R,R,S");
                     instr("'[,'0|'1,'1|'0,'_ '[,'0|'1,'_,'_ S,R,R,S @%d", not_equal);
-                    instr("'[,'/,'_,'_ S,L,S,S @%d", ++*label);
-                    instr("FROM @%d", *label); // equal
+                    instr("'[,'/,'_,'_ S,L,S,S @%d", ++label);
+                    instr("FROM @%d", label); // equal
                     for (int i = 0; i < INT_WIDTH - 1; i++)
                     {
-                        instr("'[,'0|'1,'_,'_ '[,'0,'_,'_ S,L,S,S @%d", ++*label);
-                        instr("FROM @%d", *label);
+                        instr("'[,'0|'1,'_,'_ '[,'0,'_,'_ S,L,S,S @%d", ++label);
+                        instr("FROM @%d", label);
                     }
                     instr("'[,'0|'1,'_,'_ '[,'1,'_,'_ S,R,S,S @%d", end);
                     instr("FROM @%d", not_equal);
@@ -594,35 +596,35 @@ void exec(ast_node* n, int* label, struct stack_frame* frame)
                     instr("'[,'0|'1,'1,'_ '[,'0|'1,'_,'_ S,R,R,S");
                     instr("'[,'/,'0|'1,'_ '[,'/,'_,'_ S,S,R,S");
                     instr("'[,'0|'1,'_,'_ S,R,S,S");
-                    instr("'[,'/,'_,'_ S,L,S,S @%d", ++*label);
-                    instr("FROM @%d", *label);
+                    instr("'[,'/,'_,'_ S,L,S,S @%d", ++label);
+                    instr("FROM @%d", label);
                     instr("'[,'0|'1,'_,'_ '[,'0,'_,'_ S,L,L,S");
                     instr("'[,'/|'[,'_,'_ S,R,S,S @%d", end);
                     instr("FROM @%d", end);
                     instr("'[,'0|'1,'_,'_ S,R,S,S");
-                    instr("'[,'/|'[,'_,'_ S,S,S,S @%d", *label + 1);
+                    instr("'[,'/|'[,'_,'_ S,S,S,S @%d", label + 1);
                     return;
                 }
                 case AND:
                 {
                     PROD0("and");
-                    eval(op[0], label, frame);
-                    eval(op[1], label, frame);
+                    eval(op[0], frame);
+                    eval(op[1], frame);
                     if (clean_stack)
                     {
-                        pop(2, label);
+                        pop(2);
                         return;
                     }
-                    instr("FROM @%d", ++*label);
-                    instr("'[,'/,'_,'_ '[,'_,'_,'_ S,L,S,S @%d", ++*label);
-                    instr("FROM @%d", *label);
-                    int b_nonzero = ++*label;
-                    int check_a = ++*label;
-                    int b_zero = ++*label;
-                    int scroll_right = ++*label;
-                    int a_nonzero = ++*label;
-                    int write_one = ++*label;
-                    int end = *label + 1;
+                    instr("FROM @%d", ++label);
+                    instr("'[,'/,'_,'_ '[,'_,'_,'_ S,L,S,S @%d", ++label);
+                    instr("FROM @%d", label);
+                    int b_nonzero = ++label;
+                    int check_a = ++label;
+                    int b_zero = ++label;
+                    int scroll_right = ++label;
+                    int a_nonzero = ++label;
+                    int write_one = ++label;
+                    int end = label + 1;
                     instr("'[,'0,'_,'_ '[,'_,'_,'_ S,L,S,S");
                     instr("'[,'1,'_,'_ '[,'_,'_,'_ S,L,S,S @%d", b_nonzero);
                     instr("'[,'/|'[,'_,'_ S,L,S,S @%d", b_zero);
@@ -649,22 +651,22 @@ void exec(ast_node* n, int* label, struct stack_frame* frame)
                 case OR:
                 {
                     PROD0("or");
-                    eval(op[0], label, frame);
-                    eval(op[1], label, frame);
+                    eval(op[0], frame);
+                    eval(op[1], frame);
                     if (clean_stack)
                     {
-                        pop(2, label);
+                        pop(2);
                         return;
                     }
-                    instr("FROM @%d", ++*label);
-                    instr("'[,'/,'_,'_ '[,'_,'_,'_ S,L,S,S @%d", ++*label);
-                    instr("FROM @%d", *label);
-                    int check_a = ++*label;
-                    int b_nonzero = ++*label;
-                    int a_nonzero = ++*label;
-                    int scroll_right = ++*label;
-                    int scroll_left = ++*label;
-                    int write_one = ++*label;
+                    instr("FROM @%d", ++label);
+                    instr("'[,'/,'_,'_ '[,'_,'_,'_ S,L,S,S @%d", ++label);
+                    instr("FROM @%d", label);
+                    int check_a = ++label;
+                    int b_nonzero = ++label;
+                    int a_nonzero = ++label;
+                    int scroll_right = ++label;
+                    int scroll_left = ++label;
+                    int write_one = ++label;
                     instr("'[,'0,'_,'_ '[,'_,'_,'_ S,L,S,S");
                     instr("'[,'1,'_,'_ '[,'_,'_,'_ S,L,S,S @%d", b_nonzero);
                     instr("'[,'/|'[,'_,'_ S,L,S,S @%d", check_a);
@@ -683,7 +685,7 @@ void exec(ast_node* n, int* label, struct stack_frame* frame)
                     instr("'[,'/|'[,'_,'_ S,R,S,S @%d", write_one);
                     instr("FROM @%d", write_one);
                     instr("'[,'0|'1,'_,'_ '[,'1,'_,'_ S,R,S,S @%d", scroll_right);
-                    int end = *label + 1;
+                    int end = label + 1;
                     instr("FROM @%d", scroll_right);
                     instr("'[,'0|'1,'_,'_ '[,'0,'_,'_ S,R,S,S");
                     instr("'[,'/|'[,'_,'_ S,S,S,S @%d", end);
@@ -692,15 +694,15 @@ void exec(ast_node* n, int* label, struct stack_frame* frame)
                 case INC:
                 {
                     PROD0("inc");
-                    nav_to_var(label, op[0], frame);
-                    instr("FROM @%d", ++*label);
-                    instr("'/|'[,'[,'_,'_ R,R,S,S @%d", ++*label);
-                    instr("'/|'[,'/,'_,'_ R,R,S,S @%d", *label);
+                    nav_to_var(op[0], frame);
+                    instr("FROM @%d", ++label);
+                    instr("'/|'[,'[,'_,'_ R,R,S,S @%d", ++label);
+                    instr("'/|'[,'/,'_,'_ R,R,S,S @%d", label);
                     if (clean_stack) // statement
                     {
-                        instr("FROM @%d", *label);
-                        int left_to_end = ++*label;
-                        int end = *label + 1;
+                        instr("FROM @%d", label);
+                        int left_to_end = ++label;
+                        int end = label + 1;
                         instr("'0,'_,'_,'_ '1,'_,'_,'_ L,S,S,S @%d", left_to_end);
                         instr("'1,'_,'_,'_ '0,'_,'_,'_ R,S,S,S");
                         instr("FROM @%d", left_to_end);
@@ -709,9 +711,9 @@ void exec(ast_node* n, int* label, struct stack_frame* frame)
                     }
                     else // expression
                     {
-                        instr("FROM @%d", *label);
-                        int end = ++*label;
-                        int left = ++*label;
+                        instr("FROM @%d", label);
+                        int end = ++label;
+                        int left = ++label;
                         if (arity == 1) // ++x
                         {
                             instr("'0,'_,'_,'_ '1,'1,'_,'_ R,R,S,S @%d", end);
@@ -727,22 +729,22 @@ void exec(ast_node* n, int* label, struct stack_frame* frame)
                         instr("'/,'_,'_,'_ '/,'/,'_,'_ L,S,S,S @%d", left);
                         instr("FROM @%d", left);
                         instr("'0|'1,'/,'_,'_ L,S,S,S");
-                        instr("'[,'/,'_,'_ S,S,S,S @%d", *label + 1);
+                        instr("'[,'/,'_,'_ S,S,S,S @%d", label + 1);
                     }
                     return;
                 }
                 case DEC:
                 {
                     PROD0("dec");
-                    nav_to_var(label, op[0], frame);
-                    instr("FROM @%d", ++*label);
-                    instr("'/|'[,'[,'_,'_ R,R,S,S @%d", ++*label);
-                    instr("'/|'[,'/,'_,'_ R,R,S,S @%d", *label);
+                    nav_to_var(op[0], frame);
+                    instr("FROM @%d", ++label);
+                    instr("'/|'[,'[,'_,'_ R,R,S,S @%d", ++label);
+                    instr("'/|'[,'/,'_,'_ R,R,S,S @%d", label);
                     if (clean_stack) // statement
                     {
-                        instr("FROM @%d", *label);
-                        int left_to_end = ++*label;
-                        int end = *label + 1;
+                        instr("FROM @%d", label);
+                        int left_to_end = ++label;
+                        int end = label + 1;
                         instr("'1,'_,'_,'_ '0,'_,'_,'_ L,S,S,S @%d", left_to_end);
                         instr("'0,'_,'_,'_ '1,'_,'_,'_ R,L,S,S");
                         instr("FROM @%d", left_to_end);
@@ -751,9 +753,9 @@ void exec(ast_node* n, int* label, struct stack_frame* frame)
                     }
                     else // expression
                     {
-                        instr("FROM @%d", *label);
-                        int end = ++*label;
-                        int left = ++*label;
+                        instr("FROM @%d", label);
+                        int end = ++label;
+                        int left = ++label;
                         if (arity == 1) // --x
                         {
                             instr("'1,'_,'_,'_ '0,'0,'_,'_ R,R,S,S @%d", end);
@@ -769,7 +771,7 @@ void exec(ast_node* n, int* label, struct stack_frame* frame)
                         instr("'/,'_,'_,'_ '/,'/,'_,'_ L,S,S,S @%d", left);
                         instr("FROM @%d", left);
                         instr("'0|'1,'/,'_,'_ L,S,S,S");
-                        instr("'[,'/,'_,'_ S,S,S,S @%d", *label + 1);
+                        instr("'[,'/,'_,'_ S,S,S,S @%d", label + 1);
                     }
                     return;
                 }
@@ -784,27 +786,27 @@ void exec(ast_node* n, int* label, struct stack_frame* frame)
                     else
                     {
                         PROD0("; first");
-                        exec(op[0], label, frame);
+                        exec(op[0], frame);
                         PROD0("; second");
-                        exec(op[1], label, frame);
+                        exec(op[1], frame);
                         return;
                     }
                 case KPRINT:
                     PROD0("print");
-                    eval(op[0], label, frame);
+                    eval(op[0], frame);
                     return;
                 case KDO:
                 {
                     PROD0("do");
-                    int start = *label + 1;
-                    exec(op[0], label, frame);
-                    eval(op[1], label, frame);
-                    instr("FROM @%d", ++*label);
-                    instr("'[,'/|'[,'_,'_ '[,'_,'_,'_ S,L,S,S @%d", ++*label);
-                    instr("FROM @%d", *label);
+                    int start = label + 1;
+                    exec(op[0], frame);
+                    eval(op[1], frame);
+                    instr("FROM @%d", ++label);
+                    instr("'[,'/|'[,'_,'_ '[,'_,'_,'_ S,L,S,S @%d", ++label);
+                    instr("FROM @%d", label);
                     instr("'[,'0,'_,'_ '[,'_,'_,'_ S,L,S,S");
-                    int one_found = ++*label;
-                    int end = *label + 1;
+                    int one_found = ++label;
+                    int end = label + 1;
                     instr("'[,'1,'_,'_ '[,'_,'_,'_ S,L,S,S @%d", one_found);
                     instr("'[,'/|'[,'_,'_ S,S,S,S @%d", end);
                     instr("FROM @%d", one_found);
@@ -815,113 +817,113 @@ void exec(ast_node* n, int* label, struct stack_frame* frame)
                 case KWHILE:
                 {
                     PROD0("while");
-                    int start = ++*label;
+                    int start = ++label;
                     instr("FROM @%d", start);
-                    instr("'[,'/|'[,'_,'_ S,S,S,S @%d", *label + 1);
-                    eval(op[0], label, frame);
-                    instr("FROM @%d", ++*label);
-                    instr("'[,'/|'[,'_,'_ '[,'_,'_,'_ S,L,S,S @%d", ++*label);
-                    instr("FROM @%d", *label);
+                    instr("'[,'/|'[,'_,'_ S,S,S,S @%d", label + 1);
+                    eval(op[0], frame);
+                    instr("FROM @%d", ++label);
+                    instr("'[,'/|'[,'_,'_ '[,'_,'_,'_ S,L,S,S @%d", ++label);
+                    instr("FROM @%d", label);
                     instr("'[,'0,'_,'_ '[,'_,'_,'_ S,L,S,S");
-                    int one_found = ++*label;
-                    int end = ++*label;
+                    int one_found = ++label;
+                    int end = ++label;
                     instr("'[,'1,'_,'_ '[,'_,'_,'_ S,L,S,S @%d", one_found);
                     instr("'[,'/|'[,'_,'_ S,S,S,S @%d", end);
                     instr("FROM @%d", one_found);
                     instr("'[,'0|'1,'_,'_ '[,'_,'_,'_ S,L,S,S");
-                    int is_nonzero = *label + 1;
+                    int is_nonzero = label + 1;
                     instr("'[,'/|'[,'_,'_ S,S,S,S @%d", is_nonzero);
 
-                    exec(op[1], label, frame);
+                    exec(op[1], frame);
 
-                    instr("FROM @%d", ++*label); // after is_non_zero
+                    instr("FROM @%d", ++label); // after is_non_zero
                     instr("'[,'/|'[,'_,'_ S,S,S,S @%d", start);
 
                     instr("FROM @%d", end);
-                    instr("'[,'/|'[,'_,'_ S,S,S,S @%d", *label + 1);
+                    instr("'[,'/|'[,'_,'_ S,S,S,S @%d", label + 1);
                     return;
                 }
                 case KIF:
                 {
                     PROD0("if");
-                    eval(op[0], label, frame);
-                    instr("FROM @%d", ++*label);
-                    instr("'[,'/,'_,'_ '[,'_,'_,'_ S,L,S,S @%d", ++*label);
-                    instr("FROM @%d", *label);
+                    eval(op[0], frame);
+                    instr("FROM @%d", ++label);
+                    instr("'[,'/,'_,'_ '[,'_,'_,'_ S,L,S,S @%d", ++label);
+                    instr("FROM @%d", label);
                     instr("'[,'0,'_,'_ '[,'_,'_,'_ S,L,S,S");
-                    int one_found = ++*label;
+                    int one_found = ++label;
                     int is_zero;
-                    int end = ++*label;
+                    int end = ++label;
                     if (op[2] == NULL)
                         is_zero = end;
                     else
-                        is_zero = ++*label;
+                        is_zero = ++label;
                     instr("'[,'1,'_,'_ '[,'_,'_,'_ S,L,S,S @%d", one_found);
                     instr("'[,'/|'[,'_,'_ S,S,S,S @%d", is_zero);
                     instr("FROM @%d", one_found);
                     instr("'[,'0|'1,'_,'_ '[,'_,'_,'_ S,L,S,S");
-                    int is_nonzero = *label + 1;
+                    int is_nonzero = label + 1;
                     instr("'[,'/|'[,'_,'_ S,S,S,S @%d", is_nonzero);
 
-                    eval(op[1], label, frame);
+                    eval(op[1], frame);
 
-                    instr("FROM @%d", ++*label); // after is_non_zero
+                    instr("FROM @%d", ++label); // after is_non_zero
                     instr("'[,'/|'[,'_,'_ S,S,S,S @%d", end);
 
                     if (op[2])
                     {
                         instr("FROM @%d", is_zero);
-                        int zero_id = *label + 1;
+                        int zero_id = label + 1;
                         instr("'[,'/|'[,'_,'_ S,S,S,S @%d", zero_id);
                         // else
 
-                        eval(op[2], label, frame);
+                        eval(op[2], frame);
 
-                        instr("FROM @%d", ++*label);
-                        instr("'[,'/|'[,'_,'_ S,S,S,S @%d", *label + 1);
+                        instr("FROM @%d", ++label);
+                        instr("'[,'/|'[,'_,'_ S,S,S,S @%d", label + 1);
                     }
                     instr("FROM @%d", end);
-                    instr("'[,'/|'[,'_,'_ S,S,S,S @%d", *label + 1);
+                    instr("'[,'/|'[,'_,'_ S,S,S,S @%d", label + 1);
                     return;
                 }
                 case '=':
                 {
                     PROD0("store");
-                    eval(op[1], label, frame);
-                    instr("FROM @%d", ++*label);
+                    eval(op[1], frame);
+                    instr("FROM @%d", ++label);
                     instr("'0|'1|'/,'/,'_,'_ L,S,S,S");
-                    instr("'[,'/,'_,'_ S,S,S,S @%d", *label + 1);
-                    nav_to_var(label, op[0], frame);
-                    instr("FROM @%d", ++*label);
-                    instr("'/|'[,'/,'_,'_ S,L,S,S @%d", ++*label);
-                    instr("FROM @%d", *label);
+                    instr("'[,'/,'_,'_ S,S,S,S @%d", label + 1);
+                    nav_to_var(op[0], frame);
+                    instr("FROM @%d", ++label);
+                    instr("'/|'[,'/,'_,'_ S,L,S,S @%d", ++label);
+                    instr("FROM @%d", label);
                     instr("'/,'0|'1,'_,'_ S,L,S,S");
                     instr("'[,'0|'1,'_,'_ S,L,S,S");
-                    instr("'/,'/|'[,'_,'_ R,R,S,S @%d", ++*label);
-                    instr("'[,'/|'[,'_,'_ R,R,S,S @%d", *label);
+                    instr("'/,'/|'[,'_,'_ R,R,S,S @%d", ++label);
+                    instr("'[,'/|'[,'_,'_ R,R,S,S @%d", label);
                     if (clean_stack) // statement, clear from stack
                     {
-                        instr("FROM @%d", *label);
+                        instr("FROM @%d", label);
                         instr("'0|'1,'0,'_,'_ '0,'_,'_,'_ R,R,S,S");
                         instr("'0|'1,'1,'_,'_ '1,'_,'_,'_ R,R,S,S");
-                        instr("'/,'/,'_,'_ '/,'_,'_,'_ L,L,S,S @%d", ++*label);
-                        instr("FROM @%d", *label);
+                        instr("'/,'/,'_,'_ '/,'_,'_,'_ L,L,S,S @%d", ++label);
+                        instr("FROM @%d", label);
                         instr("'/|'0|'1|'[,'_,'_,'_ L,L,S,S");
-                        instr("'/|'0|'1|'[,'/,'_,'_ S,S,S,S @%d", *label + 2);
-                        instr("'/|'0|'1|'[,'[,'_,'_ S,S,S,S @%d", ++*label);
-                        instr("FROM @%d", *label);
+                        instr("'/|'0|'1|'[,'/,'_,'_ S,S,S,S @%d", label + 2);
+                        instr("'/|'0|'1|'[,'[,'_,'_ S,S,S,S @%d", ++label);
+                        instr("FROM @%d", label);
                         instr("'/|'0|'1,'[,'_,'_ L,S,S,S");
-                        instr("'[,'[,'_,'_ S,S,S,S @%d", *label + 1);
+                        instr("'[,'[,'_,'_ S,S,S,S @%d", label + 1);
                     }
                     else // expression, keep in stack
                     {
-                        instr("FROM @%d", *label);
+                        instr("FROM @%d", label);
                         instr("'0|'1,'0,'_,'_ '0,'0,'_,'_ R,R,S,S");
                         instr("'0|'1,'1,'_,'_ '1,'1,'_,'_ R,R,S,S");
-                        instr("'/,'/,'_,'_ L,S,S,S @%d", ++*label);
-                        instr("FROM @%d", *label);
+                        instr("'/,'/,'_,'_ L,S,S,S @%d", ++label);
+                        instr("FROM @%d", label);
                         instr("'0|'1,'/,'_,'_ L,S,S,S");
-                        instr("'/|'[,'/,'_,'_ S,S,S,S @%d", *label + 1);
+                        instr("'/|'[,'/,'_,'_ S,S,S,S @%d", label + 1);
                     }
                     return;
                 }
@@ -952,8 +954,8 @@ void exec(ast_node* n, int* label, struct stack_frame* frame)
                         error_msg("Function must return a value\n");
                         exit(1);
                     }
-                    eval(op[0], label, frame);
-                    instr("FROM @%d", ++*label);
+                    eval(op[0], frame);
+                    instr("FROM @%d", ++label);
                     instr("'[,'/|'[,'_,'_ S,S,S,S @F%dret", frame->function->header.id);
                     return;
                 }
@@ -970,42 +972,42 @@ void exec(ast_node* n, int* label, struct stack_frame* frame)
                     int argcount = 0;
                     for (struct linked_list* arg = args; arg; arg = arg->next, argcount++)
                     {
-                        eval(arg->value, label, frame);
+                        eval(arg->value, frame);
                     }
                     {
                         PROD0("go to left of args on stack");
-                        instr("FROM @%d", ++*label);
-                        instr("'[,'/,'_,'_ S,L,S,S @%d", ++*label);
+                        instr("FROM @%d", ++label);
+                        instr("'[,'/,'_,'_ S,L,S,S @%d", ++label);
                         for (int i = 1; i < argcount; i++)
                         {
-                            instr("FROM @%d", *label);
+                            instr("FROM @%d", label);
                             instr("'[,'0|'1,'_,'_ S,L,S,S");
-                            instr("'[,'/,'_,'_ S,L,S,S @%d", ++*label);
+                            instr("'[,'/,'_,'_ S,L,S,S @%d", ++label);
                         }
-                        instr("FROM @%d", *label);
+                        instr("FROM @%d", label);
                         instr("'[,'0|'1,'_,'_ S,L,S,S");
-                        instr("'[,'/|'[,'_,'_ S,S,S,S @%d", ++*label);
+                        instr("'[,'/|'[,'_,'_ S,S,S,S @%d", ++label);
                     }
                     PROD0("go to right of heap");
-                    instr("FROM @%d", *label);
+                    instr("FROM @%d", label);
                     instr("'/|'0|'1|'[,'/,'_,'_ R,S,S,S");
                     instr("'/|'0|'1|'[,'[,'_,'_ R,S,S,S");
                     struct call_site_list* call = add_call_site(&fct->callsites);
                     instr("'_,'/|'[,'_,'_ '[,'/|'[,'_,'_ R,S,S,S @C%d", call->id);
-                    call->argalloc_address = ++*label;
+                    call->argalloc_address = ++label;
                     PROD0("start copying args from stack to heap");
-                    instr("FROM @%d", *label);
-                    instr("'_,'/|'[,'_,'_ '[,'/|'[,'_,'_ R,R,S,S @%d", ++*label);
-                    instr("FROM @%d", *label);
+                    instr("FROM @%d", label);
+                    instr("'_,'/|'[,'_,'_ '[,'/|'[,'_,'_ R,R,S,S @%d", ++label);
+                    instr("FROM @%d", label);
                     instr("'_,'0|'1,'_,'_ '0|'1,'_,'_,'_ R,R,S,S");
                     instr("'_,'/,'_,'_ '/,'_,'_,'_ R,R,S,S");
-                    instr("'_,'_,'_,'_ L,L,S,S @%d", ++*label);
-                    instr("FROM @%d", *label);
+                    instr("'_,'_,'_,'_ L,L,S,S @%d", ++label);
+                    instr("FROM @%d", label);
                     instr("'/|'0|'1,'_,'_,'_ L,L,S,S");
                     instr("'/|'0|'1,'/,'_,'_ L,S,S,S");
                     instr("'/|'0|'1,'[,'_,'_ L,S,S,S");
                     instr("'[,'/|'[,'_,'_ S,S,S,S @F%d", fct->header.id);
-                    call->return_address = *label + 1;
+                    call->return_address = label + 1;
 
                     return;
                 }
@@ -1020,7 +1022,7 @@ void exec(ast_node* n, int* label, struct stack_frame* frame)
     }
 }
 
-void nav_to_var(int* label, struct ast_node* op, struct stack_frame* frame)
+void nav_to_var(struct ast_node* op, struct stack_frame* frame)
 {
     if (AST_KIND(op) == k_ident)
     {
@@ -1028,18 +1030,18 @@ void nav_to_var(int* label, struct ast_node* op, struct stack_frame* frame)
         int vid = get_var_id(VAR_NAME(op), frame->vars)->position;
         while (vid-- > 0)
         {
-            instr("FROM @%d", ++*label);
-            instr("'/|'[,'/,'_,'_ R,S,S,S @%d", ++*label);
-            instr("'/|'[,'[,'_,'_ R,S,S,S @%d", *label);
-            instr("FROM @%d", *label);
+            instr("FROM @%d", ++label);
+            instr("'/|'[,'/,'_,'_ R,S,S,S @%d", ++label);
+            instr("'/|'[,'[,'_,'_ R,S,S,S @%d", label);
+            instr("FROM @%d", label);
             instr("'0|'1,'/,'_,'_ R,S,S,S");
             instr("'0|'1,'[,'_,'_ R,S,S,S");
-            instr("'/,'/|'[,'_,'_ S,S,S,S @%d", *label + 1);
+            instr("'/,'/|'[,'_,'_ S,S,S,S @%d", label + 1);
         }
     }
     else if (AST_KIND(op) == k_operator && OPER_OPERATOR(op) == DEREF)
     {
-        eval(OPER_OPERANDS(op)[0], label, frame);
+        eval(OPER_OPERANDS(op)[0], frame);
         deref(label);
     }
     else
@@ -1049,19 +1051,19 @@ void nav_to_var(int* label, struct ast_node* op, struct stack_frame* frame)
     }
 }
 
-void deref(int* label)
+void deref()
 {
-    instr("FROM @%d", ++*label);
-    instr("'[,'/,'_,'_ '[,'_,'_,'_ S,L,S,S @%d", ++*label);
-    instr("FROM @%d", *label);
+    instr("FROM @%d", ++label);
+    instr("'[,'/,'_,'_ '[,'_,'_,'_ S,L,S,S @%d", ++label);
+    instr("FROM @%d", label);
     instr("'[,'0|'1,'_,'_ '[,'_,'0|'1,'_ S,L,L,S");
-    instr("'[,'/|'[,'_,'_ S,S,R,S @%d", ++*label);
-    int start = *label;
+    instr("'[,'/|'[,'_,'_ S,S,R,S @%d", ++label);
+    int start = label;
     instr("FROM @%d", start);
-    int dec0 = ++*label;
-    int dec = ++*label;
-    int dec2 = ++*label;
-    int end = ++*label;
+    int dec0 = ++label;
+    int dec = ++label;
+    int dec2 = ++label;
+    int end = ++label;
     instr("'/|'[,'[,'1,'_ '/|'[,'[,'0,'_ S,S,L,S @%d", dec0);
     instr("'/|'[,'[,'0,'_ '/|'[,'[,'1,'_ S,S,R,S");
     instr("'/|'[,'[,'_,'_ S,S,L,S @%d", end);
@@ -1095,9 +1097,9 @@ void deref(int* label)
     instr("'[,'/|'[,'_,'_ S,S,R,S @%d", start);
     instr("FROM @%d", end);
     instr("'/|'[,'/,'1,'_ '/|'[,'/,'_,'_ S,S,L,S");
-    instr("'/|'[,'/,'_,'_ S,S,S,S @%d", *label + 1);
+    instr("'/|'[,'/,'_,'_ S,S,S,S @%d", label + 1);
     instr("'/|'[,'[,'1,'_ '/|'[,'[,'_,'_ S,S,L,S");
-    instr("'/|'[,'[,'_,'_ S,S,S,S @%d", *label + 1);
+    instr("'/|'[,'[,'_,'_ S,S,S,S @%d", label + 1);
 }
 
 
@@ -1213,7 +1215,7 @@ void traverse_funcs(ast_node* n)
 // ---------------------------------------------------------------------
 void produce_code(ast_node* n)
 {
-    int label = 0;
+
 
     instr("NEW \"generated\" 4");
     instr("START @INIT");
@@ -1253,7 +1255,7 @@ void produce_code(ast_node* n)
 
     struct stack_frame global_frame = {.vars = globals_head, .function = NULL};
 
-    eval(n, &label, &global_frame);
+    eval(n, &global_frame);
 
     instr("FROM @%d", ++label);
     instr("'[,'/,'_,'_ S,S,S,S @END");
@@ -1266,7 +1268,7 @@ void produce_code(ast_node* n)
         instr("FROM @F%d", ptr->header.id);
         instr("'[,'/|'[,'_,'_ S,S,S,S @%d", label + 1);
         struct stack_frame local_frame = {.vars = ptr->locals_head, .function = ptr};
-        exec(ptr->code, &label, &local_frame);
+        exec(ptr->code, &local_frame);
         instr("FROM @%d", ++label);
         instr("'[,'/|'[,'_,'_ S,S,S,S @F%dret", ptr->header.id);
     }
