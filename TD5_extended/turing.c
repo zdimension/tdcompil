@@ -91,6 +91,7 @@ struct var_list
 struct func_list
 {
     struct linked_list_header header;
+    bool is_void;
     struct linked_list* arglist;
     struct ast_node* code;
     struct call_site_list* callsites;
@@ -930,9 +931,27 @@ void exec(ast_node* n, int* label, struct stack_frame* frame)
                 case KFUNC:
                     PROD0("func");
                     return;
+                case KPROC:
+                    PROD0("proc");
+                    return;
                 case KRETURN:
                 {
                     PROD0("return");
+                    if (!frame->function)
+                    {
+                        error_msg("Can only return from a function or procedure\n");
+                        exit(1);
+                    }
+                    if (frame->function->is_void && op[0])
+                    {
+                        error_msg("Cannot return value from procedure\n");
+                        exit(1);
+                    }
+                    if (!frame->function->is_void && !op[0])
+                    {
+                        error_msg("Function must return a value\n");
+                        exit(1);
+                    }
                     eval(op[0], label, frame);
                     instr("FROM @%d", ++*label);
                     instr("'[,'/|'[,'_,'_ S,S,S,S @F%dret", frame->function->header.id);
@@ -942,6 +961,11 @@ void exec(ast_node* n, int* label, struct stack_frame* frame)
                 {
                     PROD0("call");
                     struct func_list* fct = FIND_SYM(struct func_list, funcs_head, VAR_NAME(op[0]));
+                    if (fct->is_void && !clean_stack)
+                    {
+                        error_msg("Procedure call does not have a value\n");
+                        exit(1);
+                    }
                     struct linked_list* args = (struct linked_list*) op[1];
                     int argcount = 0;
                     for (struct linked_list* arg = args; arg; arg = arg->next, argcount++)
@@ -988,7 +1012,7 @@ void exec(ast_node* n, int* label, struct stack_frame* frame)
                 default:
                     error_msg("Houston, we have a problem: unattended token %d\n",
                               OPER_OPERATOR(n));
-                    abort();
+                    exit(1);
             }
         }
         default:
@@ -1020,8 +1044,8 @@ void nav_to_var(int* label, struct ast_node* op, struct stack_frame* frame)
     }
     else
     {
-        error_msg("Expected lvalue\n");
-        abort();
+        error_msg("Expected lvalue for assignment\n");
+        exit(1);
     }
 }
 
@@ -1138,7 +1162,7 @@ void traverse_vars(ast_node* n, struct var_list** vars_head, struct var_list** v
             check_add_var(name, OPER_OPERATOR(n) == KDIM ? NUMBER_VALUE(OPER_OPERANDS(n)[1]) : 1, vars_head, vars_tail);
         }
 
-        if (OPER_OPERATOR(n) != KFUNC)
+        if (OPER_OPERATOR(n) != KFUNC && OPER_OPERATOR(n) != KPROC)
         {
             for (int i = 0; i < OPER_ARITY(n); i++)
                 traverse_vars(OPER_OPERANDS(n)[i], vars_head, vars_tail);
@@ -1153,10 +1177,11 @@ void traverse_funcs(ast_node* n)
 
     if (AST_KIND(n) == k_operator)
     {
-        if (OPER_OPERATOR(n) == KFUNC)
+        if (OPER_OPERATOR(n) == KFUNC || OPER_OPERATOR(n) == KPROC)
         {
             struct func_list* newNode = ADD_SYM(struct func_list, &funcs_head, &funcs_tail);
             newNode->header.name = VAR_NAME(OPER_OPERANDS(n)[0]);
+            newNode->is_void = OPER_OPERATOR(n) == KPROC;
             newNode->arglist = (struct linked_list*) OPER_OPERANDS(n)[1];
             newNode->code = OPER_OPERANDS(n)[2];
             newNode->callsites = NULL;
@@ -1170,6 +1195,8 @@ void traverse_funcs(ast_node* n)
 
             traverse_vars(newNode->code, &newNode->locals_head, &newNode->locals_tail);
             traverse_funcs(newNode->code);
+
+
         }
         else
         {
@@ -1260,8 +1287,6 @@ void produce_code(ast_node* n)
                 instr("FROM @%d", label);
             }
             instr("'_,'/|'[,'_,'_ '%d,'/|'[,'_,'_ R,S,S,S @%d", call->id == i ? 1 : 0, call->argalloc_address);
-
-
             instr("FROM @C%dcheck", call->id);
             instr("'1,'_,'_,'_ '_,'_,'_,'_ L,S,S,S @%d", ++label); // ok
             if (call->next)

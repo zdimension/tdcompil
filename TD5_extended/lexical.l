@@ -51,6 +51,7 @@
 "dim" { return KDIM; }
 "return" { return KRETURN; }
 "func" { return KFUNC; }
+"proc" { return KPROC; }
 
 	/* ---- Idents ---- */
 [a-zA-Z]+			{ yylval.var = strdup(yytext); return IDENT; }
