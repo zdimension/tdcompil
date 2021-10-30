@@ -109,8 +109,8 @@ struct linked_list* prepend_list(struct linked_list* list, ast_node* value);
 // ----------------------------------------------------------------------
 //		Utilities
 // ----------------------------------------------------------------------
-void error_msg(const char* format, ...);        // Display an error message
-void info_msg(const char* format, ...);        // Display an info message
+void error_msg(struct ast_node* node, const char* format, ...);        // Display an error message
+void info_msg(struct ast_node* node, const char* format, ...);        // Display an info message
 void free_node(ast_node* p);                    // Freeing a node
 
 extern bool optimize;

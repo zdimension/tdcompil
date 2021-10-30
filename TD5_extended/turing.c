@@ -391,7 +391,7 @@ bool static_fold(ast_node** n, struct stack_frame* frame)
                 {
                     if (AST_KIND(op[1]) == k_ident && !strcmp(VAR_NAME(op[0]), VAR_NAME(op[1])))
                     {
-                        info_msg("Assignment has no effect\n");
+                        info_msg(*n, "Assignment has no effect\n");
                         RETURN(op[0]);
                     }
                     return false;
@@ -400,7 +400,7 @@ bool static_fold(ast_node** n, struct stack_frame* frame)
                 {
                     if (o[0].is_num)
                     {
-                        info_msg("Condition is always %s\n", o[0].value ? "true" : "false");
+                        info_msg(*n, "Condition is always %s\n", o[0].value ? "true" : "false");
                         RETURN(o[0].value ? op[1] : op[2]);
                     }
                     return false;
@@ -417,14 +417,14 @@ int static_eval(ast_node* n)
 {
     if (!static_fold(&n, NULL) || AST_KIND(n) != k_number)
     {
-        error_msg("Value must be compile-time constant\n");
+        error_msg(n, "Value must be compile-time constant\n");
         exit(1);
     }
 
     return NUMBER_VALUE(n);
 }
 
-#define USELESS() do{info_msg("Line has no effect\n");return;}while(0)
+#define USELESS() do{info_msg(n, "Line has no effect\n");return;}while(0)
 void exec(ast_node* n, struct stack_frame* frame, struct loop_info* loop)
 {
     if (!n)
@@ -1056,7 +1056,7 @@ void exec(ast_node* n, struct stack_frame* frame, struct loop_info* loop)
                     PROD0("break");
                     if (!loop)
                     {
-                        error_msg("Break statement only permitted in loop\n");
+                        error_msg(n, "Break statement only permitted in loop\n");
                         exit(1);
                     }
                     instr("FROM @%d", ++label);
@@ -1066,7 +1066,7 @@ void exec(ast_node* n, struct stack_frame* frame, struct loop_info* loop)
                     PROD0("continue");
                     if (!loop)
                     {
-                        error_msg("Continue statement only permitted in loop\n");
+                        error_msg(n, "Continue statement only permitted in loop\n");
                         exit(1);
                     }
                     instr("FROM @%d", ++label);
@@ -1239,17 +1239,17 @@ void exec(ast_node* n, struct stack_frame* frame, struct loop_info* loop)
                     PROD0("return");
                     if (!frame->function)
                     {
-                        error_msg("Can only return from a function or procedure\n");
+                        error_msg(n, "Can only return from a function or procedure\n");
                         exit(1);
                     }
                     if (frame->function->is_void && op[0])
                     {
-                        error_msg("Cannot return value from procedure\n");
+                        error_msg(n, "Cannot return value from procedure\n");
                         exit(1);
                     }
                     if (!frame->function->is_void && !op[0])
                     {
-                        error_msg("Function must return a value\n");
+                        error_msg(n, "Function must return a value\n");
                         exit(1);
                     }
                     eval(op[0], frame);
@@ -1263,7 +1263,7 @@ void exec(ast_node* n, struct stack_frame* frame, struct loop_info* loop)
                     struct func_list* fct = FIND_SYM(struct func_list, funcs_head, VAR_NAME(op[0]));
                     if (fct->is_void && !clean_stack)
                     {
-                        error_msg("Procedure call does not have a value\n");
+                        error_msg(n, "Procedure call does not have a value\n");
                         exit(1);
                     }
                     struct linked_list* args = (struct linked_list*) op[1];
@@ -1310,7 +1310,7 @@ void exec(ast_node* n, struct stack_frame* frame, struct loop_info* loop)
                     return;
                 }
                 default:
-                    error_msg("Houston, we have a problem: unattended token %d\n",
+                    error_msg(n, "Houston, we have a problem: unattended token %d\n",
                               OPER_OPERATOR(n));
                     exit(1);
             }
@@ -1344,7 +1344,7 @@ void nav_to_var(struct ast_node* op, struct stack_frame* frame, struct loop_info
     }
     else
     {
-        error_msg("Expected lvalue for assignment\n");
+        error_msg(op, "Expected lvalue for assignment\n");
         exit(1);
     }
 }
@@ -1479,7 +1479,7 @@ void traverse_vars(ast_node* n, struct var_list** vars_head, struct var_list** v
                 struct var_list* var = check_add_var(name, static_eval(OPER_OPERANDS(n)[1]), vars_head, vars_tail);
                 if (!var)
                 {
-                    error_msg("Cannot redeclare array\n");
+                    error_msg(n, "Cannot redeclare array\n");
                     exit(1);
                 }
                 struct ast_node* initial = OPER_OPERANDS(n)[2];

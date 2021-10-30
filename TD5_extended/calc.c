@@ -84,7 +84,7 @@ static ast_node* allocate_node(int size)
 
     if (!p)
     {
-        error_msg("out of memory\n");
+        error_msg(NULL, "out of memory\n");
         exit(1);
     }
     return p;
@@ -111,21 +111,21 @@ void free_node(ast_node* p)
 }
 
 
-void error_msg(const char* format, ...)
+void error_msg(struct ast_node* node, const char* format, ...)
 {
     va_list ap;
 
-    fprintf(stderr, "*** Error on line %d: ", yylineno);
+    fprintf(stderr, "*** Error on line %d: ", node ? node->lineno : yylineno);
     va_start(ap, format);
     vfprintf(stderr, format, ap);
     va_end(ap);
 }
 
-void info_msg(const char* format, ...)
+void info_msg(struct ast_node* node, const char* format, ...)
 {
     va_list ap;
 
-    fprintf(stderr, "*** Info on line %d: ", yylineno);
+    fprintf(stderr, "*** Info on line %d: ", node ? node->lineno : yylineno);
     va_start(ap, format);
     vfprintf(stderr, format, ap);
     va_end(ap);

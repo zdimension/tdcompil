@@ -216,7 +216,7 @@ var
     ;
 
 %%
-void yyerror(const char *s)     { error_msg("%s\n",s); exit(1); }
+void yyerror(const char *s)     { error_msg(NULL, "%s\n",s); exit(1); }
 int  yywrap(void)               { return 1;          } // to avoid linking with -ldl
 bool optimize = false;
 int  main(int argc, char* argv[]) {

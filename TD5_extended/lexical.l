@@ -81,7 +81,7 @@
 
 
 	/* ---- Other characters ---- */
-.				{ error_msg("unknown character '%c'\n", *yytext); }
+.				{ error_msg(NULL, "unknown character '%c'\n", *yytext); }
 
 %%
 
