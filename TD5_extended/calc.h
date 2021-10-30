@@ -43,10 +43,12 @@ struct ast_node
 {
     int lineno;                   // source line number of the node
     enum node_kind kind;        // kind of node
+    bool clean_stack;
 };
 
 #define AST_LINENO(p)        (((ast_node *)(p))->lineno)
 #define AST_KIND(p)        (((ast_node *)(p))->kind)
+#define AST_CLEAN_STACK(p)        (((ast_node *) (p))->clean_stack)
 
 // ----------------------------------------------------------------------
 //		Idents stuff
@@ -84,13 +86,11 @@ struct ast_operator
     ast_node header;        // AST header
     int operator;            // lex token
     int arity;            // arity of the operator
-    bool clean_stack;
     ast_node* operands[0];    // array of operands
 };
 
 #define OPER_OPERATOR(p)    (((struct ast_operator *) (p))->operator)
 #define OPER_ARITY(p)        (((struct ast_operator *) (p))->arity)
-#define OPER_CLEAN_STACK(p)        (((struct ast_operator *) (p))->clean_stack)
 #define OPER_OPERANDS(p)    (((struct ast_operator *) (p))->operands)
 
 ast_node* make_node(int operator, int arity, ...); // make an operator node
@@ -105,7 +105,6 @@ struct linked_list
 
 struct linked_list* make_list(ast_node* value);
 struct linked_list* prepend_list(struct linked_list* list, ast_node* value);
-
 
 // ----------------------------------------------------------------------
 //		Utilities

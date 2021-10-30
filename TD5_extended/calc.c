@@ -17,6 +17,7 @@
 #define initialize_header(p, kind) { \
   AST_LINENO(p) = yylineno;          \
   AST_KIND(p)   = kind;              \
+  AST_CLEAN_STACK(p) = false;        \
 }
 
 extern int yylineno;                    // line number defined by lex
@@ -63,7 +64,6 @@ ast_node* make_node(int operator, int arity, ...)
     initialize_header(p, k_operator);
     OPER_OPERATOR(p) = operator;
     OPER_ARITY(p) = arity;
-    OPER_CLEAN_STACK(p) = false;
 
     // Fill in the operands array from the vararg list
     va_start(ap, arity);

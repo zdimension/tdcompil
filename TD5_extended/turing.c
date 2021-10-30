@@ -199,7 +199,7 @@ void pop(int n)
 #define IS_VAL(node, val) (IS_NUM(node) && NUMBER_VALUE(node) == (val))
 
 #define RETURN(x) do{*result = x; return true;}while(0)
-bool static_eval(ast_node* n, struct stack_frame* frame, ast_node** result)
+bool static_fold(ast_node* n, struct stack_frame* frame, ast_node** result)
 {
     if (!n)
         return false;
@@ -212,10 +212,13 @@ bool static_eval(ast_node* n, struct stack_frame* frame, ast_node** result)
         }
         case k_ident:
         {
-            struct var_list* ptr = get_var_id(VAR_NAME(n), frame->vars);
-            if (ptr->size != 1) // array
+            if (frame)
             {
-                RETURN(make_number(ptr->position));
+                struct var_list* ptr = get_var_id(VAR_NAME(n), frame->vars);
+                if (ptr->size != 1) // array
+                {
+                    RETURN(make_number(ptr->position));
+                }
             }
             return false;
         }
@@ -223,12 +226,12 @@ bool static_eval(ast_node* n, struct stack_frame* frame, ast_node** result)
         {
             ast_node** op = OPER_OPERANDS(n);
             int arity = OPER_ARITY(n);
-            struct {bool is_num; int value; }* o = malloc(arity * sizeof(*o));
+            struct {bool is_num; int value; struct ast_node* folded; }* o = malloc(arity * sizeof(*o));
             for (int i = 0; i < arity; i++)
             {
-                struct ast_node* res;
-                if ((o[i].is_num = static_eval(op[i], frame, &res)))
-                    o[i].value = NUMBER_VALUE(res);
+                static_fold(op[i], frame, &o[i].folded);
+                if ((o[i].is_num = o[i].folded && AST_KIND(o[i].folded) == k_number))
+                    o[i].value = NUMBER_VALUE(o[i].folded);
             }
 
             switch (OPER_OPERATOR(n))
@@ -244,14 +247,17 @@ bool static_eval(ast_node* n, struct stack_frame* frame, ast_node** result)
                 }
                 case REF:
                 {
-                    int ptr = get_var_id(VAR_NAME(op[0]), frame->vars)->position;
-                    if (op[1] == NULL)
+                    if (frame)
                     {
-                        RETURN(make_number(ptr));
-                    }
-                    else if (o[1].is_num)
-                    {
-                        RETURN(make_number(ptr + o[1].value));
+                        int ptr = get_var_id(VAR_NAME(op[0]), frame->vars)->position;
+                        if (op[1] == NULL)
+                        {
+                            RETURN(make_number(ptr));
+                        }
+                        else if (o[1].is_num)
+                        {
+                            RETURN(make_number(ptr + o[1].value));
+                        }
                     }
                     return false;
                 }
@@ -384,11 +390,31 @@ bool static_eval(ast_node* n, struct stack_frame* frame, ast_node** result)
                     }
                     return false;
                 }
+                case '=':
+                {
+                    if (AST_KIND(o[1].folded) == k_ident && !strcmp(VAR_NAME(op[0]), VAR_NAME(o[1].folded)))
+                    {
+                        RETURN(op[0]);
+                    }
+                    return false;
+                }
             }
         }
     }
 
     return false;
+}
+#undef RETURN
+
+int static_eval(ast_node* n)
+{
+    if (!static_fold(n, NULL, &n) || AST_KIND(n) != k_number)
+    {
+        error_msg("Value must be compile-time constant\n");
+        exit(1);
+    }
+
+    return NUMBER_VALUE(n);
 }
 
 void exec(ast_node* n, struct stack_frame* frame, struct loop_info* loop)
@@ -401,12 +427,16 @@ void exec(ast_node* n, struct stack_frame* frame, struct loop_info* loop)
 
     instr("# KIND = %d (%s)", AST_KIND(n), node_kind_NAMES[AST_KIND(n)]);
 
+    bool clean_stack = AST_CLEAN_STACK(n);
+
     if (optimize)
     {
-        if (static_eval(n, frame, &n))
+        if (static_fold(n, frame, &n))
         {
             PROD0("statically evaluated");
         }
+
+        //n->clean_stack = true;
     }
 
     switch (AST_KIND(n))
@@ -414,13 +444,17 @@ void exec(ast_node* n, struct stack_frame* frame, struct loop_info* loop)
         case k_number:
         {
             PROD1F("push", NUMBER_VALUE(n));
+            if (clean_stack)
+                return;
             push_number(NUMBER_VALUE(n));
             return;
         }
         case k_ident:
         {
-            struct var_list* ptr = get_var_id(VAR_NAME(n), frame->vars);
             PROD1S("load", VAR_NAME(n));
+            if (clean_stack)
+                return;
+            struct var_list* ptr = get_var_id(VAR_NAME(n), frame->vars);
             if (ptr->size != 1) // array
             {
                 push_number(ptr->position);
@@ -444,7 +478,6 @@ void exec(ast_node* n, struct stack_frame* frame, struct loop_info* loop)
         {
             ast_node** op = OPER_OPERANDS(n);
             int arity = OPER_ARITY(n);
-            bool clean_stack = OPER_CLEAN_STACK(n);
 
             switch (OPER_OPERATOR(n))
             {
@@ -452,11 +485,6 @@ void exec(ast_node* n, struct stack_frame* frame, struct loop_info* loop)
                 case UMINUS:
                 {
                     PROD0("negate");
-                    if (optimize && IS_NUM(op[0]))
-                    {
-                        push_number(-NUMBER_VALUE(op[0]));
-                        return;
-                    }
                     eval(op[0], frame);
                     if (clean_stack)
                     {
@@ -572,24 +600,6 @@ void exec(ast_node* n, struct stack_frame* frame, struct loop_info* loop)
                 case '-':
                 {
                     PROD0("sub");
-                    if (optimize)
-                    {
-                        if (IS_NUM(op[0]) && IS_NUM(op[1]))
-                        {
-                            push_number(NUMBER_VALUE(op[0]) - NUMBER_VALUE(op[1]));
-                            return;
-                        }
-                        else if (IS_VAL(op[0], 0))
-                        {
-                            eval(make_node(UMINUS, 1, op[1]), frame);
-                            return;
-                        }
-                        else if (IS_VAL(op[1], 0))
-                        {
-                            eval(op[0], frame);
-                            return;
-                        }
-                    }
                     eval(op[0], frame);
                     eval(op[1], frame);
                     if (clean_stack)
@@ -625,24 +635,6 @@ void exec(ast_node* n, struct stack_frame* frame, struct loop_info* loop)
                 case '*':
                 {
                     PROD0("mul");
-                    if (optimize)
-                    {
-                        if (IS_NUM(op[0]) && IS_NUM(op[1]))
-                        {
-                            push_number(NUMBER_VALUE(op[0]) * NUMBER_VALUE(op[1]));
-                            return;
-                        }
-                        else if (IS_VAL(op[0], 1))
-                        {
-                            eval(op[1], frame);
-                            return;
-                        }
-                        else if (IS_VAL(op[1], 1))
-                        {
-                            eval(op[0], frame);
-                            return;
-                        }
-                    }
                     eval(op[0], frame);
                     eval(op[1], frame);
                     if (clean_stack)
@@ -1476,7 +1468,7 @@ void traverse_vars(ast_node* n, struct var_list** vars_head, struct var_list** v
             }
             else
             {
-                struct var_list* var = check_add_var(name, NUMBER_VALUE(OPER_OPERANDS(n)[1]), vars_head, vars_tail);
+                struct var_list* var = check_add_var(name, static_eval(OPER_OPERANDS(n)[1]), vars_head, vars_tail);
                 if (!var)
                 {
                     error_msg("Cannot redeclare array\n");

@@ -62,9 +62,9 @@ stmts
 
 stmt
     : ';'                               											{ $$ = make_node(';', 0); }
-    | expr_discard ';'																{ if (AST_KIND($1) == k_operator) { OPER_CLEAN_STACK($1) = true; } $$ = $1; }
-    | KDIM var '[' NUMBER ']' ';' 													{ $$ = make_node(KDIM, 3, $2, make_number($4), NULL); }
-    | KDIM var '[' NUMBER ']' '=' STRING ';'										{ $$ = make_node(KDIM, 3, $2, make_number($4), make_ident($7)); }
+    | expr_discard ';'																{ $$ = $1; }
+    | KDIM var '[' expr ']' ';' 													{ $$ = make_node(KDIM, 3, $2, $4, NULL); }
+    | KDIM var '[' expr ']' '=' STRING ';'											{ $$ = make_node(KDIM, 3, $2, $4, make_ident($7)); }
     | KDIM var '[' ']' '=' STRING ';'												{ $$ = make_node(KDIM, 3, $2, make_number(strlen($6)), make_ident($6)); }
     | KPRINT expr ';'                  												{ $$ = make_node(KPRINT, 1, $2); }
     | KREAD expr ';'                  												{ $$ = make_node(KREAD, 1, $2); }
@@ -196,7 +196,7 @@ expr
     ;
 
 expr_discard
-	: expr						{ if (AST_KIND($1) == k_operator) { OPER_CLEAN_STACK($1) = true; } $$ = $1; }
+	: expr						{ $$ = $1; AST_CLEAN_STACK($$) = true; }
 	;
 
 expr_discard_opt
