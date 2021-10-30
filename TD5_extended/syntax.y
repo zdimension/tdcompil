@@ -23,7 +23,7 @@ void yyerror(const char *s);
 %}
 
 %union {
-    float value;                 // number value
+    int value;                 // number value
     char *var;                   // ident name
     int chr;
     ast_node *node;              // node pointer
@@ -216,15 +216,19 @@ var
 %%
 void yyerror(const char *s)     { error_msg("%s\n",s); exit(1); }
 int  yywrap(void)               { return 1;          } // to avoid linking with -ldl
-
+bool optimize = false;
 int  main(int argc, char* argv[]) {
   extern FILE *yyin;
   yyin = stdin;
-  if (argc == 2) {
+  if (argc >= 2) {
     yyin = fopen(argv[1], "r");
     if (!yyin) {
       fprintf(stderr, "%s: cannot open input file '%s'\n", *argv, argv[1]);
       exit(1);
+    }
+    if (argc >= 3 && !strcmp(argv[2], "-O")) {
+      printf("# Optimizations enabled\n");
+      optimize = true;
     }
   }
   return yyparse();

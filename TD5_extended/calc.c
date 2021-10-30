@@ -41,7 +41,7 @@ ast_node* make_ident(char* str)
 //		Numbers stuff
 // ----------------------------------------------------------------------
 
-ast_node* make_number(float f)
+ast_node* make_number(int f)
 {
     ast_node* p = allocate_node(sizeof(struct ast_number));
 

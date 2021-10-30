@@ -20,8 +20,8 @@
 %%
 
 	/* ---- Numbers ---- */
-[0-9]+\.?[0-9]*(e[+-]?[0-9]+)?	{ yylval.value = atof(yytext); return NUMBER; }
-\.[0-9]+(e[+-]?[0-9]+)?		{ yylval.value = atof(yytext); return NUMBER; }
+
+[0-9]+ 			{ yylval.value = atol(yytext); return NUMBER; }
 
 \'\\a\'	{ yylval.value = '\a'; return NUMBER; }
 \'\\b\'	{ yylval.value = '\b'; return NUMBER; }
@@ -35,6 +35,7 @@
 \'\\\\\'	{ yylval.value = '\\'; return NUMBER; }
 \'[^\']\' { yylval.value = yytext[1]; return NUMBER; }
 \"[^\"]*\" { yylval.var = strndup(yytext + 1, strlen(yytext) - 2); return STRING; }
+
 
 	/* ---- Single char tokens ---- */
 

@@ -68,12 +68,12 @@ ast_node* make_ident(char* str);    // make a ident node
 struct ast_number
 {
     ast_node header;              // AST header
-    float value;            // value of the number
+    int value;            // value of the number
 };
 
 #define NUMBER_VALUE(p)    (((struct ast_number *) (p))->value)
 
-ast_node* make_number(float f);    // make a number node
+ast_node* make_number(int f);    // make a number node
 
 
 // ----------------------------------------------------------------------
@@ -113,6 +113,7 @@ struct linked_list* prepend_list(struct linked_list* list, ast_node* value);
 void error_msg(const char* format, ...);        // Display an error message
 void free_node(ast_node* p);                    // Freeing a node
 
+extern bool optimize;
 
 
 #endif /* _CALC_H_ */

@@ -23,7 +23,7 @@
 #define LABEL(n)     printf("#L%03d:\n", n);            // output a label
 
 #define PROD0(op)     printf("#\t%s\n", op)
-#define PROD1F(op, v)     printf("#\t%s\t%g\n", op, v)    // v is a float
+#define PROD1F(op, v)     printf("#\t%s\t%d\n", op, v)    // v is a float
 #define PROD1S(op, v)     printf("#\t%s\t%s\n", op, v)    // v is a string
 #define PROD1L(op, v)     printf("#\t%s\tL%03d\n", op, v) // v is a label
 
@@ -195,6 +195,9 @@ void pop(int n)
     instr("'[,'/|'[,'_,'_ S,S,S,S @%d", label + 1);
 }
 
+#define IS_NUM(node) (AST_KIND(node) == k_number)
+#define IS_VAL(node, val) (IS_NUM(node) && NUMBER_VALUE(node) == (val))
+
 void exec(ast_node* n, struct stack_frame* frame, struct loop_info* loop)
 {
     if (!n)
@@ -248,6 +251,11 @@ void exec(ast_node* n, struct stack_frame* frame, struct loop_info* loop)
                 case UMINUS:
                 {
                     PROD0("negate");
+                    if (optimize && IS_NUM(op[0]))
+                    {
+                        push_number(-NUMBER_VALUE(op[0]));
+                        return;
+                    }
                     eval(op[0], frame);
                     if (clean_stack)
                     {
@@ -327,6 +335,24 @@ void exec(ast_node* n, struct stack_frame* frame, struct loop_info* loop)
                 case '+':
                 {
                     PROD0("add");
+                    if (optimize)
+                    {
+                        if (IS_NUM(op[0]) && IS_NUM(op[1]))
+                        {
+                            push_number(NUMBER_VALUE(op[0]) + NUMBER_VALUE(op[1]));
+                            return;
+                        }
+                        else if (IS_VAL(op[0], 0))
+                        {
+                            eval(op[1], frame);
+                            return;
+                        }
+                        else if (IS_VAL(op[1], 0))
+                        {
+                            eval(op[0], frame);
+                            return;
+                        }
+                    }
                     eval(op[0], frame);
                     eval(op[1], frame);
                     if (clean_stack)
@@ -363,6 +389,24 @@ void exec(ast_node* n, struct stack_frame* frame, struct loop_info* loop)
                 case '-':
                 {
                     PROD0("sub");
+                    if (optimize)
+                    {
+                        if (IS_NUM(op[0]) && IS_NUM(op[1]))
+                        {
+                            push_number(NUMBER_VALUE(op[0]) - NUMBER_VALUE(op[1]));
+                            return;
+                        }
+                        else if (IS_VAL(op[0], 0))
+                        {
+                            eval(make_node(UMINUS, 1, op[1]), frame);
+                            return;
+                        }
+                        else if (IS_VAL(op[1], 0))
+                        {
+                            eval(op[0], frame);
+                            return;
+                        }
+                    }
                     eval(op[0], frame);
                     eval(op[1], frame);
                     if (clean_stack)
@@ -398,6 +442,24 @@ void exec(ast_node* n, struct stack_frame* frame, struct loop_info* loop)
                 case '*':
                 {
                     PROD0("mul");
+                    if (optimize)
+                    {
+                        if (IS_NUM(op[0]) && IS_NUM(op[1]))
+                        {
+                            push_number(NUMBER_VALUE(op[0]) * NUMBER_VALUE(op[1]));
+                            return;
+                        }
+                        else if (IS_VAL(op[0], 1))
+                        {
+                            eval(op[1], frame);
+                            return;
+                        }
+                        else if (IS_VAL(op[1], 1))
+                        {
+                            eval(op[0], frame);
+                            return;
+                        }
+                    }
                     eval(op[0], frame);
                     eval(op[1], frame);
                     if (clean_stack)
