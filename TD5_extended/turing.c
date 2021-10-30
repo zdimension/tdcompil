@@ -196,7 +196,7 @@ void exec(ast_node* n, struct stack_frame* frame, struct loop_info* loop)
         return;
     }
 
-    instr("# KIND = %d", AST_KIND(n));
+    instr("# KIND = %d (%s)", AST_KIND(n), node_kind_NAMES[AST_KIND(n)]);
 
     switch (AST_KIND(n))
     {

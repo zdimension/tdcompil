@@ -13,11 +13,37 @@
 
 #include <stdbool.h>
 
-/// The various kind of node we can have: ident, number, operator
-enum node_kind
-{
-    k_ident, k_number, k_operator
+#define ENUM_ITEM(X) X,
+#define ENUM_NAME(X) #X,
+
+#define ENUM_DEFINE(name, items) enum name\
+{\
+    items(ENUM_ITEM)\
+};\
+static const char* name##_NAMES[] =\
+{\
+    items(ENUM_NAME)\
 };
+
+#define TOKENS(F) \
+    F(INT) \
+    F(PLUS) \
+    F(MINUS) \
+    F(MULT) \
+    F(DIV) \
+    F(OPEN) \
+    F(CLOSE) \
+    F(EQUAL) \
+    F(EOL) \
+    F(INVALID)
+
+
+/// The various kind of node we can have: ident, number, operator
+#define KINDS(F) \
+    F(k_ident) \
+    F(k_number) \
+    F(k_operator)
+ENUM_DEFINE(node_kind, KINDS)
 
 
 // ----------------------------------------------------------------------
