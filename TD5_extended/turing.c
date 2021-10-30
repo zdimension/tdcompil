@@ -195,25 +195,23 @@ void pop(int n)
     instr("'[,'/|'[,'_,'_ S,S,S,S @%d", label + 1);
 }
 
-#define RETURN(x) do{*result = x; return true;}while(0)
-bool static_fold(ast_node* n, struct stack_frame* frame, ast_node** result)
+#define RETURN(x) do{*n = x; return true;}while(0)
+bool static_fold(ast_node** n, struct stack_frame* frame)
 {
-    *result = n;
-
-    if (!n)
+    if (!*n)
         return false;
 
-    switch (AST_KIND(n))
+    switch (AST_KIND(*n))
     {
         case k_number:
         {
-            RETURN(n);
+            RETURN(*n);
         }
         case k_ident:
         {
             if (frame)
             {
-                struct var_list* ptr = get_var_id(VAR_NAME(n), frame->vars);
+                struct var_list* ptr = get_var_id(VAR_NAME(*n), frame->vars);
                 if (ptr->size != 1) // array
                 {
                     RETURN(make_number(ptr->position));
@@ -223,17 +221,17 @@ bool static_fold(ast_node* n, struct stack_frame* frame, ast_node** result)
         }
         case k_operator:
         {
-            ast_node** op = OPER_OPERANDS(n);
-            int arity = OPER_ARITY(n);
-            struct {bool is_num; int value; struct ast_node* folded; }* o = malloc(arity * sizeof(*o));
+            ast_node** op = OPER_OPERANDS(*n);
+            int arity = OPER_ARITY(*n);
+            struct {bool is_num; int value; }* o = malloc(arity * sizeof(*o));
             for (int i = 0; i < arity; i++)
             {
-                static_fold(op[i], frame, &o[i].folded);
-                if ((o[i].is_num = o[i].folded && AST_KIND(o[i].folded) == k_number))
-                    o[i].value = NUMBER_VALUE(o[i].folded);
+                static_fold(&op[i], frame);
+                if ((o[i].is_num = AST_KIND(op[i]) == k_number))
+                    o[i].value = NUMBER_VALUE(op[i]);
             }
 
-            switch (OPER_OPERATOR(n))
+            switch (OPER_OPERATOR(*n))
             {
                 /* Expressions */
                 case UMINUS:
@@ -391,7 +389,7 @@ bool static_fold(ast_node* n, struct stack_frame* frame, ast_node** result)
                 }
                 case '=':
                 {
-                    if (AST_KIND(o[1].folded) == k_ident && !strcmp(VAR_NAME(op[0]), VAR_NAME(o[1].folded)))
+                    if (AST_KIND(op[1]) == k_ident && !strcmp(VAR_NAME(op[0]), VAR_NAME(op[1])))
                     {
                         info_msg("Assignment has no effect\n");
                         RETURN(op[0]);
@@ -417,7 +415,7 @@ bool static_fold(ast_node* n, struct stack_frame* frame, ast_node** result)
 
 int static_eval(ast_node* n)
 {
-    if (!static_fold(n, NULL, &n) || AST_KIND(n) != k_number)
+    if (!static_fold(&n, NULL) || AST_KIND(n) != k_number)
     {
         error_msg("Value must be compile-time constant\n");
         exit(1);
@@ -441,7 +439,7 @@ void exec(ast_node* n, struct stack_frame* frame, struct loop_info* loop)
 
     if (optimize)
     {
-        if (static_fold(n, frame, &n))
+        if (static_fold(&n, frame))
         {
             PROD0("statically evaluated");
         }

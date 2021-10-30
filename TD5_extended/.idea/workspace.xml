@@ -17,9 +17,7 @@
     </configurations>
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="a6805983-d57b-442f-a29f-dcb10bd9ca72" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/syntax.y" beforeDir="false" afterPath="$PROJECT_DIR$/syntax.y" afterDir="false" />
-    </list>
+    <list default="true" id="a6805983-d57b-442f-a29f-dcb10bd9ca72" name="Changes" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -109,7 +107,7 @@
       <workItem from="1635489578651" duration="18343000" />
       <workItem from="1635528573435" duration="31287000" />
       <workItem from="1635631379438" duration="2000" />
-      <workItem from="1635631641836" duration="3303000" />
+      <workItem from="1635631641836" duration="3652000" />
     </task>
     <servers />
   </component>
