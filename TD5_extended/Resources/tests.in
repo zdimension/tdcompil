@@ -1,15 +1,16 @@
 {
-	#for (x = 0; x < 10; x++)
-	#{
-	#	if (x == 5) break;
-	#}
-	x = 0;
-	do
+	sum = 0;
+	for (x = 0; x < 10; x++)
 	{
+		sum += x;
+	}
+	print sum;
+	sum = 0;
+	x = 0;
+	while (x < 10)
+	{
+        sum += x;
 		x++;
-		if (x > 5) continue;
-		sum += 1;
-	} while (x < 10);
-
+	}
 	print sum;
 }

@@ -842,39 +842,53 @@ void exec(ast_node* n, struct stack_frame* frame, struct loop_info* loop)
                     instr("'[,'/|'[,'_,'_ S,S,S,S @%d", start);
                     return;
                 }
-                case KWHILE:
+                case KFOR:
                 {
-                    PROD0("while");
+                    PROD0("for");
+                    exec(op[0], frame, NULL);
                     int start = ++label;
+                    struct loop_info loop_info = {.address = start};
                     instr("FROM @%d", start);
                     instr("'[,'/|'[,'_,'_ S,S,S,S @%d", label + 1);
-                    eval(op[0], frame);
-                    instr("FROM @%d", ++label);
-                    instr("'[,'/|'[,'_,'_ '[,'_,'_,'_ S,L,S,S @%d", ++label);
-                    instr("FROM @%d", label);
-                    instr("'[,'0,'_,'_ '[,'_,'_,'_ S,L,S,S");
-                    int one_found = ++label;
-                    int end = ++label;
-                    instr("'[,'1,'_,'_ '[,'_,'_,'_ S,L,S,S @%d", one_found);
-                    instr("'[,'/|'[,'_,'_ S,S,S,S @%d", end);
-                    instr("FROM @%d", one_found);
-                    instr("'[,'0|'1,'_,'_ '[,'_,'_,'_ S,L,S,S");
-                    int is_nonzero = label + 1;
-                    instr("'[,'/|'[,'_,'_ S,S,S,S @%d", is_nonzero);
-
-                    exec(op[1], frame, loop);
+                    if (op[1])
+                    {
+                        PROD0("evaluating 'for' condition");
+                        eval(op[1], frame);
+                        instr("FROM @%d", ++label);
+                        instr("'[,'/|'[,'_,'_ '[,'_,'_,'_ S,L,S,S @%d", ++label);
+                        instr("FROM @%d", label);
+                        instr("'[,'0,'_,'_ '[,'_,'_,'_ S,L,S,S");
+                        int one_found = ++label;
+                        instr("'[,'1,'_,'_ '[,'_,'_,'_ S,L,S,S @%d", one_found);
+                        instr("'[,'/|'[,'_,'_ S,S,S,S @%d_break", start);
+                        instr("FROM @%d", one_found);
+                        instr("'[,'0|'1,'_,'_ '[,'_,'_,'_ S,L,S,S");
+                        int is_nonzero = label + 1;
+                        instr("'[,'/|'[,'_,'_ S,S,S,S @%d", is_nonzero);
+                    }
+                    PROD0("running 'for' code");
+                    exec(op[3], frame, &loop_info);
+                    instr("FROM @%d_continue", start);
+                    instr("'[,'/|'[,'_,'_ S,S,S,S @%d", label + 1);
+                    if (op[2])
+                    {
+                        PROD0("evaluating 'for' increment");
+                        exec(op[2], frame, NULL);
+                    }
 
                     instr("FROM @%d", ++label); // after is_non_zero
                     instr("'[,'/|'[,'_,'_ S,S,S,S @%d", start);
 
-                    instr("FROM @%d", end);
+                    instr("FROM @%d_break", start);
                     instr("'[,'/|'[,'_,'_ S,S,S,S @%d", label + 1);
                     return;
                 }
                 case KIF:
                 {
                     PROD0("if");
+                    PROD0("evaluating condition");
                     eval(op[0], frame);
+                    PROD0("checking condition");
                     instr("FROM @%d", ++label);
                     instr("'[,'/,'_,'_ '[,'_,'_,'_ S,L,S,S @%d", ++label);
                     instr("FROM @%d", label);
@@ -893,6 +907,7 @@ void exec(ast_node* n, struct stack_frame* frame, struct loop_info* loop)
                     int is_nonzero = label + 1;
                     instr("'[,'/|'[,'_,'_ S,S,S,S @%d", is_nonzero);
 
+                    PROD0("executing positive branch");
                     exec(op[1], frame, loop);
 
                     instr("FROM @%d", ++label); // after is_non_zero
@@ -900,10 +915,10 @@ void exec(ast_node* n, struct stack_frame* frame, struct loop_info* loop)
 
                     if (op[2])
                     {
+                        PROD0("executing negative branch");
                         instr("FROM @%d", is_zero);
                         int zero_id = label + 1;
                         instr("'[,'/|'[,'_,'_ S,S,S,S @%d", zero_id);
-                        // else
 
                         exec(op[2], frame, loop);
 
@@ -917,11 +932,13 @@ void exec(ast_node* n, struct stack_frame* frame, struct loop_info* loop)
                 case '=':
                 {
                     PROD0("store");
+                    PROD0("evaluating right-hand value");
                     eval(op[1], frame);
                     instr("FROM @%d", ++label);
                     instr("'0|'1|'/,'/,'_,'_ L,S,S,S");
                     instr("'[,'/,'_,'_ S,S,S,S @%d", label + 1);
                     nav_to_var(op[0], frame, NULL);
+                    PROD0("navigating to left of stack head");
                     instr("FROM @%d", ++label);
                     instr("'/|'[,'/,'_,'_ S,L,S,S @%d", ++label);
                     instr("FROM @%d", label);
@@ -937,11 +954,12 @@ void exec(ast_node* n, struct stack_frame* frame, struct loop_info* loop)
                         instr("'/,'/,'_,'_ '/,'_,'_,'_ L,L,S,S @%d", ++label);
                         instr("FROM @%d", label);
                         instr("'/|'0|'1|'[,'_,'_,'_ L,L,S,S");
-                        instr("'/|'0|'1|'[,'/,'_,'_ S,S,S,S @%d", label + 2);
+                        instr("'/|'0|'1|'[,'/,'_,'_ S,S,S,S @%d", label + 1);
                         instr("'/|'0|'1|'[,'[,'_,'_ S,S,S,S @%d", ++label);
                         instr("FROM @%d", label);
                         instr("'/|'0|'1,'[,'_,'_ L,S,S,S");
-                        instr("'[,'[,'_,'_ S,S,S,S @%d", label + 1);
+                        instr("'/|'0|'1,'/,'_,'_ L,S,S,S");
+                        instr("'[,'/|'[,'_,'_ S,S,S,S @%d", label + 1);
                     }
                     else // expression, keep in stack
                     {

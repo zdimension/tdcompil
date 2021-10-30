@@ -44,7 +44,7 @@ void yyerror(const char *s);
 
 //                      Non terminal types
 %type   <node>		stmt expr stmt_list var expr_opt ref_offset basic_expr postfix_expr unary_expr mult_expr add_expr rel_expr eq_expr assign_expr
-%type	<node> 		l_and_expr l_or_expr stmt_list_opt
+%type	<node> 		l_and_expr l_or_expr stmt_list_opt expr_discard expr_discard_opt
 %type 	<list>		param_list param_list_ne arg_list arg_list_ne
 %type   <chr>		aug_assign func_type
 
@@ -60,21 +60,21 @@ stmts
         ;
 
 stmt
-    : ';'                               					{ $$ = make_node(';', 0); }
-    | expr ';'												{ if (AST_KIND($1) == k_operator) { OPER_CLEAN_STACK($1) = true; } $$ = $1; }
-    | KDIM var '[' NUMBER ']' ';' 							{ $$ = make_node(KDIM, 2, $2, make_number($4)); }
-    | KPRINT expr ';'                  						{ $$ = make_node(KPRINT, 1, $2); }
-    | KREAD expr ';'                  						{ $$ = make_node(KREAD, 1, $2); }
-    | KRETURN expr_opt ';'                  				{ $$ = make_node(KRETURN, 1, $2); }
-    | KBREAK ';'											{ $$ = make_node(KBREAK, 0); }
-    | KCONTINUE ';'											{ $$ = make_node(KCONTINUE, 0); }
-    | KWHILE '(' expr ')' stmt         						{ $$ = make_node(KWHILE, 2, $3, $5); }
-    | KIF '(' expr ')' stmt    %prec THEN    				{ $$ = make_node(KIF, 3, $3, $5, NULL); }
-    | KIF '(' expr ')' stmt KELSE stmt      				{ $$ = make_node(KIF, 3, $3, $5, $7); }
-    | KFOR '(' expr_opt ';' expr_opt ';' expr_opt ')' stmt 	{ if ($3) { OPER_CLEAN_STACK($3) = true; } if ($7) { OPER_CLEAN_STACK($7) = true; } $$ = make_node(';', 2, $3, make_node(KWHILE, 2, $5, make_node(';', 2, $9, $7))); }
-    | KDO stmt KWHILE '(' expr ')' ';' 						{ $$ = make_node(KDO, 2, $2, $5); }
-    | func_type var '(' param_list ')' stmt					{ $$ = make_node($1, 3, $2, $4, $6); }
-    | '{' stmt_list_opt '}'                					{ $$ = $2; }
+    : ';'                               											{ $$ = make_node(';', 0); }
+    | expr_discard ';'																{ if (AST_KIND($1) == k_operator) { OPER_CLEAN_STACK($1) = true; } $$ = $1; }
+    | KDIM var '[' NUMBER ']' ';' 													{ $$ = make_node(KDIM, 2, $2, make_number($4)); }
+    | KPRINT expr ';'                  												{ $$ = make_node(KPRINT, 1, $2); }
+    | KREAD expr ';'                  												{ $$ = make_node(KREAD, 1, $2); }
+    | KRETURN expr_opt ';'                  										{ $$ = make_node(KRETURN, 1, $2); }
+    | KBREAK ';'																	{ $$ = make_node(KBREAK, 0); }
+    | KCONTINUE ';'																	{ $$ = make_node(KCONTINUE, 0); }
+    | KWHILE '(' expr ')' stmt         												{ $$ = make_node(KFOR, 4, NULL, $3, NULL, $5); }
+    | KIF '(' expr ')' stmt    %prec THEN    										{ $$ = make_node(KIF, 3, $3, $5, NULL); }
+    | KIF '(' expr ')' stmt KELSE stmt      										{ $$ = make_node(KIF, 3, $3, $5, $7); }
+    | KFOR '(' expr_discard_opt ';' expr_opt ';' expr_discard_opt ')' stmt 			{ $$ = make_node(KFOR, 4, $3, $5, $7, $9); }
+    | KDO stmt KWHILE '(' expr ')' ';' 												{ $$ = make_node(KDO, 2, $2, $5); }
+    | func_type var '(' param_list ')' stmt											{ $$ = make_node($1, 3, $2, $4, $6); }
+    | '{' stmt_list_opt '}'                											{ $$ = $2; }
     ;
 
 func_type
@@ -191,6 +191,15 @@ assign_expr
 expr
     : assign_expr				{ $$ = $1; }
     ;
+
+expr_discard
+	: expr						{ if (AST_KIND($1) == k_operator) { OPER_CLEAN_STACK($1) = true; } $$ = $1; }
+	;
+
+expr_discard_opt
+	: expr_discard				{ $$ = $1; }
+	|							{ $$ = NULL; }
+	;
 
 ref_offset
     : '[' expr ']'				{ $$ = $2; }
