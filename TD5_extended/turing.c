@@ -1279,29 +1279,5 @@ void produce_code(ast_node* n)
         instr("'0|'1|'/,'_,'_,'_ '_,'_,'_,'_ R,S,S,S");
         instr("'_,'_,'_,'_ L,S,S,S");
         instr("'[,'_,'_,'_ '_,'_,'_,'_ L,S,S,S @C%dcheck", ptr->callsites->id);
-
-        // find call site
-
-//        instr("FROM @%d", label);
-//        instr("'0|'1,'_,'_,'_ '_,'_,'_,'_ L,S,S,S");
-//        instr("'[,'_,'_,'_ '_,'_,'_,'_ L,L,S,S @%d", ++label);
-//
-//
-//        instr("FROM @%d", label);
-//        instr("'[,'/,'_,'_ S,L,S,S @%d", ++label);
-//        instr("FROM @%d", label);
-//        instr("'[,'0|'1,'_,'_ S,L,S,S");
-//        instr("'[,'/|'[,'_,'_ R,R,S,S @%d", ++label);
-//
-//        instr("'0,'0|'1,'_,'_ '0|'1,'_,'_ R,R,S,S");
-//        instr("'_,'/,'_,'_ '_''_,'_ R,R,S,S");
-//
-//        instr("'[,'/|'[,'_,'_ R,R,S,S");
-//        instr("'0|'1,'_,'_,'_ '_,'0|'1,'_,'_ R,R,S,S");
-//        instr("'/,'_,'_,'_ '_,'/,'_,'_ R,S,S,S @%d", ++label);
-//        instr("FROM @%d", label);
-//        instr("'0|'1|'/,'/,'_,'_ '_,'/,'_,'_ R,S,S,S");
-//        instr("'_,'/,'_,'_ '_,'/,'_,'_ L,S,S,S");
-//        instr("'[,'/,'_,'_ '_,'/,'_,'_ L,S,S,S @%d", label + 1);
     }
 }
