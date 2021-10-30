@@ -1,42 +1,140 @@
 # Optimizations enabled
-NEW "generated" 4		# line 1420
-START @INIT		# line 1421
-END @END "END"		# line 1422
-END @DEFAULT "default option"		# line 1423
+NEW "generated" 4		# line 1544
+START @INIT		# line 1545
+END @END "END"		# line 1546
+END @DEFAULT "default option"		# line 1547
 # Memory map
 # POSITION  SIZE  NAME
-FROM @INIT		# line 1440
-'_,'_,'_,'_ '[,'[,'_,'_ R,S,S,S @0		# line 1441
-FROM @0		# line 1470
-'_|'/|'0|'1,'[,'_,'_ L,S,S,S		# line 1471
-'[,'[,'_,'_ S,S,S,S @1		# line 1472
+#        0     5  x
+FROM @INIT		# line 1561
+'_,'_,'_,'_ '[,'[,'_,'_ R,S,S,S @0		# line 1562
+# allocate variable x (position 0, size 5)		# line 1566
+FROM @0		# line 1583
+'_,'[,'_,'_ '0,'[,'_,'_ R,S,S,S @1		# line 1584
+FROM @1		# line 1583
+'_,'[,'_,'_ '0,'[,'_,'_ R,S,S,S @2		# line 1584
+FROM @2		# line 1583
+'_,'[,'_,'_ '0,'[,'_,'_ R,S,S,S @3		# line 1584
+FROM @3		# line 1583
+'_,'[,'_,'_ '0,'[,'_,'_ R,S,S,S @4		# line 1584
+FROM @4		# line 1583
+'_,'[,'_,'_ '0,'[,'_,'_ R,S,S,S @5		# line 1584
+FROM @5		# line 1583
+'_,'[,'_,'_ '0,'[,'_,'_ R,S,S,S @6		# line 1584
+FROM @6		# line 1583
+'_,'[,'_,'_ '0,'[,'_,'_ R,S,S,S @7		# line 1584
+FROM @7		# line 1583
+'_,'[,'_,'_ '0,'[,'_,'_ R,S,S,S @8		# line 1584
+FROM @8		# line 1587
+'_,'[,'_,'_ '/,'[,'_,'_ R,S,S,S @9		# line 1588
+FROM @9		# line 1583
+'_,'[,'_,'_ '0,'[,'_,'_ R,S,S,S @10		# line 1584
+FROM @10		# line 1583
+'_,'[,'_,'_ '0,'[,'_,'_ R,S,S,S @11		# line 1584
+FROM @11		# line 1583
+'_,'[,'_,'_ '0,'[,'_,'_ R,S,S,S @12		# line 1584
+FROM @12		# line 1583
+'_,'[,'_,'_ '0,'[,'_,'_ R,S,S,S @13		# line 1584
+FROM @13		# line 1583
+'_,'[,'_,'_ '0,'[,'_,'_ R,S,S,S @14		# line 1584
+FROM @14		# line 1583
+'_,'[,'_,'_ '0,'[,'_,'_ R,S,S,S @15		# line 1584
+FROM @15		# line 1583
+'_,'[,'_,'_ '0,'[,'_,'_ R,S,S,S @16		# line 1584
+FROM @16		# line 1583
+'_,'[,'_,'_ '0,'[,'_,'_ R,S,S,S @17		# line 1584
+FROM @17		# line 1587
+'_,'[,'_,'_ '/,'[,'_,'_ R,S,S,S @18		# line 1588
+FROM @18		# line 1583
+'_,'[,'_,'_ '0,'[,'_,'_ R,S,S,S @19		# line 1584
+FROM @19		# line 1583
+'_,'[,'_,'_ '0,'[,'_,'_ R,S,S,S @20		# line 1584
+FROM @20		# line 1583
+'_,'[,'_,'_ '0,'[,'_,'_ R,S,S,S @21		# line 1584
+FROM @21		# line 1583
+'_,'[,'_,'_ '0,'[,'_,'_ R,S,S,S @22		# line 1584
+FROM @22		# line 1583
+'_,'[,'_,'_ '0,'[,'_,'_ R,S,S,S @23		# line 1584
+FROM @23		# line 1583
+'_,'[,'_,'_ '0,'[,'_,'_ R,S,S,S @24		# line 1584
+FROM @24		# line 1583
+'_,'[,'_,'_ '0,'[,'_,'_ R,S,S,S @25		# line 1584
+FROM @25		# line 1583
+'_,'[,'_,'_ '0,'[,'_,'_ R,S,S,S @26		# line 1584
+FROM @26		# line 1587
+'_,'[,'_,'_ '/,'[,'_,'_ R,S,S,S @27		# line 1588
+FROM @27		# line 1583
+'_,'[,'_,'_ '0,'[,'_,'_ R,S,S,S @28		# line 1584
+FROM @28		# line 1583
+'_,'[,'_,'_ '0,'[,'_,'_ R,S,S,S @29		# line 1584
+FROM @29		# line 1583
+'_,'[,'_,'_ '0,'[,'_,'_ R,S,S,S @30		# line 1584
+FROM @30		# line 1583
+'_,'[,'_,'_ '0,'[,'_,'_ R,S,S,S @31		# line 1584
+FROM @31		# line 1583
+'_,'[,'_,'_ '0,'[,'_,'_ R,S,S,S @32		# line 1584
+FROM @32		# line 1583
+'_,'[,'_,'_ '0,'[,'_,'_ R,S,S,S @33		# line 1584
+FROM @33		# line 1583
+'_,'[,'_,'_ '0,'[,'_,'_ R,S,S,S @34		# line 1584
+FROM @34		# line 1583
+'_,'[,'_,'_ '0,'[,'_,'_ R,S,S,S @35		# line 1584
+FROM @35		# line 1587
+'_,'[,'_,'_ '/,'[,'_,'_ R,S,S,S @36		# line 1588
+FROM @36		# line 1583
+'_,'[,'_,'_ '0,'[,'_,'_ R,S,S,S @37		# line 1584
+FROM @37		# line 1583
+'_,'[,'_,'_ '0,'[,'_,'_ R,S,S,S @38		# line 1584
+FROM @38		# line 1583
+'_,'[,'_,'_ '0,'[,'_,'_ R,S,S,S @39		# line 1584
+FROM @39		# line 1583
+'_,'[,'_,'_ '0,'[,'_,'_ R,S,S,S @40		# line 1584
+FROM @40		# line 1583
+'_,'[,'_,'_ '0,'[,'_,'_ R,S,S,S @41		# line 1584
+FROM @41		# line 1583
+'_,'[,'_,'_ '0,'[,'_,'_ R,S,S,S @42		# line 1584
+FROM @42		# line 1583
+'_,'[,'_,'_ '0,'[,'_,'_ R,S,S,S @43		# line 1584
+FROM @43		# line 1583
+'_,'[,'_,'_ '0,'[,'_,'_ R,S,S,S @44		# line 1584
+FROM @44		# line 1587
+'_,'[,'_,'_ '/,'[,'_,'_ R,S,S,S @45		# line 1588
+FROM @45		# line 1591
+'_|'/|'0|'1,'[,'_,'_ L,S,S,S		# line 1592
+'[,'[,'_,'_ S,S,S,S @46		# line 1593
 #	------ BEGIN: program
-# KIND = 2 (k_operator)		# line 209
+# KIND = 2 (k_operator)		# line 402
+#	; first
+# KIND = 2 (k_operator)		# line 402
+#	dim
+#	; second
+# KIND = 2 (k_operator)		# line 402
 #	print
-# KIND = 2 (k_operator)		# line 209
-#	add
-FROM @1		# line 155
-'/|'[,'[,'_,'_ S,R,S,S @2		# line 156
-'/|'[,'/,'_,'_ S,R,S,S @2		# line 157
-FROM @2		# line 158
-'/|'[,'_,'_,'_ '/|'[,'1,'_,'_ S,R,S,S @3		# line 161
-FROM @3		# line 162
-'/|'[,'_,'_,'_ '/|'[,'0,'_,'_ S,R,S,S @4		# line 161
-FROM @4		# line 162
-'/|'[,'_,'_,'_ '/|'[,'1,'_,'_ S,R,S,S @5		# line 161
-FROM @5		# line 162
-'/|'[,'_,'_,'_ '/|'[,'0,'_,'_ S,R,S,S @6		# line 161
-FROM @6		# line 162
-'/|'[,'_,'_,'_ '/|'[,'0,'_,'_ S,R,S,S @7		# line 161
-FROM @7		# line 162
-'/|'[,'_,'_,'_ '/|'[,'0,'_,'_ S,R,S,S @8		# line 161
-FROM @8		# line 162
-'/|'[,'_,'_,'_ '/|'[,'0,'_,'_ S,R,S,S @9		# line 161
-FROM @9		# line 162
-'/|'[,'_,'_,'_ '/|'[,'0,'_,'_ S,R,S,S @10		# line 161
-FROM @10		# line 162
-'/|'[,'_,'_,'_ '/|'[,'/,'_,'_ S,S,S,S @11		# line 164
+# KIND = 2 (k_operator)		# line 402
+#	statically evaluated
+#	push	4
+FROM @46		# line 155
+'/|'[,'[,'_,'_ S,R,S,S @47		# line 156
+'/|'[,'/,'_,'_ S,R,S,S @47		# line 157
+FROM @47		# line 158
+'/|'[,'_,'_,'_ '/|'[,'0,'_,'_ S,R,S,S @48		# line 161
+FROM @48		# line 162
+'/|'[,'_,'_,'_ '/|'[,'0,'_,'_ S,R,S,S @49		# line 161
+FROM @49		# line 162
+'/|'[,'_,'_,'_ '/|'[,'1,'_,'_ S,R,S,S @50		# line 161
+FROM @50		# line 162
+'/|'[,'_,'_,'_ '/|'[,'0,'_,'_ S,R,S,S @51		# line 161
+FROM @51		# line 162
+'/|'[,'_,'_,'_ '/|'[,'0,'_,'_ S,R,S,S @52		# line 161
+FROM @52		# line 162
+'/|'[,'_,'_,'_ '/|'[,'0,'_,'_ S,R,S,S @53		# line 161
+FROM @53		# line 162
+'/|'[,'_,'_,'_ '/|'[,'0,'_,'_ S,R,S,S @54		# line 161
+FROM @54		# line 162
+'/|'[,'_,'_,'_ '/|'[,'0,'_,'_ S,R,S,S @55		# line 161
+FROM @55		# line 162
+'/|'[,'_,'_,'_ '/|'[,'/,'_,'_ S,S,S,S @56		# line 164
 #	------ END: program
-FROM @11		# line 1480
-'[,'/,'_,'_ S,S,S,S @END		# line 1481
-'[,'[,'_,'_ S,S,S,S @END		# line 1482
+FROM @56		# line 1601
+'[,'/,'_,'_ S,S,S,S @END		# line 1602
+'[,'[,'_,'_ S,S,S,S @END		# line 1603

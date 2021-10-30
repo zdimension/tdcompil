@@ -198,6 +198,199 @@ void pop(int n)
 #define IS_NUM(node) (AST_KIND(node) == k_number)
 #define IS_VAL(node, val) (IS_NUM(node) && NUMBER_VALUE(node) == (val))
 
+#define RETURN(x) do{*result = x; return true;}while(0)
+bool static_eval(ast_node* n, struct stack_frame* frame, ast_node** result)
+{
+    if (!n)
+        return false;
+
+    switch (AST_KIND(n))
+    {
+        case k_number:
+        {
+            RETURN(n);
+        }
+        case k_ident:
+        {
+            struct var_list* ptr = get_var_id(VAR_NAME(n), frame->vars);
+            if (ptr->size != 1) // array
+            {
+                RETURN(make_number(ptr->position));
+            }
+            return false;
+        }
+        case k_operator:
+        {
+            ast_node** op = OPER_OPERANDS(n);
+            int arity = OPER_ARITY(n);
+            struct {bool is_num; int value; }* o = malloc(arity * sizeof(*o));
+            for (int i = 0; i < arity; i++)
+            {
+                struct ast_node* res;
+                if ((o[i].is_num = static_eval(op[i], frame, &res)))
+                    o[i].value = NUMBER_VALUE(res);
+            }
+
+            switch (OPER_OPERATOR(n))
+            {
+                /* Expressions */
+                case UMINUS:
+                {
+                    if (o[0].is_num)
+                    {
+                        RETURN(make_number(-o[0].value));
+                    }
+                    return false;
+                }
+                case REF:
+                {
+                    int ptr = get_var_id(VAR_NAME(op[0]), frame->vars)->position;
+                    if (op[1] == NULL)
+                    {
+                        RETURN(make_number(ptr));
+                    }
+                    else if (o[1].is_num)
+                    {
+                        RETURN(make_number(ptr + o[1].value));
+                    }
+                    return false;
+                }
+                case '+':
+                {
+                    if (o[0].is_num && o[1].is_num)
+                    {
+                        RETURN(make_number(o[0].value + o[1].value));
+                    }
+                    else if (o[0].is_num && o[0].value == 0)
+                    {
+                        RETURN(op[1]);
+                    }
+                    else if (o[1].is_num && o[1].value == 0)
+                    {
+                        RETURN(op[0]);
+                    }
+                    return false;
+                }
+                case '-':
+                {
+                    if (o[0].is_num && o[1].is_num)
+                    {
+                        RETURN(make_number(o[0].value - o[1].value));
+                    }
+                    else if (o[0].is_num && o[0].value == 0)
+                    {
+                        RETURN(make_node(UMINUS, 1, op[1]));
+                    }
+                    else if (o[1].is_num && o[1].value == 0)
+                    {
+                        RETURN(op[0]);
+                    }
+                    return false;
+                }
+                case '*':
+                {
+                    if (o[0].is_num && o[1].is_num)
+                    {
+                        RETURN(make_number(o[0].value * o[1].value));
+                    }
+                    else if (o[0].is_num)
+                    {
+                        if (o[0].value == 1)
+                        {
+                            RETURN(op[1]);
+                        }
+                        else if (o[0].value == 0)
+                        {
+                            RETURN(make_number(0));
+                        }
+                    }
+                    else if (o[1].is_num)
+                    {
+                        if (o[1].value == 1)
+                        {
+                            RETURN(op[0]);
+                        }
+                        else if (o[1].value == 0)
+                        {
+                            RETURN(make_number(0));
+                        }
+                    }
+                    return false;
+                }
+                case '/':
+                    // todo: implement division
+                    return false;
+                case '<':
+                {
+                    if (o[0].is_num && o[1].is_num)
+                    {
+                        RETURN(make_number(o[0].value < o[1].value));
+                    }
+                    return false;
+                }
+                case '>':
+                {
+                    if (o[0].is_num && o[1].is_num)
+                    {
+                        RETURN(make_number(o[0].value > o[1].value));
+                    }
+                    return false;
+                }
+                case GE:
+                {
+                    if (o[0].is_num && o[1].is_num)
+                    {
+                        RETURN(make_number(o[0].value >= o[1].value));
+                    }
+                    return false;
+                }
+                case LE:
+                {
+                    if (o[0].is_num && o[1].is_num)
+                    {
+                        RETURN(make_number(o[0].value <= o[1].value));
+                    }
+                    return false;
+                }
+                case NE:
+                {
+                    if (o[0].is_num && o[1].is_num)
+                    {
+                        RETURN(make_number(o[0].value != o[1].value));
+                    }
+                    return false;
+                }
+                case EQ:
+                {
+                    if (o[0].is_num && o[1].is_num)
+                    {
+                        RETURN(make_number(o[0].value == o[1].value));
+                    }
+                    return false;
+                }
+                case AND:
+                {
+                    if (o[0].is_num && o[1].is_num)
+                    {
+                        RETURN(make_number(o[0].value && o[1].value));
+                    }
+                    return false;
+                }
+                case OR:
+                {
+                    if (o[0].is_num && o[1].is_num)
+                    {
+                        RETURN(make_number(o[0].value || o[1].value));
+                    }
+                    return false;
+                }
+            }
+        }
+    }
+
+    return false;
+}
+
 void exec(ast_node* n, struct stack_frame* frame, struct loop_info* loop)
 {
     if (!n)
@@ -207,6 +400,14 @@ void exec(ast_node* n, struct stack_frame* frame, struct loop_info* loop)
     }
 
     instr("# KIND = %d (%s)", AST_KIND(n), node_kind_NAMES[AST_KIND(n)]);
+
+    if (optimize)
+    {
+        if (static_eval(n, frame, &n))
+        {
+            PROD0("statically evaluated");
+        }
+    }
 
     switch (AST_KIND(n))
     {
@@ -335,24 +536,6 @@ void exec(ast_node* n, struct stack_frame* frame, struct loop_info* loop)
                 case '+':
                 {
                     PROD0("add");
-                    if (optimize)
-                    {
-                        if (IS_NUM(op[0]) && IS_NUM(op[1]))
-                        {
-                            push_number(NUMBER_VALUE(op[0]) + NUMBER_VALUE(op[1]));
-                            return;
-                        }
-                        else if (IS_VAL(op[0], 0))
-                        {
-                            eval(op[1], frame);
-                            return;
-                        }
-                        else if (IS_VAL(op[1], 0))
-                        {
-                            eval(op[0], frame);
-                            return;
-                        }
-                    }
                     eval(op[0], frame);
                     eval(op[1], frame);
                     if (clean_stack)
