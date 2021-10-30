@@ -132,6 +132,7 @@ basic_expr
 	| var							{ $$ = $1; }
 	| var '(' arg_list ')'			{ $$ = make_node('(', 2, $1, $3); }
 	| '(' expr ')'					{ $$ = $2; }
+	| '{' stmt_list expr '}'		{ $$ = make_node(';', 2, $2, make_node(KPRINT, 1, $3)); }
 	;
 
 postfix_expr
