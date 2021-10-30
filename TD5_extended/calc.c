@@ -120,3 +120,19 @@ void error_msg(const char* format, ...)
     vfprintf(stderr, format, ap);
     va_end(ap);
 }
+
+
+struct linked_list* make_list(ast_node* value)
+{
+    struct linked_list* ptr = malloc(sizeof(struct linked_list));
+    ptr->value = value;
+    ptr->next = NULL;
+    return ptr;
+}
+
+struct linked_list* prepend_list(struct linked_list* list, ast_node* value)
+{
+    struct linked_list* ptr = make_list(value);
+    ptr->next = list;
+    return ptr;
+}

@@ -18,6 +18,16 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="a6805983-d57b-442f-a29f-dcb10bd9ca72" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/Resources/fibo_rec.in" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Resources/fibo.am" beforeDir="false" afterPath="$PROJECT_DIR$/Resources/fibo.am" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Resources/fibo.in" beforeDir="false" afterPath="$PROJECT_DIR$/Resources/fibo_iter.in" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Resources/func.am" beforeDir="false" afterPath="$PROJECT_DIR$/Resources/func.am" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Resources/tests.am" beforeDir="false" afterPath="$PROJECT_DIR$/Resources/tests.am" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Resources/tests.in" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/calc.c" beforeDir="false" afterPath="$PROJECT_DIR$/calc.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/calc.h" beforeDir="false" afterPath="$PROJECT_DIR$/calc.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/syntax.y" beforeDir="false" afterPath="$PROJECT_DIR$/syntax.y" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/turing.c" beforeDir="false" afterPath="$PROJECT_DIR$/turing.c" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -112,11 +122,22 @@
       <updated>1635462525936</updated>
       <workItem from="1635462528254" duration="2637000" />
       <workItem from="1635489578651" duration="18343000" />
-      <workItem from="1635528573435" duration="695000" />
+      <workItem from="1635528573435" duration="17565000" />
     </task>
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
+          <url>file://$PROJECT_DIR$/turing.c</url>
+          <line>888</line>
+          <option name="timeStamp" value="2" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
   </component>
 </project>

@@ -82,6 +82,17 @@ struct ast_operator
 ast_node* make_node(int operator, int arity, ...); // make an operator node
 
 
+// Lists
+struct linked_list
+{
+    ast_node* value;
+    struct linked_list* next;
+};
+
+struct linked_list* make_list(ast_node* value);
+struct linked_list* prepend_list(struct linked_list* list, ast_node* value);
+
+
 // ----------------------------------------------------------------------
 //		Utilities
 // ----------------------------------------------------------------------
