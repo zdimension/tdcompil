@@ -29,6 +29,12 @@
 
 #define instr(format, ...) printf (format "\t\t# line %d\n", ## __VA_ARGS__, __LINE__)
 
+#define BLOCK(name, code) { \
+PROD0("------ BEGIN: " name); \
+code;                       \
+PROD0("------ END: " name); \
+}
+
 #define COMPARISON(code) { \
 instr("FROM @%d", ++label);\
 instr("'[,'/,'_,'_ '[,'_,'_,'_ S,L,S,S @%d", ++label);\
@@ -1312,6 +1318,7 @@ void produce_code(ast_node* n)
 
     for (struct var_list* ptr = globals_head; ptr; ptr = (struct var_list*) ptr->header.next)
     {
+        instr("# allocate variable %s (position %d, size %d)", ptr->header.name, ptr->position, ptr->size);
         char* str = ptr->initial;
         for (int j = 0; j < ptr->size; j++, (str && *str && str++))
         {
@@ -1342,8 +1349,10 @@ void produce_code(ast_node* n)
 
     struct stack_frame global_frame = {.vars = globals_head, .function = NULL};
 
-    eval(n, &global_frame);
-
+    BLOCK("program",
+          {
+              eval(n, &global_frame);
+          });
     instr("FROM @%d", ++label);
     instr("'[,'/,'_,'_ S,S,S,S @END");
     instr("'[,'[,'_,'_ S,S,S,S @END");
@@ -1352,10 +1361,14 @@ void produce_code(ast_node* n)
     {
         if (!ptr->callsites)
             continue;
+        instr("# %s %s (F%d)", ptr->is_void ? "procedure" : "function", ptr->header.name, ptr->header.id);
         instr("FROM @F%d", ptr->header.id);
         instr("'[,'/|'[,'_,'_ S,S,S,S @%d", label + 1);
         struct stack_frame local_frame = {.vars = ptr->locals_head, .function = ptr};
-        exec(ptr->code, &local_frame, NULL);
+        BLOCK("function code",
+              {
+                  exec(ptr->code, &local_frame, NULL);
+              });
         instr("FROM @%d", ++label);
         instr("'[,'/|'[,'_,'_ S,S,S,S @F%dret", ptr->header.id);
     }
@@ -1367,31 +1380,42 @@ void produce_code(ast_node* n)
 
         for (struct call_site_list* call = ptr->callsites; call; call = call->next)
         {
-            instr("FROM @C%d", call->id); // site id alloc
-            int i;
-            // todo: O(n) -> O(1) ?
-            for (i = 0; i < ptr->callsites->id; i++)
-            {
-                instr("'_,'/|'[,'_,'_ '%d,'/|'[,'_,'_ R,S,S,S @%d", call->id == i ? 1 : 0, ++label);
-                instr("FROM @%d", label);
-            }
-            instr("'_,'/|'[,'_,'_ '%d,'/|'[,'_,'_ R,S,S,S @%d", call->id == i ? 1 : 0, call->argalloc_address);
-            instr("FROM @C%dcheck", call->id);
-            instr("'1,'_,'_,'_ '_,'_,'_,'_ L,S,S,S @%d", ++label); // ok
-            if (call->next)
-                instr("'0,'_,'_,'_ '_,'_,'_,'_ L,S,S,S @C%dcheck", call->id - 1);
-            instr("FROM @%d", label);
-            instr("'0,'_,'_,'_ '_,'_,'_,'_ L,S,S,S");
-            instr("'[,'_,'_,'_ '_,'_,'_,'_ L,S,S,S @%d", ++label);
-            instr("FROM @%d", label);
-            instr("'/|'0|'1,'_,'_,'_ L,S,S,S");
-            instr("'[,'_,'_,'_ S,L,S,S @%d", call->return_address);
+            BLOCK("call site ID writing",
+                  {
+                      instr("FROM @C%d", call->id); // site id alloc
+                      int i;
+                      // todo: O(n) -> O(1) ?
+                      for (i = 0; i < ptr->callsites->id; i++)
+                      {
+                          instr("'_,'/|'[,'_,'_ '%d,'/|'[,'_,'_ R,S,S,S @%d", call->id == i ? 1 : 0, ++label);
+                          instr("FROM @%d", label);
+                      }
+                      instr("'_,'/|'[,'_,'_ '%d,'/|'[,'_,'_ R,S,S,S @%d", call->id == i ? 1 : 0,
+                            call->argalloc_address);
+                  });
+            PROD0("begin call site ID check");
+            BLOCK("call site ID check",
+                  {
+                      instr("FROM @C%dcheck", call->id);
+                      instr("'1,'_,'_,'_ '_,'_,'_,'_ L,S,S,S @%d", ++label); // ok
+                      if (call->next)
+                          instr("'0,'_,'_,'_ '_,'_,'_,'_ L,S,S,S @C%dcheck", call->id - 1);
+                      instr("FROM @%d", label);
+                      instr("'0,'_,'_,'_ '_,'_,'_,'_ L,S,S,S");
+                      instr("'[,'_,'_,'_ '_,'_,'_,'_ L,S,S,S @%d", ++label);
+                      instr("FROM @%d", label);
+                      instr("'/|'0|'1,'_,'_,'_ L,S,S,S");
+                      instr("'[,'_,'_,'_ S,L,S,S @%d", call->return_address);
+                  });
         }
 
-        instr("FROM @F%dret", ptr->header.id); // clean heap
-        instr("'[,'/|'[,'_,'_ '[,'/|'[,'_,'_ R,R,S,S");
-        instr("'0|'1|'/,'_,'_,'_ '_,'_,'_,'_ R,S,S,S");
-        instr("'_,'_,'_,'_ L,S,S,S");
-        instr("'[,'_,'_,'_ '_,'_,'_,'_ L,S,S,S @C%dcheck", ptr->callsites->id);
+        BLOCK("function epilogue",
+              {
+                  instr("FROM @F%dret", ptr->header.id); // clean heap
+                  instr("'[,'/|'[,'_,'_ '[,'/|'[,'_,'_ R,R,S,S");
+                  instr("'0|'1|'/,'_,'_,'_ '_,'_,'_,'_ R,S,S,S");
+                  instr("'_,'_,'_,'_ L,S,S,S");
+                  instr("'[,'_,'_,'_ '_,'_,'_,'_ L,S,S,S @C%dcheck", ptr->callsites->id);
+              });
     }
 }
