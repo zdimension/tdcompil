@@ -242,6 +242,14 @@ bool static_fold(ast_node** n, struct stack_frame* frame)
                     }
                     return false;
                 }
+                case '~':
+                {
+                    if (o[0].is_num)
+                    {
+                        RETURN(make_number(~o[0].value));
+                    }
+                    return false;
+                }
                 case REF:
                 {
                     if (frame)
@@ -516,6 +524,25 @@ void exec(ast_node* n, struct stack_frame* frame, struct loop_info* loop)
                     instr("'[,'1,'_,'_ '[,'0,'_,'_ S,R,S,S");
                     instr("'[,'/,'_,'_ S,S,S,S @%d", end);
                     instr("FROM @%d", end);
+                    instr("'[,'/,'_,'_ S,S,S,S @%d", label + 1);
+                    return;
+                }
+                case '~':
+                {
+                    PROD0("complement");
+                    eval(op[0], frame);
+                    if (clean_stack)
+                    {
+                        pop(1);
+                        USELESS();
+                    }
+                    instr("FROM @%d", ++label);
+                    instr("'[,'/,'_,'_ '[,'/,'_,'_ S,L,S,S @%d", ++label);
+                    instr("FROM @%d", label);
+                    instr("'[,'0|'1,'_,'_ S,L,S,S");
+                    instr("'[,'/|'[,'_,'_ S,R,S,S @%d", ++label);
+                    instr("FROM @%d", label);
+                    instr("'[,'0|'1,'_,'_ '[,'1|'0,'_,'_ S,R,S,S");
                     instr("'[,'/,'_,'_ S,S,S,S @%d", label + 1);
                     return;
                 }

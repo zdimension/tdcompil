@@ -1,4 +1,1 @@
-{
-	x = { y = 5; y + 3 };
-	print if (5){ x=6 } else { x=1};
-}
+print ~1;

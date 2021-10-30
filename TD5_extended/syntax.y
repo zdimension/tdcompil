@@ -146,6 +146,7 @@ postfix_expr
 unary_expr
     : postfix_expr					{ $$ = $1; }
     | '-' postfix_expr 				{ $$ = make_node(UMINUS, 1, $2); }
+    | '~' postfix_expr 				{ $$ = make_node('~', 1, $2); }
     | '*' postfix_expr 				{ $$ = make_node(DEREF, 1, $2); }
     | INC postfix_expr              { $$ = make_node(INC, 1, $2); }
     | DEC postfix_expr              { $$ = make_node(DEC, 1, $2); }
