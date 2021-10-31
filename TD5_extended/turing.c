@@ -1062,7 +1062,7 @@ void exec(ast_node* n, struct stack_frame* frame, struct loop_info* loop)
                         instr("'0|'1,'_,'_,'_ '0|'1,'0|'1,'_,'_ R,R,S,S");
                         instr("'/,'_,'_,'_ '/,'/,'_,'_ L,S,S,S @%d", left);
                         instr("FROM @%d", left);
-                        instr("'0|'1,'/,'_,'_ L,S,S,S");
+                        instr("'/|'0|'1,'/,'_,'_ L,S,S,S");
                         instr("'[,'/,'_,'_ S,S,S,S @%d", label + 1);
                     }
                     return;
@@ -1080,7 +1080,7 @@ void exec(ast_node* n, struct stack_frame* frame, struct loop_info* loop)
                         int left_to_end = ++label;
                         int end = label + 1;
                         instr("'1,'_,'_,'_ '0,'_,'_,'_ L,S,S,S @%d", left_to_end);
-                        instr("'0,'_,'_,'_ '1,'_,'_,'_ R,L,S,S");
+                        instr("'0,'_,'_,'_ '1,'_,'_,'_ R,S,S,S");
                         instr("FROM @%d", left_to_end);
                         instr("'0|'1|'/,'_,'_,'_ L,S,S,S");
                         instr("'[,'_,'_,'_ S,L,S,S @%d", end);
@@ -1104,7 +1104,7 @@ void exec(ast_node* n, struct stack_frame* frame, struct loop_info* loop)
                         instr("'0|'1,'_,'_,'_ '0|'1,'0|'1,'_,'_ R,R,S,S");
                         instr("'/,'_,'_,'_ '/,'/,'_,'_ L,S,S,S @%d", left);
                         instr("FROM @%d", left);
-                        instr("'0|'1,'/,'_,'_ L,S,S,S");
+                        instr("'/|'0|'1,'/,'_,'_ L,S,S,S");
                         instr("'[,'/,'_,'_ S,S,S,S @%d", label + 1);
                     }
                     return;
