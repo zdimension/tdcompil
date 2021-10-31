@@ -1,11 +1,27 @@
 {
-	const x = 10;
-
-	func fn()
+	var ptr, cur, eq[] = "2 3 4 * +.", stack[10], sp = stack;
+	for (ptr = eq; {cur = *ptr; cur != '.'}; ptr++)
 	{
-		const y = x + 8;
-		return y;
+		if (cur == ' ')
+		{
+			sp++;
+		}
+		else if (cur == '+')
+		{
+			b = *(--sp);
+			a = *(--sp);
+			*sp = a + b;
+		}
+		else if (cur == '*')
+		{
+			b = *(--sp);
+			a = *(--sp);
+			*sp = a * b;
+		}
+		else if (cur >= '0' && cur <= '9')
+		{
+			*sp = (*sp * 10) + (cur - '0');
+		}
 	}
-
-	print fn();
+	print stack[0];
 }

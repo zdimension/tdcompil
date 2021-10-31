@@ -1302,8 +1302,8 @@ void exec(ast_node* n, struct stack_frame* frame, struct loop_info* loop)
                     }
                     return;
                 }
-                case KDIM:
-                    PROD0("dim");
+                case KVAR:
+                    PROD0("var");
                     return;
                 case KCONST:
                     PROD0("const");
@@ -1575,19 +1575,32 @@ void traverse_vars(ast_node* n, struct stack_frame* frame)
                 var->is_const = true;
                 var->value = static_eval(OPER_OPERANDS(n)[1], frame);
             }
-            else if (OPER_OPERATOR(n) == KDIM)
+        }
+        if (OPER_OPERATOR(n) == KVAR)
+        {
+            for (struct linked_list* decl = ((struct ast_linked_list*) OPER_OPERANDS(n)[0])->list; decl; decl = decl->next)
             {
-                struct var_list* var = check_add_var(VAR_NAME(OPER_OPERANDS(n)[0]),
-                                                     static_eval(OPER_OPERANDS(n)[1], frame), frame);
-                if (!var)
+                switch(OPER_ARITY(decl->value))
                 {
-                    error_msg(n, "Cannot redeclare array\n");
-                    exit(1);
-                }
-                struct ast_node* initial = OPER_OPERANDS(n)[2];
-                if (initial)
-                {
-                    var->initial = VAR_NAME(initial);
+                    case 2:
+                        check_add_var(VAR_NAME(OPER_OPERANDS(decl->value)[0]), 1, frame);
+                        break;
+                    case 3:
+                    {
+                        struct var_list* var = check_add_var(VAR_NAME(OPER_OPERANDS(decl->value)[0]),
+                                                             static_eval(OPER_OPERANDS(decl->value)[1], frame), frame);
+                        if (!var)
+                        {
+                            error_msg(n, "Cannot redeclare array\n");
+                            exit(1);
+                        }
+                        struct ast_node* initial = OPER_OPERANDS(decl->value)[2];
+                        if (initial)
+                        {
+                            var->initial = VAR_NAME(initial);
+                        }
+                        break;
+                    }
                 }
             }
         }

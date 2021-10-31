@@ -1,0 +1,11 @@
+{
+	const x = 10;
+
+	func fn()
+	{
+		const y = x + 8;
+		return y;
+	}
+
+	print fn();
+}

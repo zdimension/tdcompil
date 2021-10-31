@@ -132,17 +132,21 @@ void info_msg(struct ast_node* node, const char* format, ...)
 }
 
 
-struct linked_list* make_list(ast_node* value)
+struct ast_node* make_list(ast_node* value)
 {
-    struct linked_list* ptr = malloc(sizeof(struct linked_list));
-    ptr->value = value;
-    ptr->next = NULL;
-    return ptr;
+    struct ast_linked_list* ptr = malloc(sizeof(*ptr));
+    initialize_header(ptr, k_list);
+    ptr->list = NULL;
+    prepend_list((struct ast_node*) ptr, value);
+    return (struct ast_node*) ptr;
 }
 
-struct linked_list* prepend_list(struct linked_list* list, ast_node* value)
+struct ast_node* prepend_list(struct ast_node* node, ast_node* value)
 {
-    struct linked_list* ptr = make_list(value);
-    ptr->next = list;
-    return ptr;
+    struct ast_linked_list* list = (struct ast_linked_list*) node;
+    struct linked_list* ptr = malloc(sizeof(*ptr));
+    ptr->value = value;
+    ptr->next = list->list;
+    list->list = ptr;
+    return (struct ast_node*) list;
 }

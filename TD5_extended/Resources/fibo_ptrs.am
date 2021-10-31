@@ -296,7 +296,7 @@ FROM @124		# line 1205
 '[,'/|'[,'_,'_ S,S,S,S @125		# line 1208
 #	; second
 # KIND = 2 (k_operator)		# line 430
-#	dim
+#	var
 #	; second
 # KIND = 2 (k_operator)		# line 430
 #	store

@@ -39,7 +39,7 @@
 
 	/* ---- Single char tokens ---- */
 
-[-()\[\]<>=+*/;{}.&~]			{ return *yytext; }
+[-()\[\]<>=+*/;{}.&~,]			{ return *yytext; }
 
 	/* ---- "complex" tokens ---- */
 ">="				{ return GE; }
@@ -62,7 +62,7 @@
 "read" { return KREAD; }
 "for" { return KFOR; }
 "do" { return KDO; }
-"dim" { return KDIM; }
+"var" { return KVAR; }
 "return" { return KRETURN; }
 "func" { return KFUNC; }
 "proc" { return KPROC; }

@@ -30,7 +30,8 @@ static const char* name##_NAMES[] =\
 #define KINDS(F) \
     F(k_ident) \
     F(k_number) \
-    F(k_operator)
+    F(k_operator) \
+    F(k_list)
 ENUM_DEFINE(node_kind, KINDS)
 
 
@@ -96,6 +97,7 @@ struct ast_operator
 ast_node* make_node(int operator, int arity, ...); // make an operator node
 
 
+
 // Lists
 struct linked_list
 {
@@ -103,8 +105,15 @@ struct linked_list
     struct linked_list* next;
 };
 
-struct linked_list* make_list(ast_node* value);
-struct linked_list* prepend_list(struct linked_list* list, ast_node* value);
+
+struct ast_linked_list
+{
+    ast_node header;
+    struct linked_list* list;
+};
+
+struct ast_node* make_list(ast_node* value);
+struct ast_node* prepend_list(struct ast_node* list, ast_node* value);
 
 // ----------------------------------------------------------------------
 //		Utilities

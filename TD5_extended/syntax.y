@@ -27,15 +27,14 @@ void yyerror(const char *s);
     char *var;                   // ident name
     int chr;
     ast_node *node;              // node pointer
-    struct linked_list* list;
 };
 
 //                      Tokens
 %token  <value>         NUMBER
 %token  <var>           IDENT STRING
-%token                  KWHILE KIF KPRINT KELSE KREAD KFOR KDO KDIM KFUNC KRETURN KPROC KBREAK KCONTINUE KCONST
+%token                  KWHILE KIF KPRINT KELSE KREAD KFOR KDO KVAR KFUNC KRETURN KPROC KBREAK KCONTINUE KCONST
 %token '+' '-' '*' '/' GE LE EQ NE '>' '<' REF DEREF APL AMN AML ADV INC DEC AND OR
-%token UMINUS
+%token UMINUS VDECL
 //                       Precedence rules
 %left '+'
 
@@ -46,7 +45,7 @@ void yyerror(const char *s);
 //                      Non terminal types
 %type   <node>		stmt expr stmt_list var expr_opt ref_offset basic_expr postfix_expr unary_expr mult_expr add_expr rel_expr eq_expr assign_expr
 %type	<node> 		l_and_expr l_or_expr stmt_list_opt expr_discard expr_discard_opt
-%type 	<list>		param_list param_list_ne arg_list arg_list_ne
+%type 	<node>		param_list param_list_ne arg_list arg_list_ne var_decl var_decl_list
 %type   <chr>		aug_assign func_type
 
 %%
@@ -63,9 +62,7 @@ stmts
 stmt
     : ';'                               											{ $$ = make_node(';', 0); }
     | expr_discard ';'																{ $$ = $1; }
-    | KDIM var '[' expr ']' ';' 													{ $$ = make_node(KDIM, 3, $2, $4, NULL); }
-    | KDIM var '[' expr ']' '=' STRING ';'											{ $$ = make_node(KDIM, 3, $2, $4, make_ident($7)); }
-    | KDIM var '[' ']' '=' STRING ';'												{ $$ = make_node(KDIM, 3, $2, make_number(strlen($6)), make_ident($6)); }
+    | KVAR var_decl_list ';'														{ $$ = make_node(KVAR, 1, $2); }
     | KCONST var '=' expr ';'														{ $$ = make_node(KCONST, 2, $2, $4); }
     | KPRINT expr ';'                  												{ $$ = make_node(KPRINT, 1, $2); }
     | KREAD expr ';'                  												{ $$ = make_node(KREAD, 1, $2); }
@@ -80,6 +77,18 @@ stmt
     | func_type var '(' param_list ')' stmt											{ $$ = make_node($1, 3, $2, $4, $6); }
     | '{' stmt_list_opt '}'                											{ $$ = $2; }
     ;
+
+var_decl
+    : var																			{ $$ = make_node(VDECL, 2, $1, NULL); }
+    | var '=' expr																	{ $$ = make_node(VDECL, 2, $1, $3); }
+    | var '[' expr ']'  															{ $$ = make_node(VDECL, 3, $1, $3, NULL); }
+    | var '[' expr ']' '=' STRING 													{ $$ = make_node(VDECL, 3, $1, $3, make_ident($6)); }
+    | var '[' ']' '=' STRING														{ $$ = make_node(VDECL, 3, $1, make_number(strlen($5)), make_ident($5)); }
+    ;
+
+var_decl_list
+	: var_decl						{ $$ = make_list($1); }
+	| var_decl ',' var_decl_list	{ $$ = prepend_list($3, $1); }
 
 func_type
 	: KFUNC							{ $$ = KFUNC; }
