@@ -3,12 +3,8 @@
 
 	func fn()
 	{
-		func test()
-		{
-			return x;
-		}
-
-		return test();
+		const y = x + 8;
+		return y;
 	}
 
 	print fn();
