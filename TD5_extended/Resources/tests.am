@@ -1,0 +1,176 @@
+# Optimizations enabled
+NEW "generated" 4		# line 1631
+START @INIT		# line 1632
+END @END "END"		# line 1633
+END @DEFAULT "default option"		# line 1634
+# Memory map
+# POSITION  SIZE  NAME
+FROM @INIT		# line 1650
+'_,'_,'_,'_ '[,'[,'_,'_ R,S,S,S @0		# line 1651
+FROM @0		# line 1682
+'_|'/|'0|'1,'[,'_,'_ L,S,S,S		# line 1683
+'[,'[,'_,'_ S,S,S,S @1		# line 1684
+#	------ BEGIN: program
+# KIND = 2 (k_operator)		# line 483
+#	; first
+# KIND = 2 (k_operator)		# line 483
+#	; first
+# KIND = 2 (k_operator)		# line 483
+#	const
+#	; second
+# KIND = 2 (k_operator)		# line 483
+#	func
+#	; second
+# KIND = 2 (k_operator)		# line 483
+#	print
+# KIND = 2 (k_operator)		# line 483
+#	call
+#	go to left of args on stack
+FROM @2		# line 1345
+'[,'/,'_,'_ S,L,S,S @3		# line 1346
+'[,'[,'_,'_ S,S,S,S @1		# line 1347
+FROM @3		# line 1354
+'[,'0|'1,'_,'_ S,L,S,S		# line 1355
+'[,'/|'[,'_,'_ S,S,S,S @1		# line 1356
+#	go to right of heap
+FROM @1		# line 1359
+'/|'0|'1|'[,'/,'_,'_ R,S,S,S		# line 1360
+'/|'0|'1|'[,'[,'_,'_ R,S,S,S		# line 1361
+'_,'/|'[,'_,'_ '[,'/|'[,'_,'_ R,S,S,S @C0		# line 1363
+#	start copying args from stack to heap
+FROM @4		# line 1366
+'_,'/|'[,'_,'_ '[,'/|'[,'_,'_ R,R,S,S @5		# line 1367
+FROM @5		# line 1368
+'_,'0|'1,'_,'_ '0|'1,'_,'_,'_ R,R,S,S		# line 1369
+'_,'/,'_,'_ '/,'_,'_,'_ R,R,S,S		# line 1370
+'_,'_,'_,'_ L,L,S,S @6		# line 1371
+FROM @6		# line 1372
+'/|'0|'1,'_,'_,'_ L,L,S,S		# line 1373
+'/|'0|'1,'/,'_,'_ L,S,S,S		# line 1374
+'/|'0|'1,'[,'_,'_ L,S,S,S		# line 1375
+'[,'/|'[,'_,'_ S,S,S,S @F0		# line 1376
+#	------ END: program
+FROM @7		# line 1690
+'[,'/,'_,'_ S,S,S,S @END		# line 1691
+'[,'[,'_,'_ S,S,S,S @END		# line 1692
+# function fn (F0)		# line 1698
+FROM @F0		# line 1699
+'[,'/|'[,'_,'_ S,S,S,S @8		# line 1700
+#	------ BEGIN: function code
+# KIND = 2 (k_operator)		# line 483
+#	; first
+# KIND = 2 (k_operator)		# line 483
+#	func
+#	; second
+# KIND = 2 (k_operator)		# line 483
+#	return
+# KIND = 2 (k_operator)		# line 483
+#	call
+#	go to left of args on stack
+FROM @9		# line 1345
+'[,'/,'_,'_ S,L,S,S @10		# line 1346
+'[,'[,'_,'_ S,S,S,S @8		# line 1347
+FROM @10		# line 1354
+'[,'0|'1,'_,'_ S,L,S,S		# line 1355
+'[,'/|'[,'_,'_ S,S,S,S @8		# line 1356
+#	go to right of heap
+FROM @8		# line 1359
+'/|'0|'1|'[,'/,'_,'_ R,S,S,S		# line 1360
+'/|'0|'1|'[,'[,'_,'_ R,S,S,S		# line 1361
+'_,'/|'[,'_,'_ '[,'/|'[,'_,'_ R,S,S,S @C0		# line 1363
+#	start copying args from stack to heap
+FROM @11		# line 1366
+'_,'/|'[,'_,'_ '[,'/|'[,'_,'_ R,R,S,S @12		# line 1367
+FROM @12		# line 1368
+'_,'0|'1,'_,'_ '0|'1,'_,'_,'_ R,R,S,S		# line 1369
+'_,'/,'_,'_ '/,'_,'_,'_ R,R,S,S		# line 1370
+'_,'_,'_,'_ L,L,S,S @13		# line 1371
+FROM @13		# line 1372
+'/|'0|'1,'_,'_,'_ L,L,S,S		# line 1373
+'/|'0|'1,'/,'_,'_ L,S,S,S		# line 1374
+'/|'0|'1,'[,'_,'_ L,S,S,S		# line 1375
+'[,'/|'[,'_,'_ S,S,S,S @F1		# line 1376
+FROM @14		# line 1323
+'[,'/|'[,'_,'_ S,S,S,S @F0ret		# line 1324
+#	------ END: function code
+FROM @15		# line 1705
+'[,'/|'[,'_,'_ S,S,S,S @F0ret		# line 1706
+# function test (F1)		# line 1698
+FROM @F1		# line 1699
+'[,'/|'[,'_,'_ S,S,S,S @16		# line 1700
+#	------ BEGIN: function code
+# KIND = 2 (k_operator)		# line 483
+#	return
+# KIND = 1 (k_number)		# line 483
+#	statically evaluated
+#	push	10
+FROM @16		# line 170
+'/|'[,'[,'_,'_ S,R,S,S @17		# line 171
+'/|'[,'/,'_,'_ S,R,S,S @17		# line 172
+FROM @17		# line 173
+'/|'[,'_,'_,'_ '/|'[,'0,'_,'_ S,R,S,S @18		# line 176
+FROM @18		# line 177
+'/|'[,'_,'_,'_ '/|'[,'1,'_,'_ S,R,S,S @19		# line 176
+FROM @19		# line 177
+'/|'[,'_,'_,'_ '/|'[,'0,'_,'_ S,R,S,S @20		# line 176
+FROM @20		# line 177
+'/|'[,'_,'_,'_ '/|'[,'1,'_,'_ S,R,S,S @21		# line 176
+FROM @21		# line 177
+'/|'[,'_,'_,'_ '/|'[,'0,'_,'_ S,R,S,S @22		# line 176
+FROM @22		# line 177
+'/|'[,'_,'_,'_ '/|'[,'0,'_,'_ S,R,S,S @23		# line 176
+FROM @23		# line 177
+'/|'[,'_,'_,'_ '/|'[,'0,'_,'_ S,R,S,S @24		# line 176
+FROM @24		# line 177
+'/|'[,'_,'_,'_ '/|'[,'0,'_,'_ S,R,S,S @25		# line 176
+FROM @25		# line 177
+'/|'[,'_,'_,'_ '/|'[,'/,'_,'_ S,S,S,S @26		# line 179
+FROM @26		# line 1323
+'[,'/|'[,'_,'_ S,S,S,S @F1ret		# line 1324
+#	------ END: function code
+FROM @27		# line 1705
+'[,'/|'[,'_,'_ S,S,S,S @F1ret		# line 1706
+#	------ BEGIN: call site ID writing
+FROM @C0		# line 1718
+'_,'/|'[,'_,'_ '1,'/|'[,'_,'_ R,S,S,S @4		# line 1726
+#	------ END: call site ID writing
+#	begin call site ID check
+#	------ BEGIN: call site ID check
+FROM @C0check		# line 1732
+'1,'_,'_,'_ '_,'_,'_,'_ L,S,S,S @28		# line 1733
+FROM @28		# line 1736
+'0,'_,'_,'_ '_,'_,'_,'_ L,S,S,S		# line 1737
+'[,'_,'_,'_ '_,'_,'_,'_ L,S,S,S @29		# line 1738
+FROM @29		# line 1739
+'/|'0|'1,'_,'_,'_ L,S,S,S		# line 1740
+'[,'_,'_,'_ S,L,S,S @7		# line 1741
+#	------ END: call site ID check
+#	------ BEGIN: function epilogue
+FROM @F0ret		# line 1747
+'[,'/|'[,'_,'_ '[,'/|'[,'_,'_ R,R,S,S		# line 1748
+'0|'1|'/,'_,'_,'_ '_,'_,'_,'_ R,S,S,S		# line 1749
+'_,'_,'_,'_ L,S,S,S		# line 1750
+'[,'_,'_,'_ '_,'_,'_,'_ L,S,S,S @C0check		# line 1751
+#	------ END: function epilogue
+#	------ BEGIN: call site ID writing
+FROM @C0		# line 1718
+'_,'/|'[,'_,'_ '1,'/|'[,'_,'_ R,S,S,S @11		# line 1726
+#	------ END: call site ID writing
+#	begin call site ID check
+#	------ BEGIN: call site ID check
+FROM @C0check		# line 1732
+'1,'_,'_,'_ '_,'_,'_,'_ L,S,S,S @30		# line 1733
+FROM @30		# line 1736
+'0,'_,'_,'_ '_,'_,'_,'_ L,S,S,S		# line 1737
+'[,'_,'_,'_ '_,'_,'_,'_ L,S,S,S @31		# line 1738
+FROM @31		# line 1739
+'/|'0|'1,'_,'_,'_ L,S,S,S		# line 1740
+'[,'_,'_,'_ S,L,S,S @14		# line 1741
+#	------ END: call site ID check
+#	------ BEGIN: function epilogue
+FROM @F1ret		# line 1747
+'[,'/|'[,'_,'_ '[,'/|'[,'_,'_ R,R,S,S		# line 1748
+'0|'1|'/,'_,'_,'_ '_,'_,'_,'_ R,S,S,S		# line 1749
+'_,'_,'_,'_ L,S,S,S		# line 1750
+'[,'_,'_,'_ '_,'_,'_,'_ L,S,S,S @C0check		# line 1751
+#	------ END: function epilogue

@@ -3,7 +3,12 @@
 
 	func fn()
 	{
-		return x;
+		func test()
+		{
+			return x;
+		}
+
+		return test();
 	}
 
 	print fn();
