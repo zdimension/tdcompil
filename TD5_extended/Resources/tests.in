@@ -1,26 +1,45 @@
 {
-	var ptr, cur, eq[] = "2 3 4 * +.", stack[10], sp = stack;
+	var ptr, cur, num = 0,
+		eq[] = "3 4 5 * 2 - +.", # 3 + ((4 * 5) - 2) = 21
+		stack[10],
+		sp = &stack[0];
+
 	for (ptr = eq; {cur = *ptr; cur != '.'}; ptr++)
 	{
 		if (cur == ' ')
 		{
 			sp++;
+			num = 0;
 		}
 		else if (cur == '+')
 		{
-			b = *(--sp);
-			a = *(--sp);
+			b = *(--sp); a = *(--sp);
 			*sp = a + b;
+			num = 0;
+		}
+		else if (cur == '-')
+		{
+			b = *(--sp); a = *(--sp);
+			*sp = a - b;
+			num = 0;
 		}
 		else if (cur == '*')
 		{
-			b = *(--sp);
-			a = *(--sp);
+			b = *(--sp); a = *(--sp);
 			*sp = a * b;
+			num = 0;
 		}
 		else if (cur >= '0' && cur <= '9')
 		{
-			*sp = (*sp * 10) + (cur - '0');
+			if (num)
+			{
+				*sp = (*sp * 10) + (cur - '0');
+			}
+			else
+			{
+				*sp = cur - '0';
+				num = 1;
+			}
 		}
 	}
 	print stack[0];

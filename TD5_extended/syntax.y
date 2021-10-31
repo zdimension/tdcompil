@@ -62,7 +62,7 @@ stmts
 stmt
     : ';'                               											{ $$ = make_node(';', 0); }
     | expr_discard ';'																{ $$ = $1; }
-    | KVAR var_decl_list ';'														{ $$ = make_node(KVAR, 1, $2); }
+    | KVAR var_decl_list ';'														{ $$ = $2; }
     | KCONST var '=' expr ';'														{ $$ = make_node(KCONST, 2, $2, $4); }
     | KPRINT expr ';'                  												{ $$ = make_node(KPRINT, 1, $2); }
     | KREAD expr ';'                  												{ $$ = make_node(KREAD, 1, $2); }
@@ -79,16 +79,16 @@ stmt
     ;
 
 var_decl
-    : var																			{ $$ = make_node(VDECL, 2, $1, NULL); }
-    | var '=' expr																	{ $$ = make_node(VDECL, 2, $1, $3); }
-    | var '[' expr ']'  															{ $$ = make_node(VDECL, 3, $1, $3, NULL); }
-    | var '[' expr ']' '=' STRING 													{ $$ = make_node(VDECL, 3, $1, $3, make_ident($6)); }
-    | var '[' ']' '=' STRING														{ $$ = make_node(VDECL, 3, $1, make_number(strlen($5)), make_ident($5)); }
+    : var																			{ $$ = make_node(KVAR, 1, $1); }
+    | var '=' expr																	{ struct ast_node* assign = make_node('=', 2, $1, $3); AST_CLEAN_STACK(assign) = true; $$ = make_node(';', 2, make_node(KVAR, 1, $1), assign); }
+    | var '[' expr ']'  															{ $$ = make_node(KVAR, 3, $1, $3, NULL); }
+    | var '[' expr ']' '=' STRING 													{ $$ = make_node(KVAR, 3, $1, $3, make_ident($6)); }
+    | var '[' ']' '=' STRING														{ $$ = make_node(KVAR, 3, $1, make_number(strlen($5)), make_ident($5)); }
     ;
 
 var_decl_list
-	: var_decl						{ $$ = make_list($1); }
-	| var_decl ',' var_decl_list	{ $$ = prepend_list($3, $1); }
+	: var_decl						{ $$ = $1; }
+	| var_decl ',' var_decl_list	{ $$ = make_node(';', 2, $1, $3); }
 
 func_type
 	: KFUNC							{ $$ = KFUNC; }
