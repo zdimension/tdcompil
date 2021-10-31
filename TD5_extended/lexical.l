@@ -68,6 +68,7 @@
 "proc" { return KPROC; }
 "break" { return KBREAK; }
 "continue" { return KCONTINUE; }
+"const" { return KCONST; }
 
 	/* ---- Idents ---- */
 [a-zA-Z]+			{ yylval.var = strdup(yytext); return IDENT; }

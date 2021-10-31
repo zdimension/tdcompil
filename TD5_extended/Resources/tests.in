@@ -1,1 +1,10 @@
-print ~1;
+{
+	const x = 10;
+
+	func fn()
+	{
+		return x;
+	}
+
+	print fn();
+}

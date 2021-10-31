@@ -85,13 +85,22 @@ struct stack_frame
 {
     struct func_list* function;
     struct var_list* vars;
+    struct stack_frame* parent;
 };
 
 struct var_list
 {
     struct linked_list_header header;
-    int position;
-    int size;
+    bool is_const;
+    union
+    {
+        struct
+        {
+            int position;
+            int size;
+        };
+        int value;
+    };
     char* initial;
 } * globals_head = NULL, * globals_tail = NULL;
 
@@ -145,9 +154,9 @@ struct linked_list_header* find_symbol(struct linked_list_header* list, const ch
 
 #define FIND_SYM(type, list, name) ((type*)find_symbol(&((list)->header), name))
 
-struct var_list* get_var_id(const char* name, struct var_list* frame)
+struct var_list* get_var_id(const char* name, struct stack_frame* frame)
 {
-    return FIND_SYM(struct var_list, frame, name);
+    return FIND_SYM(struct var_list, frame->vars, name);
 }
 
 void push_number(int value)
@@ -196,6 +205,7 @@ void pop(int n)
 }
 
 #define RETURN(x) do{*n = x; return true;}while(0)
+
 bool static_fold(ast_node** n, struct stack_frame* frame)
 {
     if (!*n)
@@ -211,7 +221,11 @@ bool static_fold(ast_node** n, struct stack_frame* frame)
         {
             if (frame)
             {
-                struct var_list* ptr = get_var_id(VAR_NAME(*n), frame->vars);
+                struct var_list* ptr = get_var_id(VAR_NAME(*n), frame);
+                if (ptr->is_const)
+                {
+                    RETURN(make_number(ptr->value));
+                }
                 if (ptr->size != 1) // array
                 {
                     RETURN(make_number(ptr->position));
@@ -223,9 +237,15 @@ bool static_fold(ast_node** n, struct stack_frame* frame)
         {
             ast_node** op = OPER_OPERANDS(*n);
             int arity = OPER_ARITY(*n);
-            struct {bool is_num; int value; }* o = malloc(arity * sizeof(*o));
+            struct
+            {
+                bool is_num;
+                int value;
+            } * o = malloc(arity * sizeof(*o));
             for (int i = 0; i < arity; i++)
             {
+                if (!op[i])
+                    continue;
                 static_fold(&op[i], frame);
                 if ((o[i].is_num = AST_KIND(op[i]) == k_number))
                     o[i].value = NUMBER_VALUE(op[i]);
@@ -254,14 +274,22 @@ bool static_fold(ast_node** n, struct stack_frame* frame)
                 {
                     if (frame)
                     {
-                        int ptr = get_var_id(VAR_NAME(op[0]), frame->vars)->position;
-                        if (op[1] == NULL)
+                        struct var_list* var = get_var_id(VAR_NAME(op[0]), frame);
+                        if (var->is_const)
                         {
-                            RETURN(make_number(ptr));
+                            error_msg(*n, "Cannot take address of constant '%s'\n", var->header.name);
                         }
-                        else if (o[1].is_num)
+                        else
                         {
-                            RETURN(make_number(ptr + o[1].value));
+                            int ptr = var->position;
+                            if (op[1] == NULL)
+                            {
+                                RETURN(make_number(ptr));
+                            }
+                            else if (o[1].is_num)
+                            {
+                                RETURN(make_number(ptr + o[1].value));
+                            }
                         }
                     }
                     return false;
@@ -419,11 +447,12 @@ bool static_fold(ast_node** n, struct stack_frame* frame)
 
     return false;
 }
+
 #undef RETURN
 
-int static_eval(ast_node* n)
+int static_eval(ast_node* n, struct stack_frame* frame)
 {
-    if (!static_fold(&n, NULL) || AST_KIND(n) != k_number)
+    if (!static_fold(&n, frame) || AST_KIND(n) != k_number)
     {
         error_msg(n, "Value must be compile-time constant\n");
         exit(1);
@@ -433,6 +462,7 @@ int static_eval(ast_node* n)
 }
 
 #define USELESS() do{info_msg(n, "Line has no effect\n");return;}while(0)
+
 void exec(ast_node* n, struct stack_frame* frame, struct loop_info* loop)
 {
     if (!n)
@@ -451,8 +481,6 @@ void exec(ast_node* n, struct stack_frame* frame, struct loop_info* loop)
         {
             PROD0("statically evaluated");
         }
-
-        //n->clean_stack = true;
     }
 
     switch (AST_KIND(n))
@@ -576,7 +604,7 @@ void exec(ast_node* n, struct stack_frame* frame, struct loop_info* loop)
                     {
                         USELESS();
                     }
-                    int ptr = get_var_id(VAR_NAME(op[0]), frame->vars)->position;
+                    int ptr = get_var_id(VAR_NAME(op[0]), frame)->position;
                     if (op[1] != NULL)
                     {
                         if (AST_KIND(op[1]) == k_number)
@@ -1255,6 +1283,9 @@ void exec(ast_node* n, struct stack_frame* frame, struct loop_info* loop)
                 case KDIM:
                     PROD0("dim");
                     return;
+                case KCONST:
+                    PROD0("const");
+                    return;
                 case KFUNC:
                     PROD0("func");
                     return;
@@ -1352,7 +1383,13 @@ void nav_to_var(struct ast_node* op, struct stack_frame* frame, struct loop_info
     if (AST_KIND(op) == k_ident)
     {
         instr("# navigating to %s", VAR_NAME(op));
-        int vid = get_var_id(VAR_NAME(op), frame->vars)->position;
+        struct var_list* var = get_var_id(VAR_NAME(op), frame);
+        if (var->is_const)
+        {
+            error_msg(op, "Cannot navigate to constant; this usually indicates that an internal error occurred during static analysis\n");
+            exit(1);
+        }
+        int vid = var->position;
         while (vid-- > 0)
         {
             instr("FROM @%d", ++label);
@@ -1479,6 +1516,7 @@ struct var_list* check_add_var(const char* name, int size, struct var_list** var
         struct var_list* newNode = ADD_SYM(struct var_list, vars_head, vars_tail);
         newNode->header.name = name;
         newNode->position = i;
+        newNode->is_const = false;
         newNode->size = size;
         newNode->initial = NULL;
         return newNode;
@@ -1494,16 +1532,27 @@ void traverse_vars(ast_node* n, struct var_list** vars_head, struct var_list** v
 
     if (AST_KIND(n) == k_operator)
     {
-        if ((OPER_OPERATOR(n) == '=' || OPER_OPERATOR(n) == KDIM) && AST_KIND(OPER_OPERANDS(n)[0]) == k_ident)
+        if (OPER_ARITY(n) > 0 && AST_KIND(OPER_OPERANDS(n)[0]) == k_ident)
         {
-            const char* name = VAR_NAME(OPER_OPERANDS(n)[0]);
+            struct stack_frame frame = {.vars = *vars_head, .function = NULL, .parent = NULL};
             if (OPER_OPERATOR(n) == '=')
             {
-                check_add_var(name, 1, vars_head, vars_tail);
+                check_add_var(VAR_NAME(OPER_OPERANDS(n)[0]), 1, vars_head, vars_tail);
             }
-            else
+            else if (OPER_OPERATOR(n) == KCONST)
             {
-                struct var_list* var = check_add_var(name, static_eval(OPER_OPERANDS(n)[1]), vars_head, vars_tail);
+                struct var_list* var = check_add_var(VAR_NAME(OPER_OPERANDS(n)[0]), 1, vars_head, vars_tail);
+                if (!var)
+                {
+                    error_msg(n, "Cannot redeclare constant\n");
+                    exit(1);
+                }
+                var->is_const = true;
+                var->value = static_eval(OPER_OPERANDS(n)[1], &frame);
+            }
+            else if (OPER_OPERATOR(n) == KDIM)
+            {
+                struct var_list* var = check_add_var(VAR_NAME(OPER_OPERANDS(n)[0]), static_eval(OPER_OPERANDS(n)[1], &frame), vars_head, vars_tail);
                 if (!var)
                 {
                     error_msg(n, "Cannot redeclare array\n");
@@ -1581,6 +1630,8 @@ void produce_code(ast_node* n)
         printf("# POSITION  SIZE  NAME\n");
         for (struct var_list* ptr = globals_head; ptr; ptr = (struct var_list*) ptr->header.next)
         {
+            if (ptr->is_const)
+                continue;
             printf("# %8d  %4d  %s\n", ptr->position, ptr->size, ptr->header.name);
         }
     }
@@ -1590,6 +1641,8 @@ void produce_code(ast_node* n)
 
     for (struct var_list* ptr = globals_head; ptr; ptr = (struct var_list*) ptr->header.next)
     {
+        if (ptr->is_const)
+            continue;
         instr("# allocate variable %s (position %d, size %d)", ptr->header.name, ptr->position, ptr->size);
         char* str = ptr->initial;
         for (int j = 0; j < ptr->size; j++, (str && *str && str++))
@@ -1619,7 +1672,7 @@ void produce_code(ast_node* n)
     instr("'_|'/|'0|'1,'[,'_,'_ L,S,S,S");
     instr("'[,'[,'_,'_ S,S,S,S @%d", label + 1);
 
-    struct stack_frame global_frame = {.vars = globals_head, .function = NULL};
+    struct stack_frame global_frame = {.vars = globals_head, .function = NULL, .parent = NULL};
 
     BLOCK("program",
           {
@@ -1636,7 +1689,7 @@ void produce_code(ast_node* n)
         instr("# %s %s (F%d)", ptr->is_void ? "procedure" : "function", ptr->header.name, ptr->header.id);
         instr("FROM @F%d", ptr->header.id);
         instr("'[,'/|'[,'_,'_ S,S,S,S @%d", label + 1);
-        struct stack_frame local_frame = {.vars = ptr->locals_head, .function = ptr};
+        struct stack_frame local_frame = {.vars = ptr->locals_head, .function = ptr, .parent = &global_frame};
         BLOCK("function code",
               {
                   exec(ptr->code, &local_frame, NULL);
