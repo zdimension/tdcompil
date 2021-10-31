@@ -1,11 +1,13 @@
 {
-	var ptr, cur, num = 0,
-		eq[] = "3 4 5 * 2 - +.", # 3 + ((4 * 5) - 2) = 21
-		stack[10],
-		sp = &stack[0];
+	var cur, ptr,
+		num = 0, # is reading a number
+		sp = &stack[0], stack[10],
+		eq[] = "3 4 5 * 2 - +", # 3 + ((4 * 5) - 2) = 21 = 10101_2
+		eq_end = 0;
 
-	for (ptr = eq; {cur = *ptr; cur != '.'}; ptr++)
+	for (ptr = eq; ptr != &eq_end; ptr++)
 	{
+		cur = *ptr;
 		if (cur == ' ')
 		{
 			sp++;
