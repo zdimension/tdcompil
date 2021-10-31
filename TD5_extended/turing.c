@@ -1360,7 +1360,7 @@ void exec(ast_node* n, struct stack_frame* frame, struct loop_info* loop)
                     instr("'/|'0|'1|'[,'/,'_,'_ R,S,S,S");
                     instr("'/|'0|'1|'[,'[,'_,'_ R,S,S,S");
                     struct call_site_list* call = add_call_site(&fct->callsites);
-                    instr("'_,'/|'[,'_,'_ '[,'/|'[,'_,'_ R,S,S,S @C%d", call->id);
+                    instr("'_,'/|'[,'_,'_ '[,'/|'[,'_,'_ R,S,S,S @F%dC%d", fct->header.id, call->id);
                     call->argalloc_address = ++label;
                     PROD0("start copying args from stack to heap");
                     instr("FROM @%d", label);
@@ -1715,7 +1715,7 @@ void produce_code(ast_node* n)
         {
             BLOCK("call site ID writing",
                   {
-                      instr("FROM @C%d", call->id); // site id alloc
+                      instr("FROM @F%dC%d", ptr->header.id, call->id); // site id alloc
                       int i;
                       // todo: O(n) -> O(1) ?
                       for (i = 0; i < ptr->callsites->id; i++)
@@ -1729,10 +1729,10 @@ void produce_code(ast_node* n)
             PROD0("begin call site ID check");
             BLOCK("call site ID check",
                   {
-                      instr("FROM @C%dcheck", call->id);
+                      instr("FROM @F%dC%dcheck", ptr->header.id, call->id);
                       instr("'1,'_,'_,'_ '_,'_,'_,'_ L,S,S,S @%d", ++label); // ok
                       if (call->next)
-                          instr("'0,'_,'_,'_ '_,'_,'_,'_ L,S,S,S @C%dcheck", call->id - 1);
+                          instr("'0,'_,'_,'_ '_,'_,'_,'_ L,S,S,S @F%dC%dcheck", ptr->header.id, call->id - 1);
                       instr("FROM @%d", label);
                       instr("'0,'_,'_,'_ '_,'_,'_,'_ L,S,S,S");
                       instr("'[,'_,'_,'_ '_,'_,'_,'_ L,S,S,S @%d", ++label);
@@ -1748,7 +1748,7 @@ void produce_code(ast_node* n)
                   instr("'[,'/|'[,'_,'_ '[,'/|'[,'_,'_ R,R,S,S");
                   instr("'0|'1|'/,'_,'_,'_ '_,'_,'_,'_ R,S,S,S");
                   instr("'_,'_,'_,'_ L,S,S,S");
-                  instr("'[,'_,'_,'_ '_,'_,'_,'_ L,S,S,S @C%dcheck", ptr->callsites->id);
+                  instr("'[,'_,'_,'_ '_,'_,'_,'_ L,S,S,S @F%dC%dcheck", ptr->header.id, ptr->callsites->id);
               });
     }
 }

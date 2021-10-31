@@ -36,7 +36,7 @@ FROM @3		# line 1354
 FROM @1		# line 1359
 '/|'0|'1|'[,'/,'_,'_ R,S,S,S		# line 1360
 '/|'0|'1|'[,'[,'_,'_ R,S,S,S		# line 1361
-'_,'/|'[,'_,'_ '[,'/|'[,'_,'_ R,S,S,S @C0		# line 1363
+'_,'/|'[,'_,'_ '[,'/|'[,'_,'_ R,S,S,S @F0C0		# line 1363
 #	start copying args from stack to heap
 FROM @4		# line 1366
 '_,'/|'[,'_,'_ '[,'/|'[,'_,'_ R,R,S,S @5		# line 1367
@@ -77,7 +77,7 @@ FROM @10		# line 1354
 FROM @8		# line 1359
 '/|'0|'1|'[,'/,'_,'_ R,S,S,S		# line 1360
 '/|'0|'1|'[,'[,'_,'_ R,S,S,S		# line 1361
-'_,'/|'[,'_,'_ '[,'/|'[,'_,'_ R,S,S,S @C0		# line 1363
+'_,'/|'[,'_,'_ '[,'/|'[,'_,'_ R,S,S,S @F1C0		# line 1363
 #	start copying args from stack to heap
 FROM @11		# line 1366
 '_,'/|'[,'_,'_ '[,'/|'[,'_,'_ R,R,S,S @12		# line 1367
@@ -131,12 +131,12 @@ FROM @26		# line 1323
 FROM @27		# line 1705
 '[,'/|'[,'_,'_ S,S,S,S @F1ret		# line 1706
 #	------ BEGIN: call site ID writing
-FROM @C0		# line 1718
+FROM @F0C0		# line 1718
 '_,'/|'[,'_,'_ '1,'/|'[,'_,'_ R,S,S,S @4		# line 1726
 #	------ END: call site ID writing
 #	begin call site ID check
 #	------ BEGIN: call site ID check
-FROM @C0check		# line 1732
+FROM @F0C0check		# line 1732
 '1,'_,'_,'_ '_,'_,'_,'_ L,S,S,S @28		# line 1733
 FROM @28		# line 1736
 '0,'_,'_,'_ '_,'_,'_,'_ L,S,S,S		# line 1737
@@ -150,15 +150,15 @@ FROM @F0ret		# line 1747
 '[,'/|'[,'_,'_ '[,'/|'[,'_,'_ R,R,S,S		# line 1748
 '0|'1|'/,'_,'_,'_ '_,'_,'_,'_ R,S,S,S		# line 1749
 '_,'_,'_,'_ L,S,S,S		# line 1750
-'[,'_,'_,'_ '_,'_,'_,'_ L,S,S,S @C0check		# line 1751
+'[,'_,'_,'_ '_,'_,'_,'_ L,S,S,S @F0C0check		# line 1751
 #	------ END: function epilogue
 #	------ BEGIN: call site ID writing
-FROM @C0		# line 1718
+FROM @F1C0		# line 1718
 '_,'/|'[,'_,'_ '1,'/|'[,'_,'_ R,S,S,S @11		# line 1726
 #	------ END: call site ID writing
 #	begin call site ID check
 #	------ BEGIN: call site ID check
-FROM @C0check		# line 1732
+FROM @F1C0check		# line 1732
 '1,'_,'_,'_ '_,'_,'_,'_ L,S,S,S @30		# line 1733
 FROM @30		# line 1736
 '0,'_,'_,'_ '_,'_,'_,'_ L,S,S,S		# line 1737
@@ -172,5 +172,5 @@ FROM @F1ret		# line 1747
 '[,'/|'[,'_,'_ '[,'/|'[,'_,'_ R,R,S,S		# line 1748
 '0|'1|'/,'_,'_,'_ '_,'_,'_,'_ R,S,S,S		# line 1749
 '_,'_,'_,'_ L,S,S,S		# line 1750
-'[,'_,'_,'_ '_,'_,'_,'_ L,S,S,S @C0check		# line 1751
+'[,'_,'_,'_ '_,'_,'_,'_ L,S,S,S @F1C0check		# line 1751
 #	------ END: function epilogue
