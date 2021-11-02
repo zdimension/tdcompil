@@ -173,7 +173,7 @@ struct linked_list_header* find_symbol(struct linked_list_header* list, struct a
             return ptr;
         }
     }
-    if (flags & F_RECURSE && list->parent)
+    if (list && (flags & F_RECURSE) && list->parent)
         return find_symbol(list->parent, node, flags);
     if (flags & F_NULLABLE)
         return NULL;
@@ -1366,28 +1366,28 @@ void exec(ast_node* n, struct stack_frame* frame, struct loop_info* loop)
                         error_msg(n, "Procedure call does not have a value\n");
                         exit(1);
                     }
-                    struct linked_list* args = (struct linked_list*) op[1];
+                    struct linked_list* args = ((struct ast_linked_list*) op[1])->list;
                     int argcount = 0;
                     for (struct linked_list* arg = args; arg; arg = arg->next, argcount++)
                     {
                         eval(arg->value, frame);
                     }
+                    int start_left = ++label;
                     int right_heap = ++label;
+                    PROD0("go to left of args on stack");
+                    instr("FROM @%d", start_left);
+                    instr("'[,'/,'_,'_ S,L,S,S @%d", ++label);
+                    instr("'[,'[,'_,'_ S,S,S,S @%d", right_heap);
+                    for (int i = 1; i < argcount; i++)
                     {
-                        PROD0("go to left of args on stack");
-                        instr("FROM @%d", ++label);
-                        instr("'[,'/,'_,'_ S,L,S,S @%d", ++label);
-                        instr("'[,'[,'_,'_ S,S,S,S @%d", right_heap);
-                        for (int i = 1; i < argcount; i++)
-                        {
-                            instr("FROM @%d", label);
-                            instr("'[,'0|'1,'_,'_ S,L,S,S");
-                            instr("'[,'/,'_,'_ S,L,S,S @%d", ++label);
-                        }
                         instr("FROM @%d", label);
                         instr("'[,'0|'1,'_,'_ S,L,S,S");
-                        instr("'[,'/|'[,'_,'_ S,S,S,S @%d", right_heap);
+                        instr("'[,'/,'_,'_ S,L,S,S @%d", ++label);
                     }
+                    instr("FROM @%d", label);
+                    instr("'[,'0|'1,'_,'_ S,L,S,S");
+                    instr("'[,'/|'[,'_,'_ S,S,S,S @%d", right_heap);
+
                     PROD0("go to right of heap");
                     instr("FROM @%d", right_heap);
                     instr("'/|'0|'1|'[,'/,'_,'_ R,S,S,S");
@@ -1398,6 +1398,9 @@ void exec(ast_node* n, struct stack_frame* frame, struct loop_info* loop)
                     PROD0("start copying args from stack to heap");
                     instr("FROM @%d", label);
                     instr("'_,'/|'[,'_,'_ '[,'/|'[,'_,'_ R,R,S,S @%d", ++label);
+//                    instr("FROM @%d", label);
+//                    instr("'_,'0|'1,'_,'_ S,L,S,S");
+//                    instr("'_,'/|'[,'_,'_ S,R,S,S @%d", ++label);
                     instr("FROM @%d", label);
                     instr("'_,'0|'1,'_,'_ '0|'1,'_,'_,'_ R,R,S,S");
                     instr("'_,'/,'_,'_ '/,'_,'_,'_ R,R,S,S");
@@ -1645,7 +1648,7 @@ void traverse_funcs(ast_node* n, struct stack_frame* frame)
             newNode->header.name = VAR_NAME(OPER_OPERANDS(n)[0]);
             newNode->header.parent = NULL;
             newNode->is_void = OPER_OPERATOR(n) == KPROC;
-            newNode->arglist = (struct linked_list*) OPER_OPERANDS(n)[1];
+            newNode->arglist = ((struct ast_linked_list*) OPER_OPERANDS(n)[1])->list;
             newNode->code = OPER_OPERANDS(n)[2];
             newNode->callsites = NULL;
             newNode->frame = (struct stack_frame) {.function = newNode, .vars = {NULL, NULL}, .parent = frame};
