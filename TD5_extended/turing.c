@@ -1582,7 +1582,7 @@ void traverse_vars(ast_node* n, struct stack_frame* frame)
 
     if (AST_KIND(n) == k_operator)
     {
-        if (OPER_ARITY(n) > 0 && AST_KIND(OPER_OPERANDS(n)[0]) == k_ident)
+        if (OPER_ARITY(n) > 0 && OPER_OPERANDS(n)[0] && AST_KIND(OPER_OPERANDS(n)[0]) == k_ident)
         {
             if (OPER_OPERATOR(n) == '=')
             {
