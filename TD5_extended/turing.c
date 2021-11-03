@@ -78,7 +78,7 @@ struct linked_list_header
 {
     const char* name;
     int id;
-    void* parent;
+    void* owner;
     struct linked_list_header* next;
 };
 
@@ -173,8 +173,8 @@ struct linked_list_header* find_symbol(struct linked_list_header* list, struct a
             return ptr;
         }
     }
-    if (list && (flags & F_RECURSE) && list->parent)
-        return find_symbol(list->parent, node, flags);
+    if (list && (flags & F_RECURSE) && ((struct stack_frame*)list->owner)->parent)
+        return find_symbol(&((struct stack_frame*)list->owner)->parent->vars.head->header, node, flags);
     if (flags & F_NULLABLE)
         return NULL;
     error_msg(NULL, "SYMBOL NOT FOUND: %s\n", name);
@@ -257,7 +257,7 @@ bool static_fold(ast_node** n, struct stack_frame* frame)
                     {
                         RETURN(make_number(ptr->value));
                     }
-                    if (ptr->header.parent == frame->vars.head) // only local mutables can be referenced
+                    if (ptr->header.owner == frame) // only local mutables can be referenced
                     {
                         if (ptr->type == V_ARRAY) // array
                         {
@@ -323,7 +323,7 @@ bool static_fold(ast_node** n, struct stack_frame* frame)
                         else if (AST_KIND(op[0]) == k_number)
                         {
                             ptr = NUMBER_VALUE(op[0]);
-                        }
+                        }else if (AST_KIND(op[0]) == k_operator && OPER_OPERATOR(op[0]) == DEREF){ast_node* inner = OPER_OPERANDS(op[0])[0];static_fold(&inner, frame);RETURN(inner);}
 
                         if (op[1] == NULL)
                         {
@@ -1564,7 +1564,7 @@ struct var_list* check_add_var(const char* name, int size, struct stack_frame* f
     {
         struct var_list* newNode = ADD_SYM(struct var_list, &frame->vars.head, &frame->vars.tail);
         newNode->header.name = name;
-        newNode->header.parent = frame->parent ? frame->parent->vars.head : NULL;
+        newNode->header.owner = frame;
         newNode->position = i;
         newNode->type = V_VAR;
         newNode->size = size;
@@ -1646,7 +1646,7 @@ void traverse_funcs(ast_node* n, struct stack_frame* frame)
         {
             struct func_list* newNode = ADD_SYM(struct func_list, &funcs_head, &funcs_tail);
             newNode->header.name = VAR_NAME(OPER_OPERANDS(n)[0]);
-            newNode->header.parent = NULL;
+            newNode->header.owner = NULL;
             newNode->is_void = OPER_OPERATOR(n) == KPROC;
             newNode->arglist = ((struct ast_linked_list*) OPER_OPERANDS(n)[1])->list;
             newNode->code = OPER_OPERANDS(n)[2];

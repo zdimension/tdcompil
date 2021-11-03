@@ -46,7 +46,7 @@ void yyerror(const char *s);
 %type   <node>		stmt expr stmt_list var expr_opt ref_offset basic_expr postfix_expr unary_expr mult_expr add_expr rel_expr eq_expr assign_expr
 %type	<node> 		l_and_expr l_or_expr stmt_list_opt expr_discard expr_discard_opt
 %type 	<node>		param_list param_list_ne arg_list arg_list_ne var_decl var_decl_list
-%type   <chr>		aug_assign func_type
+%type   <chr>		aug_assign func_type unary_op
 
 %%
 
@@ -155,13 +155,23 @@ postfix_expr
 
 unary_expr
     : postfix_expr					{ $$ = $1; }
-    | '-' postfix_expr 				{ $$ = make_node(UMINUS, 1, $2); }
+/*    | '-' postfix_expr 				{ $$ = make_node(UMINUS, 1, $2); }
     | '~' postfix_expr 				{ $$ = make_node('~', 1, $2); }
     | '*' postfix_expr 				{ $$ = make_node(DEREF, 1, $2); }
     | INC postfix_expr              { $$ = make_node(INC, 1, $2); }
     | DEC postfix_expr              { $$ = make_node(DEC, 1, $2); }
-    | '&' var ref_offset 			{ $$ = make_node(REF, 2, $2, $3); }
+    | '&' var ref_offset 			{ $$ = make_node(REF, 2, $2, $3); }*/
+    | unary_op unary_expr			{ $$ = make_node($1, 1, $2); }
     ;
+
+unary_op
+	: '-'		{ $$ = UMINUS; }
+	| '~'		{ $$ = '~'; }
+	| '*'		{ $$ = DEREF; }
+	| INC		{ $$ = INC; }
+	| DEC		{ $$ = DEC; }
+	| '&'		{ $$ = REF; }
+	;
 
 mult_expr
     : unary_expr					{ $$ = $1; }
@@ -216,11 +226,6 @@ expr_discard_opt
 	: expr_discard				{ $$ = $1; }
 	|							{ $$ = NULL; }
 	;
-
-ref_offset
-    : '[' expr ']'				{ $$ = $2; }
-    |							{ $$ = NULL; }
-    ;
 
 var
     :  IDENT                	{ $$ = make_ident($1); }
