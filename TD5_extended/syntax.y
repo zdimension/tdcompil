@@ -32,7 +32,7 @@ void yyerror(const char *s);
 //                      Tokens
 %token  <value>         NUMBER
 %token  <var>           IDENT STRING
-%token                  KWHILE KIF KPRINT KELSE KREAD KFOR KDO KVAR KFUNC KRETURN KPROC KBREAK KCONTINUE KCONST
+%token                  KWHILE KIF KPRINT KELSE KREAD KFOR KDO KVAR KFUNC KRETURN KPROC KBREAK KCONTINUE KCONST KTYPE KTYPEOF
 %token '+' '-' '*' '/' GE LE EQ NE '>' '<' REF DEREF APL AMN AML ADV INC DEC AND OR
 %token UMINUS VDECL
 //                       Precedence rules
@@ -45,7 +45,7 @@ void yyerror(const char *s);
 //                      Non terminal types
 %type   <node>		stmt expr stmt_list var expr_opt basic_expr postfix_expr unary_expr mult_expr add_expr rel_expr eq_expr assign_expr
 %type	<node> 		l_and_expr l_or_expr stmt_list_opt expr_discard expr_discard_opt
-%type 	<node>		param_list param_list_ne arg_list arg_list_ne var_decl var_decl_list
+%type 	<node>		param_list param_list_ne arg_list arg_list_ne var_decl var_decl_list type_spec_opt type_spec type_decl type_decl_list
 %type   <chr>		aug_assign func_type unary_op
 
 %%
@@ -63,6 +63,7 @@ stmt
     : ';'                               											{ $$ = make_node(';', 0); }
     | expr_discard ';'																{ $$ = $1; }
     | KVAR var_decl_list ';'														{ $$ = $2; }
+    | KTYPE type_decl_list ';'														{ $$ = $2; }
     | KCONST var '=' expr ';'														{ $$ = make_node(KCONST, 2, $2, $4); }
     | KPRINT expr ';'                  												{ $$ = make_node(KPRINT, 1, $2); }
     | KREAD expr ';'                  												{ $$ = make_node(KREAD, 1, $2); }
@@ -79,16 +80,37 @@ stmt
     ;
 
 var_decl
-    : var																			{ $$ = make_node(KVAR, 1, $1); }
-    | var '=' expr																	{ ast_node* assign = make_node('=', 2, $1, $3); AST_CLEAN_STACK(assign) = true; $$ = make_node(';', 2, make_node(KVAR, 1, $1), assign); }
+    : var type_spec_opt																{ $$ = make_node(KVAR, 2, $1, $2); }
+    | var '=' expr																	{ ast_node* assign = make_node('=', 2, $1, $3); AST_CLEAN_STACK(assign) = true; $$ = make_node(';', 2, make_node(KVAR, 2, $1, NULL), assign); }
     | var '[' expr ']'  															{ $$ = make_node(KVAR, 3, $1, $3, NULL); }
     | var '[' expr ']' '=' STRING 													{ $$ = make_node(KVAR, 3, $1, $3, make_ident($6)); }
     | var '[' ']' '=' STRING														{ $$ = make_node(KVAR, 3, $1, make_number(strlen($5)), make_ident($5)); }
     ;
 
+type_decl
+    : var '=' type_spec																{ $$ = make_node(KTYPE, 2, $1, $3); }
+    ;
+
+type_spec_opt
+	:								{ $$ = NULL; }
+	| ':' type_spec					{ $$ = $2; }
+	;
+
+type_spec
+	: var							{ $$ = $1; }
+	| type_spec '*'					{ $$ = make_node('*', 1, $1); }
+	| type_spec KCONST				{ $$ = make_node(KCONST, 1, $1); }
+	| type_spec '[' expr ']'		{ $$ = make_node('[', 2, $1, $3); }
+	| KTYPEOF '(' expr ')'			{ $$ = make_node(KTYPEOF, 1, $3); }
+	;
+
 var_decl_list
 	: var_decl						{ $$ = $1; }
 	| var_decl ',' var_decl_list	{ $$ = make_node(';', 2, $1, $3); }
+
+type_decl_list
+	: type_decl						{ $$ = $1; }
+	| type_decl ',' type_decl_list	{ $$ = make_node(';', 2, $1, $3); }
 
 func_type
 	: KFUNC							{ $$ = KFUNC; }

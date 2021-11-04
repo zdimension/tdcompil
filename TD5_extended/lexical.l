@@ -39,7 +39,7 @@
 
 	/* ---- Single char tokens ---- */
 
-[-()\[\]<>=+*/;{}.&~,_]			{ return *yytext; }
+[-()\[\]<>=+*/;{}.&~,_:]			{ return *yytext; }
 
 	/* ---- "complex" tokens ---- */
 ">="				{ return GE; }
@@ -69,6 +69,8 @@
 "break" { return KBREAK; }
 "continue" { return KCONTINUE; }
 "const" { return KCONST; }
+"type" { return KTYPE; }
+"typeof" { return KTYPEOF; }
 
 	/* ---- Idents ---- */
 [a-zA-Z_][a-zA-Z0-9_]*			{ yylval.var = strdup(yytext); return IDENT; }

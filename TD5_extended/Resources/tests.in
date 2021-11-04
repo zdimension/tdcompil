@@ -1,50 +1,6 @@
 {
-	var cur, ptr,
-		num = 0, # is reading a number
-		sp, stack[10],
-		eq[] = "3 4 5 * 2 - +", # 3 + ((4 * 5) - 2) = 21 = 10101_2
-		eq_end = 0;
-
-	sp = &stack[0];
-
-	for (ptr = eq; ptr != &eq_end; ptr++)
-	{
-		cur = *ptr;
-		if (cur == ' ')
-		{
-			sp++;
-			num = 0;
-		}
-		else if (cur == '+')
-		{
-			b = *(--sp); a = *(--sp);
-			*sp = a + b;
-			num = 0;
-		}
-		else if (cur == '-')
-		{
-			b = *(--sp); a = *(--sp);
-			*sp = a - b;
-			num = 0;
-		}
-		else if (cur == '*')
-		{
-			b = *(--sp); a = *(--sp);
-			*sp = a * b;
-			num = 0;
-		}
-		else if (cur >= '0' && cur <= '9')
-		{
-			if (num)
-			{
-				*sp = (*sp * 10) + (cur - '0');
-			}
-			else
-			{
-				*sp = cur - '0';
-				num = 1;
-			}
-		}
-	}
-	print stack[0];
+	type point = word[2];
+	var x: point;
+	var y = x;
+	var z = &y;
 }
