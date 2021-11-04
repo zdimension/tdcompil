@@ -2007,7 +2007,7 @@ void traverse_vars(ast_node* n, stack_frame* frame)
         {
             switch (OPER_ARITY(n))
             {
-                case 3:
+                case 2:
                 {
                     var_list* var = check_add_var(VAR_NAME(op[0]), frame);
                     if (!var)
@@ -2015,10 +2015,10 @@ void traverse_vars(ast_node* n, stack_frame* frame)
                         error_msg(n, "Cannot redeclare variable '%s'\n", VAR_NAME(op[0]));
                         exit(1);
                     }
-                    var->type = op[1] ? decode_spec(op[1]) : (op[2] ? infer_type(op[2], frame) : WORD_TYPE);
+                    var->type = op[1] ? decode_spec(op[1]) : WORD_TYPE;
                     break;
                 }
-                case 4:
+                case 3:
                 {
                     var_list* var = check_add_var(VAR_NAME(op[0]), frame);
                     if (!var)

@@ -80,11 +80,12 @@ stmt
     ;
 
 var_decl
-    : var type_spec_opt																{ $$ = make_node(KVAR, 3, $1, $2, NULL); }
-    | var type_spec_opt '=' expr													{ ast_node* assign = make_node('=', 2, $1, $4); AST_CLEAN_STACK(assign) = true; $$ = make_node(';', 2, make_node(KVAR, 3, $1, $2, $4), assign); }
-    | var '[' expr ']'  															{ $$ = make_node(KVAR, 4, $1, $3, NULL, NULL); }
-    | var '[' expr ']' '=' STRING 													{ $$ = make_node(KVAR, 4, $1, $3, make_ident($6), NULL); }
-    | var '[' ']' '=' STRING														{ $$ = make_node(KVAR, 4, $1, make_number(strlen($5)), make_ident($5), NULL); }
+    : var type_spec_opt																{ $$ = make_node(KVAR, 2, $1, $2); }
+    | var '=' expr																	{ ast_node* assign = make_node('=', 2, $1, $3); AST_CLEAN_STACK(assign) = true; $$ = make_node(';', 2, make_node(KVAR, 2, $1, make_node(KTYPEOF, 1, $3)), assign); }
+    | var ':' type_spec '=' expr													{ ast_node* assign = make_node('=', 2, $1, $5); AST_CLEAN_STACK(assign) = true; $$ = make_node(';', 2, make_node(KVAR, 2, $1, $3), assign); }
+    | var '[' expr ']'  															{ $$ = make_node(KVAR, 3, $1, $3, NULL); }
+    | var '[' expr ']' '=' STRING 													{ $$ = make_node(KVAR, 3, $1, $3, make_ident($6)); }
+    | var '[' ']' '=' STRING														{ $$ = make_node(KVAR, 3, $1, make_number(strlen($5)), make_ident($5)); }
     ;
 
 type_decl
