@@ -416,6 +416,8 @@ type_list const* type_check(ast_node* n, stack_frame* frame)
             ast_node** op = OPER_OPERANDS(n);
             switch (OPER_OPERATOR(n))
             {
+                case KSIZEOF:
+                    return WORD_TYPE;
                 case '+':
                 {
                     type_list const* left = decay_array_ptr(infer_type(op[0], frame));
@@ -549,6 +551,8 @@ type_list const* type_check(ast_node* n, stack_frame* frame)
     return NULL;
 }
 
+type_list const* decode_spec(ast_node* spec);
+
 bool static_fold(ast_node** n, stack_frame* frame)
 {
     assert(frame);
@@ -585,6 +589,17 @@ bool static_fold(ast_node** n, stack_frame* frame)
         case k_operator:
         {
             ast_node** op = OPER_OPERANDS(*n);
+
+            switch (OPER_OPERATOR(*n))
+            {
+                /* Expressions */
+                case KSIZEOF:
+                {
+                    type_list const* type = decode_spec(op[0]);
+                    RETURN(make_number(type_size(type)));
+                }
+            }
+
             int arity = OPER_ARITY(*n);
             struct
             {

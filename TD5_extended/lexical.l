@@ -71,6 +71,7 @@
 "const" { return KCONST; }
 "type" { return KTYPE; }
 "typeof" { return KTYPEOF; }
+"sizeof" { return KSIZEOF; }
 
 	/* ---- Idents ---- */
 [a-zA-Z_][a-zA-Z0-9_]*			{ yylval.var = strdup(yytext); return IDENT; }

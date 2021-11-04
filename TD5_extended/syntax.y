@@ -32,7 +32,7 @@ void yyerror(const char *s);
 //                      Tokens
 %token  <value>         NUMBER
 %token  <var>           IDENT STRING
-%token                  KWHILE KIF KPRINT KELSE KREAD KFOR KDO KVAR KFUNC KRETURN KPROC KBREAK KCONTINUE KCONST KTYPE KTYPEOF
+%token                  KWHILE KIF KPRINT KELSE KREAD KFOR KDO KVAR KFUNC KRETURN KPROC KBREAK KCONTINUE KCONST KTYPE KTYPEOF KSIZEOF
 %token '+' '-' '*' '/' GE LE EQ NE '>' '<' REF DEREF APL AMN AML ADV INC DEC AND OR
 %token UMINUS VDECL
 //                       Precedence rules
@@ -162,6 +162,7 @@ aug_assign
 
 basic_expr
 	: NUMBER												{ $$ = make_number($1); }
+	| KSIZEOF '(' type_spec ')' 							{ $$ = make_node(KSIZEOF, 1, $3); }
 	| var													{ $$ = $1; }
 	| var '(' arg_list ')'									{ $$ = make_node('(', 2, $1, $3); }
 	| '(' expr ')'											{ $$ = $2; }

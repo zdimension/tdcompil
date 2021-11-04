@@ -1,5 +1,4 @@
 {
-	var z: word*;
-	var y = z;
-	var x: word* = x;
+	const N = 10;
+	var x = sizeof(word[N]*);
 }
