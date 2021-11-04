@@ -43,7 +43,7 @@ void yyerror(const char *s);
 %nonassoc KELSE
 
 //                      Non terminal types
-%type   <node>		stmt expr stmt_list var expr_opt ref_offset basic_expr postfix_expr unary_expr mult_expr add_expr rel_expr eq_expr assign_expr
+%type   <node>		stmt expr stmt_list var expr_opt basic_expr postfix_expr unary_expr mult_expr add_expr rel_expr eq_expr assign_expr
 %type	<node> 		l_and_expr l_or_expr stmt_list_opt expr_discard expr_discard_opt
 %type 	<node>		param_list param_list_ne arg_list arg_list_ne var_decl var_decl_list
 %type   <chr>		aug_assign func_type unary_op
@@ -80,7 +80,7 @@ stmt
 
 var_decl
     : var																			{ $$ = make_node(KVAR, 1, $1); }
-    | var '=' expr																	{ struct ast_node* assign = make_node('=', 2, $1, $3); AST_CLEAN_STACK(assign) = true; $$ = make_node(';', 2, make_node(KVAR, 1, $1), assign); }
+    | var '=' expr																	{ ast_node* assign = make_node('=', 2, $1, $3); AST_CLEAN_STACK(assign) = true; $$ = make_node(';', 2, make_node(KVAR, 1, $1), assign); }
     | var '[' expr ']'  															{ $$ = make_node(KVAR, 3, $1, $3, NULL); }
     | var '[' expr ']' '=' STRING 													{ $$ = make_node(KVAR, 3, $1, $3, make_ident($6)); }
     | var '[' ']' '=' STRING														{ $$ = make_node(KVAR, 3, $1, make_number(strlen($5)), make_ident($5)); }

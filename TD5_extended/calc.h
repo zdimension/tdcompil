@@ -38,14 +38,13 @@ ENUM_DEFINE(node_kind, KINDS)
 // ----------------------------------------------------------------------
 //		AST node type definition
 // ----------------------------------------------------------------------
-typedef struct ast_node ast_node;
 
-struct ast_node
+typedef struct
 {
     int lineno;                   // source line number of the node
     enum node_kind kind;        // kind of node
     bool clean_stack;
-};
+} ast_node;
 
 #define AST_LINENO(p)        (((ast_node *)(p))->lineno)
 #define AST_KIND(p)        (((ast_node *)(p))->kind)
@@ -54,13 +53,13 @@ struct ast_node
 // ----------------------------------------------------------------------
 //		Idents stuff
 // ----------------------------------------------------------------------
-struct ast_ident
+typedef struct
 {
     ast_node header;        // AST header
     char* name;            // name of the ident
-};
+} ast_ident;
 
-#define VAR_NAME(p)        (((struct ast_ident *) (p))->name)
+#define VAR_NAME(p)        (((ast_ident *) (p))->name)
 
 ast_node* make_ident(char* str);    // make a ident node
 
@@ -68,13 +67,13 @@ ast_node* make_ident(char* str);    // make a ident node
 // ----------------------------------------------------------------------
 //		Numbers stuff
 // ----------------------------------------------------------------------
-struct ast_number
+typedef struct
 {
     ast_node header;              // AST header
     int value;            // value of the number
-};
+} ast_number;
 
-#define NUMBER_VALUE(p)    (((struct ast_number *) (p))->value)
+#define NUMBER_VALUE(p)    (((ast_number *) (p))->value)
 
 ast_node* make_number(int f);    // make a number node
 
@@ -82,44 +81,44 @@ ast_node* make_number(int f);    // make a number node
 // ----------------------------------------------------------------------
 //		Operators stuff
 // ----------------------------------------------------------------------
-struct ast_operator
+typedef struct
 {
     ast_node header;        // AST header
     int operator;            // lex token
     int arity;            // arity of the operator
     ast_node* operands[0];    // array of operands
-};
+} ast_operator;
 
-#define OPER_OPERATOR(p)    (((struct ast_operator *) (p))->operator)
-#define OPER_ARITY(p)        (((struct ast_operator *) (p))->arity)
-#define OPER_OPERANDS(p)    (((struct ast_operator *) (p))->operands)
+#define OPER_OPERATOR(p)    (((ast_operator *) (p))->operator)
+#define OPER_ARITY(p)        (((ast_operator *) (p))->arity)
+#define OPER_OPERANDS(p)    (((ast_operator *) (p))->operands)
 
 ast_node* make_node(int operator, int arity, ...); // make an operator node
 
 
 
 // Lists
-struct linked_list
+typedef struct linked_list_s
 {
     ast_node* value;
-    struct linked_list* next;
-};
+    struct linked_list_s* next;
+} linked_list;
 
 
-struct ast_linked_list
+typedef struct
 {
     ast_node header;
-    struct linked_list* list;
-};
+    linked_list* list;
+}ast_linked_list;
 
-struct ast_node* make_list(ast_node* value);
-struct ast_node* prepend_list(struct ast_node* list, ast_node* value);
+ast_node* make_list(ast_node* value);
+ast_node* prepend_list(ast_node* list, ast_node* value);
 
 // ----------------------------------------------------------------------
 //		Utilities
 // ----------------------------------------------------------------------
-void error_msg(struct ast_node* node, const char* format, ...);        // Display an error message
-void info_msg(struct ast_node* node, const char* format, ...);        // Display an info message
+void error_msg(ast_node* node, const char* format, ...);        // Display an error message
+void info_msg(ast_node* node, const char* format, ...);        // Display an info message
 void free_node(ast_node* p);                    // Freeing a node
 
 extern bool optimize;

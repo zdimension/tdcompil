@@ -30,7 +30,7 @@ static ast_node* allocate_node(int size);
 // ----------------------------------------------------------------------
 ast_node* make_ident(char* str)
 {
-    ast_node* p = allocate_node(sizeof(struct ast_ident));
+    ast_node* p = allocate_node(sizeof(ast_ident));
 
     initialize_header(p, k_ident);
     VAR_NAME(p) = str;
@@ -44,7 +44,7 @@ ast_node* make_ident(char* str)
 
 ast_node* make_number(int f)
 {
-    ast_node* p = allocate_node(sizeof(struct ast_number));
+    ast_node* p = allocate_node(sizeof(ast_number));
 
     initialize_header(p, k_number);
     NUMBER_VALUE(p) = f;
@@ -60,7 +60,7 @@ ast_node* make_node(int operator, int arity, ...)
     ast_node* p;
     va_list ap;
 
-    p = allocate_node(sizeof(struct ast_operator) + arity * sizeof(ast_node*));
+    p = allocate_node(sizeof(ast_operator) + arity * sizeof(ast_node*));
     initialize_header(p, k_operator);
     OPER_OPERATOR(p) = operator;
     OPER_ARITY(p) = arity;
@@ -111,7 +111,7 @@ void free_node(ast_node* p)
 }
 
 
-void error_msg(struct ast_node* node, const char* format, ...)
+void error_msg(ast_node* node, const char* format, ...)
 {
     va_list ap;
 
@@ -121,7 +121,7 @@ void error_msg(struct ast_node* node, const char* format, ...)
     va_end(ap);
 }
 
-void info_msg(struct ast_node* node, const char* format, ...)
+void info_msg(ast_node* node, const char* format, ...)
 {
     va_list ap;
 
@@ -132,21 +132,21 @@ void info_msg(struct ast_node* node, const char* format, ...)
 }
 
 
-struct ast_node* make_list(ast_node* value)
+ast_node* make_list(ast_node* value)
 {
-    struct ast_linked_list* ptr = malloc(sizeof(*ptr));
+    ast_linked_list* ptr = malloc(sizeof(*ptr));
     initialize_header(ptr, k_list);
     ptr->list = NULL;
-    prepend_list((struct ast_node*) ptr, value);
-    return (struct ast_node*) ptr;
+    prepend_list((ast_node*) ptr, value);
+    return (ast_node*) ptr;
 }
 
-struct ast_node* prepend_list(struct ast_node* node, ast_node* value)
+ast_node* prepend_list(ast_node* node, ast_node* value)
 {
-    struct ast_linked_list* list = (struct ast_linked_list*) node;
-    struct linked_list* ptr = malloc(sizeof(*ptr));
+    ast_linked_list* list = (ast_linked_list*) node;
+    linked_list* ptr = malloc(sizeof(*ptr));
     ptr->value = value;
     ptr->next = list->list;
     list->list = ptr;
-    return (struct ast_node*) list;
+    return (ast_node*) list;
 }
