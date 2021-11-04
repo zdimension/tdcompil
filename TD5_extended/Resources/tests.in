@@ -1,6 +1,5 @@
 {
-	type point = word[2];
-	var x: point;
-	var y = x;
-	var z = &y;
+	var z: word*;
+	var y = z;
+	var x: word* = x;
 }

@@ -162,6 +162,26 @@ typedef struct type_list_s
 } type_list;
 type_list* types_head = NULL, * types_tail = NULL;
 
+bool type_same(type_list const* a, type_list const* b)
+{
+    if (a->type != b->type)
+        return false;
+
+    switch(a->type)
+    {
+        case T_SCALAR:
+            return a->scalar_size == b->scalar_size;
+        case T_ARRAY:
+            return a->array_size == b->array_size && type_same(a->array_target, b->array_target);
+        case T_POINTER:
+            return type_same(a->pointer_target, b->pointer_target);
+        case T_CONST:
+            return type_same(a->const_target, b->const_target);
+        case T_COMPOSITE:
+            return false;
+    }
+}
+
 int type_size(type_list const* type)
 {
     switch (type->type)
@@ -356,7 +376,22 @@ type_list const* decay_array_ptr(type_list const* t)
     return ret;
 }
 
+type_list const* type_check(ast_node* n, stack_frame* frame);
+
 type_list const* infer_type(ast_node* n, stack_frame* frame)
+{
+    type_list const* type = type_check(n, frame);
+
+    if (!type)
+    {
+        error_msg(n, "CANNOT INFER TYPE OF EXPRESSION!\n");
+        exit(1);
+    }
+
+    return type;
+}
+
+type_list const* type_check(ast_node* n, stack_frame* frame)
 {
     assert(frame);
 
@@ -450,7 +485,7 @@ type_list const* infer_type(ast_node* n, stack_frame* frame)
                 {
                     type_list const* left = decay_array_ptr(infer_type(op[0], frame));
                     type_list const* right = decay_array_ptr(infer_type(op[1], frame));
-                    if (left != right)
+                    if (!type_same(left, right))
                     {
                         error_msg(n, "Cannot perform arithmetic comparison '%c' on different types %s and %s",
                                   OPER_OPERATOR(n), type_display(left), type_display(right));
@@ -467,7 +502,16 @@ type_list const* infer_type(ast_node* n, stack_frame* frame)
                     // todo: check that both are bools
                     return WORD_TYPE; // future bool?
                 case '=':
-                    return infer_type(op[0], frame);
+                {
+                    type_list const* left = infer_type(op[0], frame);
+                    type_list const* right = infer_type(op[1], frame);
+                    if (!type_same(left, right))
+                    {
+                        error_msg(n, "Cannot assign rvalue of type '%s' to lvalue of type '%s'\n", type_display(right), type_display(left));
+                        exit(1);
+                    }
+                    return left;
+                }
                 case REF:
                 {
                     type_list* ret = NEW_TYPE();
@@ -493,17 +537,13 @@ type_list const* infer_type(ast_node* n, stack_frame* frame)
                 }
                 case '(':
                     return WORD_TYPE; // functions can only return numbers for now, todo
+                case '{':
+                    return infer_type(op[1], frame);
             }
             break;
         }
         case k_list:
             break;
-    }
-
-    if (1)
-    {
-        error_msg(n, "CANNOT INFER TYPE OF EXPRESSION!\n");
-        exit(1);
     }
 
     return NULL;
@@ -792,6 +832,8 @@ void exec(ast_node* n, stack_frame* frame, loop_info* loop)
         PROD0("empty node");
         return;
     }
+
+    type_check(n, frame);
 
     instr("# KIND = %d (%s)", AST_KIND(n), node_kind_NAMES[AST_KIND(n)]);
 
@@ -1697,6 +1739,14 @@ void exec(ast_node* n, stack_frame* frame, loop_info* loop)
 
                     return;
                 }
+                case '{':
+                {
+                    PROD0("; compound expression statement");
+                    exec(op[0], frame, loop);
+                    PROD0("; compound expression result");
+                    exec(op[1], frame, loop);
+                    return;
+                }
                 default:
                     error_msg(n, "Houston, we have a problem: unattended token %d\n",
                               OPER_OPERATOR(n));
@@ -1918,6 +1968,13 @@ void traverse_vars(ast_node* n, stack_frame* frame)
     if (AST_KIND(n) == k_operator)
     {
         ast_node** op = OPER_OPERANDS(n);
+
+        if (OPER_OPERATOR(n) != KFUNC && OPER_OPERATOR(n) != KPROC)
+        {
+            for (int i = 0; i < OPER_ARITY(n); i++)
+                traverse_vars(op[i], frame);
+        }
+
         if (OPER_OPERATOR(n) == KCONST)
         {
             var_list* var = check_add_var(VAR_NAME(op[0]), frame);
@@ -1950,13 +2007,18 @@ void traverse_vars(ast_node* n, stack_frame* frame)
         {
             switch (OPER_ARITY(n))
             {
-                case 2:
+                case 3:
                 {
                     var_list* var = check_add_var(VAR_NAME(op[0]), frame);
-                    var->type = op[1] ? decode_spec(op[1]) : WORD_TYPE;
+                    if (!var)
+                    {
+                        error_msg(n, "Cannot redeclare variable '%s'\n", VAR_NAME(op[0]));
+                        exit(1);
+                    }
+                    var->type = op[1] ? decode_spec(op[1]) : (op[2] ? infer_type(op[2], frame) : WORD_TYPE);
                     break;
                 }
-                case 3:
+                case 4:
                 {
                     var_list* var = check_add_var(VAR_NAME(op[0]), frame);
                     if (!var)
@@ -1983,21 +2045,16 @@ void traverse_vars(ast_node* n, stack_frame* frame)
             if (OPER_OPERATOR(n) == '=')
             {
                 var_list* var = check_add_var(VAR_NAME(op[0]), frame);
+                type_list const* value_type = decay_array_ptr(infer_type(op[1], frame));
                 if (!var)
                 {
-                    var = (var_list*) find_symbol(&frame->vars.head->header, op[0], F_DEFAULT);
+                    //var = (var_list*) find_symbol(&frame->vars.head->header, op[0], F_DEFAULT);
                 }
-
-                var->type = decay_array_ptr(infer_type(op[1], frame));
+                else
+                {
+                    var->type = value_type;
+                }
             }
-        }
-
-
-
-        if (OPER_OPERATOR(n) != KFUNC && OPER_OPERATOR(n) != KPROC)
-        {
-            for (int i = 0; i < OPER_ARITY(n); i++)
-                traverse_vars(op[i], frame);
         }
     }
 }

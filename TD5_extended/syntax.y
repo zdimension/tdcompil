@@ -80,11 +80,11 @@ stmt
     ;
 
 var_decl
-    : var type_spec_opt																{ $$ = make_node(KVAR, 2, $1, $2); }
-    | var '=' expr																	{ ast_node* assign = make_node('=', 2, $1, $3); AST_CLEAN_STACK(assign) = true; $$ = make_node(';', 2, make_node(KVAR, 2, $1, NULL), assign); }
-    | var '[' expr ']'  															{ $$ = make_node(KVAR, 3, $1, $3, NULL); }
-    | var '[' expr ']' '=' STRING 													{ $$ = make_node(KVAR, 3, $1, $3, make_ident($6)); }
-    | var '[' ']' '=' STRING														{ $$ = make_node(KVAR, 3, $1, make_number(strlen($5)), make_ident($5)); }
+    : var type_spec_opt																{ $$ = make_node(KVAR, 3, $1, $2, NULL); }
+    | var type_spec_opt '=' expr													{ ast_node* assign = make_node('=', 2, $1, $4); AST_CLEAN_STACK(assign) = true; $$ = make_node(';', 2, make_node(KVAR, 3, $1, $2, $4), assign); }
+    | var '[' expr ']'  															{ $$ = make_node(KVAR, 4, $1, $3, NULL, NULL); }
+    | var '[' expr ']' '=' STRING 													{ $$ = make_node(KVAR, 4, $1, $3, make_ident($6), NULL); }
+    | var '[' ']' '=' STRING														{ $$ = make_node(KVAR, 4, $1, make_number(strlen($5)), make_ident($5), NULL); }
     ;
 
 type_decl
@@ -164,7 +164,7 @@ basic_expr
 	| var													{ $$ = $1; }
 	| var '(' arg_list ')'									{ $$ = make_node('(', 2, $1, $3); }
 	| '(' expr ')'											{ $$ = $2; }
-	| '{' stmt_list expr '}'								{ $$ = make_node(';', 2, $2, make_node(KPRINT, 1, $3)); }
+	| '{' stmt_list expr '}'								{ $$ = make_node('{', 2, $2, $3); }
     | KIF '(' expr ')' '{' expr '}' KELSE '{' expr '}'      { $$ = make_node(KIF, 3, $3, $6, $10); }
 	;
 
@@ -177,12 +177,6 @@ postfix_expr
 
 unary_expr
     : postfix_expr					{ $$ = $1; }
-/*    | '-' postfix_expr 				{ $$ = make_node(UMINUS, 1, $2); }
-    | '~' postfix_expr 				{ $$ = make_node('~', 1, $2); }
-    | '*' postfix_expr 				{ $$ = make_node(DEREF, 1, $2); }
-    | INC postfix_expr              { $$ = make_node(INC, 1, $2); }
-    | DEC postfix_expr              { $$ = make_node(DEC, 1, $2); }
-    | '&' var ref_offset 			{ $$ = make_node(REF, 2, $2, $3); }*/
     | unary_op unary_expr			{ $$ = make_node($1, 1, $2); }
     ;
 
