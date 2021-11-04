@@ -82,23 +82,15 @@ typedef struct linked_list_header_s
     struct linked_list_header_s* next;
 } linked_list_header;
 
-typedef enum
-{
-    V_VAR,
-    V_ARRAY,
-    V_CONST
-} var_type;
-
 typedef struct
 {
     linked_list_header header;
-    var_type type;
+    struct type_list_s* type;
     union
     {
         struct // var / array
         {
             int position;
-            int size;
             struct // array
             {
                 char* initial;
@@ -137,6 +129,62 @@ typedef struct
 {
     int address;
 } loop_info;
+
+typedef enum
+{
+    T_SCALAR,
+    T_ARRAY,
+    T_POINTER,
+    T_CONST,
+    T_COMPOSITE
+} type_type;
+
+typedef struct type_list_s
+{
+    linked_list_header header;
+    type_type type;
+    union
+    {
+        int scalar_size; // always 1 for now
+        struct {
+            int array_size;
+            struct type_list_s* array_target;
+        };
+        struct type_list_s* pointer_target;
+        struct type_list_s* const_target;
+        struct
+        {
+            var_list* head, * tail;
+        } composite_members;
+    };
+} type_list;
+type_list* types_head = NULL, *types_tail = NULL;
+
+int type_size(type_list* type)
+{
+    switch(type->type)
+    {
+        case T_SCALAR:
+            return type->scalar_size;
+        case T_ARRAY:
+            return type->array_size;
+        case T_POINTER:
+            return 1;
+        case T_CONST:
+            return type_size(type->const_target);
+        case T_COMPOSITE:
+        {
+            int sum = 0;
+            for (var_list* ptr = type->composite_members.head; ptr; ptr = (var_list*) ptr->header.next)
+            {
+                sum += type_size(ptr->type);
+            }
+            return sum;
+        }
+    }
+}
+
+#define WORD_TYPE types_head
 
 int label = 0;
 
@@ -255,13 +303,13 @@ bool static_fold(ast_node** n, stack_frame* frame)
                 var_list* ptr = get_var_id(*n, frame, F_NULLABLE | F_RECURSE);
                 if (ptr)
                 {
-                    if (ptr->type == V_CONST) // allow higher-level constant resolution
+                    if (ptr->type->type == T_CONST && ptr->type->const_target == WORD_TYPE) // allow higher-level constant resolution
                     {
                         RETURN(make_number(ptr->value));
                     }
                     if (ptr->header.owner == frame) // only local mutables can be referenced
                     {
-                        if (ptr->type == V_ARRAY) // array
+                        if (ptr->type->type == T_ARRAY) // array
                         {
                             RETURN(make_number(ptr->position));
                         }
@@ -315,7 +363,7 @@ bool static_fold(ast_node** n, stack_frame* frame)
                         if (AST_KIND(op[0]) == k_ident)
                         {
                             var_list* var = get_var_id(op[0], frame, F_DEFAULT);
-                            if (var->type == V_CONST)
+                            if (var->type->type == T_CONST)
                             {
                                 error_msg(*n, "Cannot take address of constant '%s'\n", var->header.name);
                                 exit(1);
@@ -543,7 +591,7 @@ void exec(ast_node* n, stack_frame* frame, loop_info* loop)
             if (clean_stack)
                 USELESS();
             var_list* ptr = get_var_id(n, frame, F_DEFAULT);
-            if (ptr->type == V_ARRAY) // array
+            if (ptr->type->type == T_ARRAY) // array
             {
                 push_number(ptr->position);
             }
@@ -1433,7 +1481,7 @@ void nav_to_var(ast_node* op, stack_frame* frame, loop_info* loop)
     {
         instr("# navigating to %s", VAR_NAME(op));
         var_list* var = get_var_id(op, frame, F_DEFAULT);
-        if (var->type == V_CONST)
+        if (var->type->type == T_CONST)
         {
             error_msg(op,
                       "Cannot navigate to constant; this usually indicates that an internal error occurred during static analysis\n");
@@ -1545,7 +1593,7 @@ linked_list_header* add_symbol(linked_list_header** head, linked_list_header** t
  * @param vars_tail
  * @return NULL if the variable already exists
  */
-var_list* check_add_var(const char* name, int size, stack_frame* frame)
+var_list* check_add_var(const char* name, stack_frame* frame)
 {
     bool found = false;
     int i = 0;
@@ -1558,8 +1606,8 @@ var_list* check_add_var(const char* name, int size, stack_frame* frame)
                 found = true;
                 break;
             }
-            if (ptr->type != V_CONST)
-                i += ptr->size;
+            if (ptr->type->type != T_CONST)
+                i += type_size(ptr->type);
         }
     }
     if (!found)
@@ -1568,8 +1616,6 @@ var_list* check_add_var(const char* name, int size, stack_frame* frame)
         newNode->header.name = name;
         newNode->header.owner = frame;
         newNode->position = i;
-        newNode->type = V_VAR;
-        newNode->size = size;
         newNode->initial = NULL;
         return newNode;
     }
@@ -1588,17 +1634,20 @@ void traverse_vars(ast_node* n, stack_frame* frame)
         {
             if (OPER_OPERATOR(n) == '=')
             {
-                check_add_var(VAR_NAME(OPER_OPERANDS(n)[0]), 1, frame);
+                var_list* var = check_add_var(VAR_NAME(OPER_OPERANDS(n)[0]), frame);
+                var->type = WORD_TYPE;
             }
             else if (OPER_OPERATOR(n) == KCONST)
             {
-                var_list* var = check_add_var(VAR_NAME(OPER_OPERANDS(n)[0]), 1, frame);
+                var_list* var = check_add_var(VAR_NAME(OPER_OPERANDS(n)[0]), frame);
                 if (!var)
                 {
                     error_msg(n, "Cannot redeclare constant\n");
                     exit(1);
                 }
-                var->type = V_CONST;
+                var->type = calloc(1, sizeof(type_list));
+                var->type->type = T_CONST;
+                var->type->const_target = WORD_TYPE;
                 var->value = static_eval(OPER_OPERANDS(n)[1], frame);
             }
         }
@@ -1607,18 +1656,23 @@ void traverse_vars(ast_node* n, stack_frame* frame)
             switch (OPER_ARITY(n))
             {
                 case 1:
-                    check_add_var(VAR_NAME(OPER_OPERANDS(n)[0]), 1, frame);
+                {
+                    var_list* var = check_add_var(VAR_NAME(OPER_OPERANDS(n)[0]), frame);
+                    var->type = WORD_TYPE;
                     break;
+                }
                 case 3:
                 {
-                    var_list* var = check_add_var(VAR_NAME(OPER_OPERANDS(n)[0]),
-                                                         static_eval(OPER_OPERANDS(n)[1], frame), frame);
+                    var_list* var = check_add_var(VAR_NAME(OPER_OPERANDS(n)[0]), frame);
                     if (!var)
                     {
                         error_msg(n, "Cannot redeclare array\n");
                         exit(1);
                     }
-                    var->type = V_ARRAY;
+                    var->type = calloc(1, sizeof(type_list));
+                    var->type->type = T_ARRAY;
+                    var->type->array_size = static_eval(OPER_OPERANDS(n)[1], frame);
+                    var->type->array_target = WORD_TYPE;
                     ast_node* initial = OPER_OPERANDS(n)[2];
                     if (initial)
                     {
@@ -1657,7 +1711,8 @@ void traverse_funcs(ast_node* n, stack_frame* frame)
 
             for (linked_list* ptr = newNode->arglist; ptr; ptr = ptr->next)
             {
-                check_add_var(VAR_NAME(ptr->value), 1, &newNode->frame);
+                var_list* var = check_add_var(VAR_NAME(ptr->value), &newNode->frame);
+                var->type = WORD_TYPE;
             }
 
             traverse_vars(newNode->code, &newNode->frame);
@@ -1678,7 +1733,10 @@ void traverse_funcs(ast_node* n, stack_frame* frame)
 // ---------------------------------------------------------------------
 void produce_code(ast_node* n)
 {
-
+    type_list* word_type = ADD_SYM(type_list, &types_head, &types_tail);
+    word_type->header.name = "word";
+    word_type->type = T_SCALAR;
+    word_type->scalar_size = 1;
 
     instr("NEW \"generated\" 4");
     instr("START @INIT");
@@ -1693,9 +1751,9 @@ void produce_code(ast_node* n)
         printf("# POSITION  SIZE  NAME\n");
         for (var_list* ptr = global_frame.vars.head; ptr; ptr = (var_list*) ptr->header.next)
         {
-            if (ptr->type == V_CONST)
+            if (ptr->type->type == T_CONST)
                 continue;
-            printf("# %8d  %4d  %s\n", ptr->position, ptr->size, ptr->header.name);
+            printf("# %8d  %4d  %s\n", ptr->position, type_size(ptr->type), ptr->header.name);
         }
     }
 
@@ -1704,11 +1762,11 @@ void produce_code(ast_node* n)
 
     for (var_list* ptr = global_frame.vars.head; ptr; ptr = (var_list*) ptr->header.next)
     {
-        if (ptr->type == V_CONST)
+        if (ptr->type->type == T_CONST)
             continue;
-        instr("# allocate variable %s (position %d, size %d)", ptr->header.name, ptr->position, ptr->size);
+        instr("# allocate variable %s (position %d, size %d)", ptr->header.name, ptr->position, type_size(ptr->type));
         char* str = ptr->initial;
-        for (int j = 0; j < ptr->size; j++, (str && *str && str++))
+        for (int j = 0; j < type_size(ptr->type); j++, (str && *str && str++))
         {
             if (str && *str)
             {
