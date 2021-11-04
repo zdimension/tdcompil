@@ -11,6 +11,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <assert.h>
 
 #include "calc.h"
 #include "syntax.h"
@@ -123,7 +124,7 @@ typedef struct func_list_s
     call_site_list* callsites;
     stack_frame frame;
 } func_list;
-func_list * funcs_head = NULL, * funcs_tail = NULL;
+func_list* funcs_head = NULL, * funcs_tail = NULL;
 
 typedef struct
 {
@@ -146,7 +147,8 @@ typedef struct type_list_s
     union
     {
         int scalar_size; // always 1 for now
-        struct {
+        struct
+        {
             int array_size;
             struct type_list_s* array_target;
         };
@@ -158,11 +160,11 @@ typedef struct type_list_s
         } composite_members;
     };
 } type_list;
-type_list* types_head = NULL, *types_tail = NULL;
+type_list* types_head = NULL, * types_tail = NULL;
 
 int type_size(type_list* type)
 {
-    switch(type->type)
+    switch (type->type)
     {
         case T_SCALAR:
             return type->scalar_size;
@@ -181,6 +183,38 @@ int type_size(type_list* type)
             }
             return sum;
         }
+    }
+}
+
+const char* type_display(type_list* type)
+{
+    if (type->header.name)
+        return type->header.name;
+
+    switch (type->type)
+    {
+        case T_SCALAR:
+            return "word";
+        case T_ARRAY:
+        {
+            char* buf = malloc(256);
+            sprintf(buf, "%s[%d]", type_display(type->array_target), type->array_size);
+            return buf;
+        }
+        case T_POINTER:
+        {
+            char* buf = malloc(256);
+            sprintf(buf, "%s*", type_display(type->pointer_target));
+            return buf;
+        }
+        case T_CONST:
+        {
+            char* buf = malloc(256);
+            sprintf(buf, "%s const", type_display(type->const_target));
+            return buf;
+        }
+        case T_COMPOSITE:
+            return "<anonymous type>";
     }
 }
 
@@ -213,6 +247,12 @@ typedef enum
     F_RECURSE = 2
 } find_flags;
 
+_Noreturn void missing_symbol(ast_node* node, const char* name)
+{
+    error_msg(node, "SYMBOL NOT FOUND: %s\n", name);
+    exit(1);
+}
+
 linked_list_header* find_symbol(linked_list_header* list, ast_node* node, find_flags flags)
 {
     const char* name = VAR_NAME(node);
@@ -223,12 +263,11 @@ linked_list_header* find_symbol(linked_list_header* list, ast_node* node, find_f
             return ptr;
         }
     }
-    if (list && (flags & F_RECURSE) && ((stack_frame*)list->owner)->parent)
-        return find_symbol(&((stack_frame*)list->owner)->parent->vars.head->header, node, flags);
+    if (list && (flags & F_RECURSE) && ((stack_frame*) list->owner)->parent)
+        return find_symbol(&((stack_frame*) list->owner)->parent->vars.head->header, node, flags);
     if (flags & F_NULLABLE)
         return NULL;
-    error_msg(NULL, "SYMBOL NOT FOUND: %s\n", name);
-    exit(1);
+    missing_symbol(NULL, name);
 }
 
 #define FIND_SYM(type, list, name, flags) ((type*)find_symbol(&((list)->header), name, flags))
@@ -284,6 +323,177 @@ void pop(int n)
 }
 
 #define RETURN(x) do{*n = x; return true;}while(0)
+#define IS_POINTER(n) ((n)->type == T_POINTER || (n)->type == T_ARRAY)
+
+#define NEW_TYPE() (calloc(1, sizeof(type_list)))
+
+type_list* decay_array_ptr(type_list* t)
+{
+    if (t->type != T_ARRAY)
+        return t;
+
+    type_list* ret = NEW_TYPE();
+    ret->type = T_POINTER;
+    ret->pointer_target = t->array_target;
+
+    return ret;
+}
+
+type_list* infer_type(ast_node* n, stack_frame* frame)
+{
+    if (!n)
+        return NULL;
+
+    switch (AST_KIND(n))
+    {
+        case k_number:
+            return WORD_TYPE;
+        case k_ident:
+            if (frame)
+            {
+                var_list* ptr = get_var_id(n, frame, F_NULLABLE | F_RECURSE);
+                if (!ptr)
+                {
+                    missing_symbol(n, VAR_NAME(n));
+                }
+                if (ptr->type->type == T_CONST || ptr->header.owner == frame)
+                {
+                    return ptr->type;
+                }
+            }
+            missing_symbol(n, VAR_NAME(n));
+        case k_operator:
+        {
+            ast_node** op = OPER_OPERANDS(n);
+            switch (OPER_OPERATOR(n))
+            {
+                case '+':
+                {
+                    type_list* left = decay_array_ptr(infer_type(op[0], frame));
+                    type_list* right = decay_array_ptr(infer_type(op[1], frame));
+                    if (left->type == T_POINTER && right->type == T_POINTER)
+                    {
+                        error_msg(n, "Cannot add two pointers\n");
+                        exit(1);
+                    }
+                    if (left->type == T_POINTER && right->type == T_SCALAR)
+                        return left;
+                    if (left->type == T_SCALAR && right->type == T_POINTER)
+                        return right;
+                    if (left->type == T_SCALAR && right->type == T_SCALAR)
+                        return left;
+                    error_msg(n, "Cannot add types %s and %s\n", type_display(left), type_display(right));
+                    exit(1);
+                }
+                case '-':
+                {
+                    type_list* left = decay_array_ptr(infer_type(op[0], frame));
+                    type_list* right = decay_array_ptr(infer_type(op[1], frame));
+                    if (left->type == T_POINTER && right->type == T_SCALAR)
+                        return left;
+                    if (left->type == T_SCALAR && right->type == T_SCALAR)
+                        return left;
+                    error_msg(n, "Cannot subtract types %s and %s\n", type_display(left), type_display(right));
+                    exit(1);
+                }
+                case UMINUS:
+                case '~':
+                {
+                    type_list* left = infer_type(op[0], frame);
+                    if (left->type == T_SCALAR)
+                        return left;
+                    error_msg(n, "Cannot perform arithmetic operation '%c' on non-numeric type %s\n", OPER_OPERATOR(n),
+                              type_display(left));
+                    exit(1);
+                }
+                case INC:
+                case DEC:
+                {
+                    type_list* left = infer_type(op[0], frame);
+                    if (left->type == T_SCALAR || left->type == T_POINTER)
+                        return left;
+                    error_msg(n, "Cannot perform arithmetic operation '%c' on non-numeric type %s\n", OPER_OPERATOR(n),
+                              type_display(left));
+                    exit(1);
+                }
+                case '*':
+                case '/':
+                {
+                    type_list* left = infer_type(op[0], frame);
+                    type_list* right = infer_type(op[1], frame);
+                    if (left->type == T_SCALAR && right->type == T_SCALAR)
+                        return left;
+                    error_msg(n, "Cannot perform arithmetic operation '%c' on types %s and %s\n", OPER_OPERATOR(n),
+                              type_display(left), type_display(right));
+                    exit(1);
+                }
+                case '<':
+                case '>':
+                case GE:
+                case LE:
+                case NE:
+                case EQ:
+                {
+                    type_list* left = decay_array_ptr(infer_type(op[0], frame));
+                    type_list* right = decay_array_ptr(infer_type(op[1], frame));
+                    if (left != right)
+                    {
+                        error_msg(n, "Cannot perform arithmetic comparison '%c' on different types %s and %s",
+                                  OPER_OPERATOR(n), type_display(left), type_display(right));
+                        exit(1);
+                    }
+                    if (left->type == T_SCALAR || left->type == T_POINTER)
+                        return left;
+                    error_msg(n, "Cannot perform arithmetic comparison '%c' on non-numeric types %s and %s\n",
+                              OPER_OPERATOR(n), type_display(left), type_display(right));
+                    exit(1);
+                }
+                case AND:
+                case OR:
+                    // todo: check that both are bools
+                    return WORD_TYPE; // future bool?
+                case '=':
+                    return infer_type(op[0], frame);
+                case REF:
+                {
+                    type_list* ret = NEW_TYPE();
+                    ret->type = T_POINTER;
+                    if (!(ret->pointer_target = infer_type(op[0], frame)))
+                    {
+                        error_msg(n, "Cannot determine type of referenced value\n");
+                        exit(1);
+                    }
+                    return ret;
+                }
+                case DEREF:
+                {
+                    type_list* inner = infer_type(op[0], frame);
+                    if (!inner)
+                        break;
+                    if (inner->type != T_POINTER)
+                    {
+                        info_msg(n, "Dereferencing a non-pointer value\n");
+                        break;
+                    }
+                    return inner->pointer_target;
+                }
+                case '(':
+                    return WORD_TYPE; // functions can only return numbers for now, todo
+            }
+            break;
+        }
+        case k_list:
+            break;
+    }
+
+    if (1)
+    {
+        error_msg(n, "CANNOT INFER TYPE OF EXPRESSION!\n");
+        exit(1);
+    }
+
+    return NULL;
+}
 
 bool static_fold(ast_node** n, stack_frame* frame)
 {
@@ -303,7 +513,8 @@ bool static_fold(ast_node** n, stack_frame* frame)
                 var_list* ptr = get_var_id(*n, frame, F_NULLABLE | F_RECURSE);
                 if (ptr)
                 {
-                    if (ptr->type->type == T_CONST && ptr->type->const_target == WORD_TYPE) // allow higher-level constant resolution
+                    if (ptr->type->type == T_CONST &&
+                        ptr->type->const_target == WORD_TYPE) // allow higher-level constant resolution
                     {
                         RETURN(make_number(ptr->value));
                     }
@@ -373,7 +584,13 @@ bool static_fold(ast_node** n, stack_frame* frame)
                         else if (AST_KIND(op[0]) == k_number)
                         {
                             ptr = NUMBER_VALUE(op[0]);
-                        }else if (AST_KIND(op[0]) == k_operator && OPER_OPERATOR(op[0]) == DEREF){ast_node* inner = OPER_OPERANDS(op[0])[0];static_fold(&inner, frame);RETURN(inner);}
+                        }
+                        else if (AST_KIND(op[0]) == k_operator && OPER_OPERATOR(op[0]) == DEREF)
+                        {
+                            ast_node* inner = OPER_OPERANDS(op[0])[0];
+                            static_fold(&inner, frame);
+                            RETURN(inner);
+                        }
 
                         if (op[1] == NULL)
                         {
@@ -1630,25 +1847,31 @@ void traverse_vars(ast_node* n, stack_frame* frame)
 
     if (AST_KIND(n) == k_operator)
     {
-        if (OPER_ARITY(n) > 0 && OPER_OPERANDS(n)[0] && AST_KIND(OPER_OPERANDS(n)[0]) == k_ident)
+        ast_node** op = OPER_OPERANDS(n);
+        if (OPER_ARITY(n) > 0 && OPER_OPERANDS(n)[0] && AST_KIND(op[0]) == k_ident)
         {
             if (OPER_OPERATOR(n) == '=')
             {
-                var_list* var = check_add_var(VAR_NAME(OPER_OPERANDS(n)[0]), frame);
-                var->type = WORD_TYPE;
+                var_list* var = check_add_var(VAR_NAME(op[0]), frame);
+                if (!var)
+                {
+                    var = (var_list*) find_symbol(&frame->vars.head->header, op[0], F_DEFAULT);
+                }
+
+                var->type = decay_array_ptr(infer_type(op[1], frame));
             }
             else if (OPER_OPERATOR(n) == KCONST)
             {
-                var_list* var = check_add_var(VAR_NAME(OPER_OPERANDS(n)[0]), frame);
+                var_list* var = check_add_var(VAR_NAME(op[0]), frame);
                 if (!var)
                 {
                     error_msg(n, "Cannot redeclare constant\n");
                     exit(1);
                 }
-                var->type = calloc(1, sizeof(type_list));
+                var->type = NEW_TYPE();
                 var->type->type = T_CONST;
                 var->type->const_target = WORD_TYPE;
-                var->value = static_eval(OPER_OPERANDS(n)[1], frame);
+                var->value = static_eval(op[1], frame);
             }
         }
         if (OPER_OPERATOR(n) == KVAR)
@@ -1657,23 +1880,23 @@ void traverse_vars(ast_node* n, stack_frame* frame)
             {
                 case 1:
                 {
-                    var_list* var = check_add_var(VAR_NAME(OPER_OPERANDS(n)[0]), frame);
+                    var_list* var = check_add_var(VAR_NAME(op[0]), frame);
                     var->type = WORD_TYPE;
                     break;
                 }
                 case 3:
                 {
-                    var_list* var = check_add_var(VAR_NAME(OPER_OPERANDS(n)[0]), frame);
+                    var_list* var = check_add_var(VAR_NAME(op[0]), frame);
                     if (!var)
                     {
                         error_msg(n, "Cannot redeclare array\n");
                         exit(1);
                     }
-                    var->type = calloc(1, sizeof(type_list));
+                    var->type = NEW_TYPE();
                     var->type->type = T_ARRAY;
-                    var->type->array_size = static_eval(OPER_OPERANDS(n)[1], frame);
+                    var->type->array_size = static_eval(op[1], frame);
                     var->type->array_target = WORD_TYPE;
-                    ast_node* initial = OPER_OPERANDS(n)[2];
+                    ast_node* initial = op[2];
                     if (initial)
                     {
                         var->initial = VAR_NAME(initial);
@@ -1686,7 +1909,7 @@ void traverse_vars(ast_node* n, stack_frame* frame)
         if (OPER_OPERATOR(n) != KFUNC && OPER_OPERATOR(n) != KPROC)
         {
             for (int i = 0; i < OPER_ARITY(n); i++)
-                traverse_vars(OPER_OPERANDS(n)[i], frame);
+                traverse_vars(op[i], frame);
         }
     }
 }
@@ -1733,6 +1956,8 @@ void traverse_funcs(ast_node* n, stack_frame* frame)
 // ---------------------------------------------------------------------
 void produce_code(ast_node* n)
 {
+    optimize = true;
+
     type_list* word_type = ADD_SYM(type_list, &types_head, &types_tail);
     word_type->header.name = "word";
     word_type->type = T_SCALAR;
@@ -1748,12 +1973,13 @@ void produce_code(ast_node* n)
 
     {
         printf("# Memory map\n");
-        printf("# POSITION  SIZE  NAME\n");
+        printf("# POSITION  SIZE  NAME        TYPE\n");
         for (var_list* ptr = global_frame.vars.head; ptr; ptr = (var_list*) ptr->header.next)
         {
             if (ptr->type->type == T_CONST)
                 continue;
-            printf("# %8d  %4d  %s\n", ptr->position, type_size(ptr->type), ptr->header.name);
+            printf("# %8d  %4d  %-10s  %-10s\n", ptr->position, type_size(ptr->type), ptr->header.name,
+                   type_display(ptr->type));
         }
     }
 
