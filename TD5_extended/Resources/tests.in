@@ -1,19 +1,9 @@
 {
-    # parameters
-    var x = 0;
-    var y = 1;
-    var n = 9;
+	func fibo(x)
+	{
+		if (x <= 1) return x;
+		return fibo(x - 1) + fibo(x - 2);
+	}
 
-    # fibonacci
-    n = n - 1;
-    while (n)
-    {
-        var tmp = x + y;
-        x = y;
-        y = tmp;
-        n = n - 1;
-    }
-
-    # output
-    print y;
+	print fibo(9);
 }
