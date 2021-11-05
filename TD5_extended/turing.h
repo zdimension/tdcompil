@@ -2,7 +2,7 @@
 #include "calc.h"
 #include "syntax.h"
 
-#define INT_WIDTH 8
+#define INT_WIDTH 16
 
 // ----------------------------------------------------------------------
 //		Utilities
