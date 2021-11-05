@@ -68,7 +68,7 @@ linked_list_header* find_symbol(linked_list_header* list, ast_node* node)
             return ptr;
         }
     }
-    if (list && ((stack_frame*) list->owner)->parent)
+    if (list && list->owner && ((stack_frame*) list->owner)->parent)
         return find_symbol(&((stack_frame*) list->owner)->parent->vars.head->header, node);
     missing_symbol(NULL, name);
 }

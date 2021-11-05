@@ -242,17 +242,18 @@ void eval(ast_node* n, stack_frame* frame);
  */
 void nav_to_var(ast_node* op, stack_frame* frame)
 {
-    if (AST_KIND(op) == k_ident)
+    ast_node* pos = AST_INFERRED_POS(op);
+
+    if (!pos)
     {
-        instr("# navigating to %s", VAR_NAME(op));
-        var_list* var = get_var_id(op, frame, F_DEFAULT);
-        if (var->type->type == T_CONST)
-        {
-            error_msg(op,
-                      "Cannot navigate to constant; this usually indicates that an internal error occurred during static analysis\n");
-            exit(1);
-        }
-        int vid = var_position(var);
+        error_msg(op, "Expected lvalue for assignment\n");
+        exit(1);
+    }
+
+    if (AST_KIND(pos) == k_number)
+    {
+        int vid = NUMBER_VALUE(pos);
+        instr("# navigating to %d", vid);
         while (vid-- > 0)
         {
             instr("FROM @%d", ++label);
@@ -264,15 +265,10 @@ void nav_to_var(ast_node* op, stack_frame* frame)
             instr("'/,'/|'[,'_,'_ S,S,S,S @%d", label + 1);
         }
     }
-    else if (AST_KIND(op) == k_operator && OPER_OPERATOR(op) == DEREF)
-    {
-        eval(OPER_OPERANDS(op)[0], frame);
-        deref();
-    }
     else
     {
-        error_msg(op, "Expected lvalue for assignment\n");
-        exit(1);
+        eval(pos, frame);
+        deref();
     }
 }
 

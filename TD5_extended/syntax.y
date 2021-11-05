@@ -32,7 +32,7 @@ void yyerror(const char *s);
 //                      Tokens
 %token  <value>         NUMBER
 %token  <var>           IDENT STRING
-%token                  KWHILE KIF KPRINT KELSE KREAD KFOR KDO KVAR KFUNC KRETURN KPROC KBREAK KCONTINUE KCONST KTYPE KTYPEOF KSIZEOF
+%token                  KWHILE KIF KPRINT KELSE KREAD KFOR KDO KVAR KFUNC KRETURN KPROC KBREAK KCONTINUE KCONST KTYPE KTYPEOF KSIZEOF KSTRUCT
 %token '+' '-' '*' '/' GE LE EQ NE '>' '<' REF DEREF APL AMN AML ADV INC DEC AND OR
 %token UMINUS VDECL SCOPE
 //                       Precedence rules
@@ -46,6 +46,7 @@ void yyerror(const char *s);
 %type   <node>		stmt expr stmt_list var expr_opt basic_expr postfix_expr unary_expr mult_expr add_expr rel_expr eq_expr assign_expr
 %type	<node> 		l_and_expr l_or_expr stmt_list_opt expr_discard expr_discard_opt
 %type 	<node>		param_list param_list_ne arg_list arg_list_ne var_decl var_decl_list type_spec_opt type_spec type_decl type_decl_list
+%type	<node>		struct_field struct_field_list
 %type   <chr>		aug_assign func_type unary_op
 
 %%
@@ -98,11 +99,21 @@ type_spec_opt
 	;
 
 type_spec
-	: var							{ $$ = $1; }
-	| type_spec '*'					{ $$ = make_node('*', 1, $1); }
-	| type_spec KCONST				{ $$ = make_node(KCONST, 1, $1); }
-	| type_spec '[' expr ']'		{ $$ = make_node('[', 2, $1, $3); }
-	| KTYPEOF '(' expr ')'			{ $$ = make_node(KTYPEOF, 1, $3); }
+	: var								{ $$ = $1; }
+	| type_spec '*'						{ $$ = make_node('*', 1, $1); }
+	| type_spec KCONST					{ $$ = make_node(KCONST, 1, $1); }
+	| type_spec '[' expr ']'			{ $$ = make_node('[', 2, $1, $3); }
+	| KTYPEOF '(' expr ')'				{ $$ = make_node(KTYPEOF, 1, $3); }
+	| KSTRUCT '{' struct_field_list '}'	{ $$ = make_node(KSTRUCT, 1, $3); }
+	;
+
+struct_field
+	: var ':' type_spec ';'				{ $$ = make_node(':', 2, $1, $3); }
+	;
+
+struct_field_list
+	: struct_field						{ $$ = $1; }
+	| struct_field_list struct_field	{ $$ = make_node(';', 2, $1, $2); }
 	;
 
 var_decl_list
@@ -175,6 +186,7 @@ postfix_expr
     | postfix_expr INC              { $$ = make_node(INC, 2, $1, NULL); }
     | postfix_expr DEC              { $$ = make_node(DEC, 2, $1, NULL); }
     | postfix_expr '[' expr ']'   	{ $$ = make_node(DEREF, 1, make_node('+', 2, $1, $3)); }
+    | postfix_expr '.' var			{ $$ = make_node('.', 2, $1, $3); }
     ;
 
 unary_expr

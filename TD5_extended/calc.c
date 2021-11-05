@@ -19,6 +19,7 @@
   AST_KIND(p)   = kind;              \
   AST_CLEAN_STACK(p) = false;        \
   AST_INFERRED(p) = NULL;            \
+  AST_INFERRED_POS(p) = NULL;        \
 }
 
 extern int yylineno;                    // line number defined by lex

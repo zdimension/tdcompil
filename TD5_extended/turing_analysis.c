@@ -6,6 +6,31 @@
 #define NEW_TYPE() (calloc(1, sizeof(type_list)))
 #define WORD_TYPE types_head
 
+/**
+ * Adds an item to a linked list
+ */
+#define ADD_SYM(type, head, tail) ((type*) add_symbol((linked_list_header**)(head), (linked_list_header**)(tail), sizeof(type)))
+// Internal.
+linked_list_header* add_symbol(linked_list_header** head, linked_list_header** tail, size_t size)
+{
+    linked_list_header* newNode = malloc(size);
+    newNode->next = NULL;
+    if (*head == NULL)
+    {
+        newNode->id = 0;
+        *head = newNode;
+        *tail = newNode;
+    }
+    else
+    {
+        newNode->id = (*tail)->id + 1;
+        (*tail)->next = newNode;
+        *tail = newNode;
+    }
+    return newNode;
+}
+
+
 type_list* check_add_type(const char* name);
 
 /**
@@ -147,6 +172,14 @@ type_list const* infer_type(ast_node* n)
     exit(1);
 }
 
+type_list const* make_pointer(type_list const* target)
+{
+    type_list* ret = NEW_TYPE();
+    ret->type = T_POINTER;
+    ret->pointer_target = target;
+    return ret;
+}
+
 /**
  * @return The pointer type corresponding to the specified array type. If a non-array type is passed, will do nothing
  * @example The array type word[10] decays to the pointer type word*
@@ -156,11 +189,7 @@ type_list const* decay_array_ptr(type_list const* t)
     if (t->type != T_ARRAY)
         return t;
 
-    type_list* ret = NEW_TYPE();
-    ret->type = T_POINTER;
-    ret->pointer_target = t->array_target;
-
-    return ret;
+    return make_pointer(t->array_target);
 }
 
 /**
@@ -175,33 +204,77 @@ type_list const* decode_spec(ast_node* spec, stack_frame* frame)
     }
     else
     {
+        ast_node** op = OPER_OPERANDS(spec);
         switch (OPER_OPERATOR(spec))
         {
             case '*':
             {
-                type_list* ret = NEW_TYPE();
-                ret->type = T_POINTER;
-                ret->pointer_target = decode_spec(OPER_OPERANDS(spec)[0], frame);
-                return ret;
+                return make_pointer( decode_spec(op[0], frame));
             }
             case KCONST:
             {
                 type_list* ret = NEW_TYPE();
                 ret->type = T_CONST;
-                ret->const_target = decode_spec(OPER_OPERANDS(spec)[0], frame);
+                ret->const_target = decode_spec(op[0], frame);
                 return ret;
             }
             case '[':
             {
                 type_list* ret = NEW_TYPE();
                 ret->type = T_ARRAY;
-                ret->array_target = decode_spec(OPER_OPERANDS(spec)[0], frame);
-                ret->array_size = static_eval(OPER_OPERANDS(spec)[1], frame);
+                ret->array_target = decode_spec(op[0], frame);
+                ret->array_size = static_eval(op[1], frame);
                 return ret;
             }
             case KTYPEOF:
-                analysis(&OPER_OPERANDS(spec)[0], frame);
-                return infer_type(OPER_OPERANDS(spec)[0]);
+                analysis(&op[0], frame);
+                return infer_type(op[0]);
+            case KSTRUCT:
+            {
+                type_list* ret = NEW_TYPE();
+                ret->type = T_COMPOSITE;
+                ast_node* first = op[0], * next = NULL;
+                while (first)
+                {
+                    if (OPER_OPERATOR(first) == ':')
+                    {
+                        const char* name = VAR_NAME(OPER_OPERANDS(first)[0]);
+                        type_list const* type = decode_spec(OPER_OPERANDS(first)[1], frame);
+
+                        int pos = 0;
+                        for (var_list* ptr = ret->composite_members.head; ptr; ptr = (var_list*)ptr->header.next)
+                        {
+                            if (!strcmp(ptr->header.name, name))
+                            {
+                                error_msg(first, "Duplicate member '%s'\n", name);
+                                exit(1);
+                            }
+
+                        }
+
+                        if (ret->composite_members.tail)
+                        {
+                            pos = ret->composite_members.tail->position + type_size(ret->composite_members.tail->type);
+                        }
+
+                        var_list* new = ADD_SYM(var_list, &ret->composite_members.head, &ret->composite_members.tail);
+                        new->header.name = name;
+                        new->header.owner = NULL;
+                        new->position = pos;
+                        new->initial = NULL;
+                        new->type = type;
+
+                        first = next;
+                        next = NULL;
+                    }
+                    else
+                    {
+                        next = OPER_OPERANDS(first)[1];
+                        first = OPER_OPERANDS(first)[0];
+                    }
+                }
+                return ret;
+            }
         }
     }
 
@@ -209,30 +282,7 @@ type_list const* decode_spec(ast_node* spec, stack_frame* frame)
     exit(1);
 }
 
-// Internal.
-linked_list_header* add_symbol(linked_list_header** head, linked_list_header** tail, size_t size)
-{
-    linked_list_header* newNode = malloc(size);
-    newNode->next = NULL;
-    if (*head == NULL)
-    {
-        newNode->id = 0;
-        *head = newNode;
-        *tail = newNode;
-    }
-    else
-    {
-        newNode->id = (*tail)->id + 1;
-        (*tail)->next = newNode;
-        *tail = newNode;
-    }
-    return newNode;
-}
 
-/**
- * Adds an item to a linked list
- */
-#define ADD_SYM(type, head, tail) ((type*) add_symbol((linked_list_header**)(head), (linked_list_header**)(tail), sizeof(type)))
 
 /**
  * @return A new type instance with the specified name, or NULL if a type with the same name already exists
@@ -290,7 +340,14 @@ var_list* check_add_var(const char* name, stack_frame* frame, type_list const* t
 
 
 #define RETURN(x, type) do{*n = x; AST_INFERRED(*n) = type; return;}while(0)
+#define RETURN_VAL(x) do{*n = x; return;}while(0)
 #define SET_TYPE(type) do {AST_INFERRED(*n) = type; return;}while(0)
+
+ast_node* set_inferred_type(ast_node* n, type_list const* type)
+{
+    AST_INFERRED(n) = type;
+    return n;
+}
 
 /**
  * Static analysis + type checking + constant folding
@@ -299,6 +356,9 @@ void analysis(ast_node** n, stack_frame* frame)
 {
     if (!*n)
         return;
+
+   /* if (AST_INFERRED_POS(*n) != *n)
+        analysis(&AST_INFERRED_POS(*n), frame);*/
 
     switch (AST_KIND(*n))
     {
@@ -318,8 +378,11 @@ void analysis(ast_node** n, stack_frame* frame)
                 {
                     if (ptr->type->type == T_ARRAY) // referencing an array directly is equivalent to &array[0]
                     {
-                        RETURN(make_number(var_position(ptr)), decay_array_ptr(ptr->type));
+                        ast_node* ret = set_inferred_type(make_number(var_position(ptr)), decay_array_ptr(ptr->type));
+                        AST_INFERRED_POS(ret) = ret;
+                        RETURN_VAL(ret);
                     }
+                    AST_INFERRED_POS(*n) = set_inferred_type(make_number(var_position(ptr)), make_pointer(ptr->type));
                     SET_TYPE(ptr->type);
                 }
                 ptr = get_var_id(*n, frame, F_RECURSE);
@@ -341,7 +404,22 @@ void analysis(ast_node** n, stack_frame* frame)
 
             switch (OPER_OPERATOR(*n))
             {
-                /* Expressions */
+                case '.':
+                {
+                    analysis(&op[0], frame);
+                    type_list const* ltype = infer_type(op[0]);
+                    if (ltype->type != T_COMPOSITE)
+                    {
+                        error_msg(*n, "Member access on non-composite type\n");
+                        exit(1);
+                    }
+                    var_list* member = FIND_SYM(var_list, ltype->composite_members.head, op[1]);
+                    AST_INFERRED_POS(*n) = set_inferred_type(
+                            make_node('+', 2, op[0]->inferred_position, make_number(member->position)),
+                            make_pointer(member->type));
+                    analysis(&AST_INFERRED_POS(*n), frame);
+                    SET_TYPE(member->type);
+                }
                 case KSIZEOF:
                 {
                     if (frame)
@@ -540,43 +618,14 @@ void analysis(ast_node** n, stack_frame* frame)
                 }
                 case REF:
                 {
-                    if (frame)
+                    ast_node* pos = AST_INFERRED_POS(op[0]);
+                    if (!pos)
                     {
-                        int ptr;
-                        type_list* type;
-                        if (AST_KIND(op[0]) == k_ident)
-                        {
-                            var_list* var = get_var_id(op[0], frame, F_DEFAULT);
-                            if (var->type->type == T_CONST)
-                            {
-                                error_msg(*n, "Cannot take address of constant '%s'\n", var->header.name);
-                                exit(1);
-                            }
-                            ptr = var_position(var);
-                            type = NEW_TYPE();
-                            type->type = T_POINTER;
-                            type->pointer_target = var->type;
-                        }
-                        else if (AST_KIND(op[0]) == k_operator && OPER_OPERATOR(op[0]) == DEREF)
-                        {
-                            ast_node* inner = OPER_OPERANDS(op[0])[0];
-                            analysis(&inner, frame);
-                            RETURN(inner, AST_INFERRED(inner));
-                        }
-                        else
-                        {
-                            error_msg(*n, "Cannot take address of expression\n");
-                            exit(1);
-                        }
-
-                        if (op[1] && o[1].is_num)
-                        {
-                            ptr += o[1].value;
-                        }
-
-                        RETURN(make_number(ptr), type);
+                        error_msg(*n, "Cannot take address of expression\n");
+                        exit(1);
                     }
-                    break;
+                    *n = pos;
+                    return;
                 }
                 case '+':
                 {
@@ -786,6 +835,7 @@ void analysis(ast_node** n, stack_frame* frame)
                         info_msg(*n, "Dereferencing a non-pointer value\n");
                         break;
                     }
+                    AST_INFERRED_POS(*n) = op[0];
                     SET_TYPE(inner->pointer_target);
                 }
                 case KFOR:

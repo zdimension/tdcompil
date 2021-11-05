@@ -1,9 +1,7 @@
 {
-	func fibo(x)
-	{
-		if (x <= 1) return x;
-		return fibo(x - 1) + fibo(x - 2);
-	}
+	type point = struct { x: word; y: word; };
 
-	print fibo(9);
+	var p: point;
+	p.x = 5;
+	p.y = 9;
 }

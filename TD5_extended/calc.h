@@ -40,18 +40,20 @@ ENUM_DEFINE(node_kind, KINDS)
 //		AST node type definition
 // ----------------------------------------------------------------------
 
-typedef struct
+typedef struct ast_node_s
 {
     int lineno;                   // source line number of the node
     enum node_kind kind;        // kind of node
     bool clean_stack;
     struct type_list_s const* inferred_type;
+    struct ast_node_s* inferred_position;
 } ast_node;
 
 #define AST_LINENO(p)        (((ast_node *)(p))->lineno)
 #define AST_KIND(p)        (((ast_node *)(p))->kind)
 #define AST_CLEAN_STACK(p)        (((ast_node *) (p))->clean_stack)
 #define AST_INFERRED(p)         (((ast_node*)(p))->inferred_type)
+#define AST_INFERRED_POS(p)         (((ast_node*)(p))->inferred_position)
 
 // ----------------------------------------------------------------------
 //		Idents stuff
