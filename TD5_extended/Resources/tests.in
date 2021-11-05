@@ -1,7 +1,4 @@
 {
-	type point = struct { x: word; y: word; };
-
-	var p: point;
-	p.x = 5;
-	p.y = 9;
+	var x = 5;
+	var y = x >> 7;
 }

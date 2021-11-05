@@ -495,6 +495,81 @@ void exec(ast_node* n, stack_frame* frame, loop_info* loop)
                     }
                     return;
                 }
+                case SHL:
+                {
+                    PROD0("shl");
+                    eval(op[0], frame);
+                    eval(op[1], frame);
+                    if (clean_stack)
+                    {
+                        pop(2);
+                        USELESS();
+                    }
+                    instr("FROM @%d", ++label);
+                    instr("'[,'/,'_,'_ '[,'_,'_,'_ S,L,S,S @%d", ++label);
+                    instr("FROM @%d", label);
+                    instr("'[,'0|'1,'_,'_ '[,'_,'0|'1,'_ S,L,L,S");
+                    instr("'[,'/,'_,'_ S,L,S,S @%d", ++label);
+                    instr("FROM @%d", label);
+                    instr("'[,'0|'1,'_,'_ '[,'_,'_,'0|'1 S,L,S,L");
+                    instr("'[,'/|'[,'_,'_ S,R,R,S @%d", ++label);
+                    int no_carry = label;
+                    int carry = ++label;
+                    int copy = ++label;
+                    instr("FROM @%d", no_carry);
+                    instr("'[,'_,'1,'_ '[,'0,'0,'_ S,R,S,S");
+                    instr("'[,'_,'0,'_ '[,'_,'1,'_ S,S,R,S @%d", carry);
+                    instr("FROM @%d", carry);
+                    instr("'[,'_,'1,'_ '[,'0,'0,'_ S,R,L,S @%d", ++label);
+                    instr("'[,'_,'0,'_ '[,'_,'1,'_ S,S,R,S");
+                    instr("'[,'_,'_,'_ S,S,L,R @%d", copy);
+                    instr("FROM @%d", label);
+                    instr("'[,'_,'0|'1,'_ S,S,L,S");
+                    instr("'[,'_,'_,'_ S,S,R,S @%d", no_carry);
+                    instr("FROM @%d", copy);
+                    instr("'[,'_,'1,'0|'1 '[,'0|'1,'_,'_ S,R,L,R");
+                    instr("'[,'/,'1,'0|'1 '[,'/,'_,'_ S,S,L,R");
+                    instr("'[,'/,'_,'_ S,S,S,S @%d", label + 1);
+                    return;
+                }
+                case SHR:
+                {
+                    PROD0("shr");
+                    eval(op[0], frame);
+                    eval(op[1], frame);
+                    if (clean_stack)
+                    {
+                        pop(2);
+                        USELESS();
+                    }
+                    instr("FROM @%d", ++label);
+                    instr("'[,'/,'_,'_ '[,'_,'_,'_ S,L,S,S @%d", ++label);
+                    instr("FROM @%d", label);
+                    instr("'[,'0|'1,'_,'_ '[,'_,'0|'1,'_ S,L,L,S");
+                    instr("'[,'/,'_,'_ S,L,S,S @%d", ++label);
+                    instr("FROM @%d", label);
+                    instr("'[,'0|'1,'_,'_ '[,'_,'_,'0|'1 S,L,S,L");
+                    instr("'[,'/|'[,'_,'_ S,R,R,R @%d", ++label);
+                    int no_carry = label;
+                    int carry = ++label;
+                    int copy = ++label;
+                    instr("FROM @%d", no_carry);
+                    instr("'[,'_,'1,'0|'1 '[,'_,'0,'_ S,S,S,R");
+                    instr("'[,'_,'0,'0|'1 '[,'_,'1,'0|'1 S,S,R,S @%d", carry);
+                    instr("FROM @%d", carry);
+                    instr("'[,'_,'1,'0|'1 '[,'_,'0,'_ S,S,L,S @%d", ++label);
+                    instr("'[,'_,'0,'0|'1 '[,'_,'1,'0|'1 S,S,R,S");
+                    instr("'[,'_,'_,'0|'1 '[,'0|'1,'_,'_ S,R,L,R @%d", copy);
+                    instr("FROM @%d", label);
+                    instr("'[,'_,'0|'1,'_ S,S,L,S");
+                    instr("'[,'_,'_,'_ S,S,R,R @%d", no_carry);
+                    instr("FROM @%d", copy);
+                    instr("'[,'_,'1,'0|'1 '[,'0|'1,'_,'_ S,R,L,R");
+                    instr("'[,'_,'1,'_ '[,'0,'_,'_ S,R,L,S");
+                    instr("'[,'/,'1,'_ '[,'/,'_,'_ S,S,L,S @%d", label + 1);
+                    instr("'[,'/,'_,'_ S,S,S,S @%d", label + 1);
+                    return;
+                }
                 case '+':
                 {
                     PROD0("add");

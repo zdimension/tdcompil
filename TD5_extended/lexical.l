@@ -54,6 +54,8 @@
 "--" { return DEC; }
 "&&" { return AND; }
 "||" { return OR; }
+"<<" { return SHL; }
+">>" { return SHR; }
 
 "print"         		{ return KPRINT; }
 "while" { return KWHILE; }

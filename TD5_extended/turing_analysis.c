@@ -561,14 +561,28 @@ void analysis(ast_node** n, stack_frame* frame)
                 case NE:
                 case EQ:
                 {
-                    type_list const* left = decay_array_ptr(infer_type(op[0]));
-                    type_list const* right = decay_array_ptr(infer_type(op[1]));
+                    type_list const* left = o[0].type;
+                    type_list const* right = o[1].type;
                     if (!type_same(left, right))
                     {
                         error_msg(*n, "Cannot perform arithmetic comparison '%c' on different types %s and %s",
                                   OPER_OPERATOR(*n), type_display(left), type_display(right));
                         exit(1);
                     }
+                }
+            }
+            switch (OPER_OPERATOR(*n))
+            {
+                case '<':
+                case '>':
+                case GE:
+                case LE:
+                case NE:
+                case EQ:
+                {
+                    type_list const* left = o[0].type;
+                    type_list const* right = o[1].type;
+
                     if (!(left->type == T_SCALAR || left->type == T_POINTER))
                     {
                         error_msg(*n, "Cannot perform arithmetic comparison '%c' on non-numeric types %s and %s\n",
@@ -578,10 +592,51 @@ void analysis(ast_node** n, stack_frame* frame)
                     result = left;
                     break;
                 }
+                case SHL:
+                case SHR:
+                {
+                    type_list const* left = o[0].type;
+                    type_list const* right = o[1].type;
+
+                    if (left->type != T_SCALAR)
+                    {
+                        error_msg(*n, "Cannot perform bitwise shift on non-numeric types %s and %s\n",
+                                  type_display(left), type_display(right));
+                        exit(1);
+                    }
+                    result = left;
+                    break;
+                }
             }
 
             switch (OPER_OPERATOR(*n))
             {
+                case SHL:
+                {
+                    type_list const* left = o[0].type;
+                    if (o[0].is_num && o[0].value == 0 || o[1].is_num && o[1].value >= (INT_WIDTH * type_size(left)))
+                    {
+                        RETURN(make_number(0), left);
+                    }
+                    if (o[0].is_num && o[1].is_num)
+                    {
+                        RETURN(make_number(o[0].value << o[1].value), left);
+                    }
+                    SET_TYPE(left);
+                }
+                case SHR:
+                {
+                    type_list const* left = o[0].type;
+                    if (o[0].is_num && o[0].value == 0 || o[1].is_num && o[1].value >= (INT_WIDTH * type_size(left)))
+                    {
+                        RETURN(make_number(0), left);
+                    }
+                    if (o[0].is_num && o[1].is_num)
+                    {
+                        RETURN(make_number(o[0].value >> o[1].value), left);
+                    }
+                    SET_TYPE(left);
+                }
                 case UMINUS:
                 {
                     type_list const* left = o[0].type;

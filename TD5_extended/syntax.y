@@ -33,7 +33,7 @@ void yyerror(const char *s);
 %token  <value>         NUMBER
 %token  <var>           IDENT STRING
 %token                  KWHILE KIF KPRINT KELSE KREAD KFOR KDO KVAR KFUNC KRETURN KPROC KBREAK KCONTINUE KCONST KTYPE KTYPEOF KSIZEOF KSTRUCT
-%token '+' '-' '*' '/' GE LE EQ NE '>' '<' REF DEREF APL AMN AML ADV INC DEC AND OR
+%token '+' '-' '*' '/' GE LE EQ NE '>' '<' REF DEREF APL AMN AML ADV INC DEC AND OR SHL SHR
 %token UMINUS VDECL SCOPE
 //                       Precedence rules
 %left '+'
@@ -43,7 +43,7 @@ void yyerror(const char *s);
 %nonassoc KELSE
 
 //                      Non terminal types
-%type   <node>		stmt expr stmt_list var expr_opt basic_expr postfix_expr unary_expr mult_expr add_expr rel_expr eq_expr assign_expr
+%type   <node>		stmt expr stmt_list var expr_opt basic_expr postfix_expr unary_expr mult_expr add_expr rel_expr eq_expr assign_expr shift_expr
 %type	<node> 		l_and_expr l_or_expr stmt_list_opt expr_discard expr_discard_opt
 %type 	<node>		param_list param_list_ne arg_list arg_list_ne var_decl var_decl_list type_spec_opt type_spec type_decl type_decl_list
 %type	<node>		struct_field struct_field_list
@@ -209,18 +209,24 @@ mult_expr
     | mult_expr '/' unary_expr		{ $$ = make_node('*', 2, $1, $3); }
     ;
 
-add_expr:
-      mult_expr						{ $$ = $1; }
+add_expr
+	: mult_expr						{ $$ = $1; }
     | add_expr '+' mult_expr		{ $$ = make_node('+', 2, $1, $3); }
     | add_expr '-' mult_expr		{ $$ = make_node('-', 2, $1, $3); }
     ;
 
+shift_expr
+	: add_expr						{ $$ = $1; }
+	| shift_expr SHL add_expr		{ $$ = make_node(SHL, 2, $1, $3); }
+	| shift_expr SHR add_expr		{ $$ = make_node(SHR, 2, $1, $3); }
+	;
+
 rel_expr
-    : add_expr						{ $$ = $1; }
-    | rel_expr '<' add_expr			{ $$ = make_node('<', 2, $1, $3); }
-    | rel_expr '>' add_expr			{ $$ = make_node('>', 2, $1, $3); }
-    | rel_expr LE add_expr			{ $$ = make_node(LE, 2, $1, $3); }
-    | rel_expr GE add_expr			{ $$ = make_node(GE, 2, $1, $3); }
+    : shift_expr					{ $$ = $1; }
+    | rel_expr '<' shift_expr		{ $$ = make_node('<', 2, $1, $3); }
+    | rel_expr '>' shift_expr		{ $$ = make_node('>', 2, $1, $3); }
+    | rel_expr LE shift_expr		{ $$ = make_node(LE, 2, $1, $3); }
+    | rel_expr GE shift_expr		{ $$ = make_node(GE, 2, $1, $3); }
     ;
 
 eq_expr
