@@ -1,8 +1,8 @@
 {
 	# requires INT_WIDTH = 16
-	func isqrt(x)
+	func isqrt(x: u16)
 	{
-		var rem = 0, root = 0, i;
+		var rem: u16, root: u16, i;
 
 		for (i = 0; i < 8; i++)
 		{
@@ -23,6 +23,7 @@
 
 		return root >> 1;
 	}
+
 
 	print isqrt(32768);
 }
