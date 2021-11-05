@@ -34,7 +34,7 @@ void yyerror(const char *s);
 %token  <var>           IDENT STRING
 %token                  KWHILE KIF KPRINT KELSE KREAD KFOR KDO KVAR KFUNC KRETURN KPROC KBREAK KCONTINUE KCONST KTYPE KTYPEOF KSIZEOF
 %token '+' '-' '*' '/' GE LE EQ NE '>' '<' REF DEREF APL AMN AML ADV INC DEC AND OR
-%token UMINUS VDECL
+%token UMINUS VDECL SCOPE
 //                       Precedence rules
 %left '+'
 
@@ -76,7 +76,7 @@ stmt
     | KFOR '(' expr_discard_opt ';' expr_opt ';' expr_discard_opt ')' stmt 			{ $$ = make_node(KFOR, 4, $3, $5, $7, $9); }
     | KDO stmt KWHILE '(' expr ')' ';' 												{ $$ = make_node(KDO, 2, $2, $5); }
     | func_type var '(' param_list ')' stmt											{ $$ = make_node($1, 3, $2, $4, $6); }
-    | '{' stmt_list_opt '}'                											{ $$ = $2; }
+    | '{' stmt_list_opt '}'                											{ $$ = make_scope($2); }
     ;
 
 var_decl

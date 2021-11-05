@@ -31,7 +31,8 @@ static const char* name##_NAMES[] =\
     F(k_ident) \
     F(k_number) \
     F(k_operator) \
-    F(k_list)
+    F(k_list) \
+    F(k_scope)
 ENUM_DEFINE(node_kind, KINDS)
 
 
@@ -44,11 +45,13 @@ typedef struct
     int lineno;                   // source line number of the node
     enum node_kind kind;        // kind of node
     bool clean_stack;
+    struct type_list_s const* inferred_type;
 } ast_node;
 
 #define AST_LINENO(p)        (((ast_node *)(p))->lineno)
 #define AST_KIND(p)        (((ast_node *)(p))->kind)
 #define AST_CLEAN_STACK(p)        (((ast_node *) (p))->clean_stack)
+#define AST_INFERRED(p)         (((ast_node*)(p))->inferred_type)
 
 // ----------------------------------------------------------------------
 //		Idents stuff
@@ -95,6 +98,18 @@ typedef struct
 
 ast_node* make_node(int operator, int arity, ...); // make an operator node
 
+
+typedef struct
+{
+    ast_node header;
+    ast_node* code;
+    struct stack_frame_s* scope;
+} ast_scope;
+
+#define SC_CODE(p) (((ast_scope*)(p))->code)
+#define SC_SCOPE(p) (((ast_scope*)(p))->scope)
+
+ast_node* make_scope(ast_node* code);
 
 
 // Lists

@@ -107,13 +107,28 @@ typedef struct
 typedef struct stack_frame_s
 {
     struct func_list_s* function;
+    bool is_root;
+    int end;
     struct
     {
         var_list* head, * tail;
     } vars;
     struct stack_frame_s* parent;
 } stack_frame;
-stack_frame global_frame = {.function = NULL, .vars = {NULL, NULL}, .parent = NULL};
+stack_frame global_frame = {.function = NULL, .is_root = true, .end = 0, .vars = {NULL, NULL}, .parent = NULL};
+int static_eval(ast_node* n, stack_frame* frame);
+int frame_start(stack_frame* frame)
+{
+    if (frame->is_root)
+        return 0;
+
+    return frame->parent->end + frame_start(frame->parent);
+}
+
+int var_position(var_list* var)
+{
+    return frame_start((stack_frame*)var->header.owner) + var->position;
+}
 
 typedef struct func_list_s
 {
@@ -133,6 +148,7 @@ typedef struct
 
 typedef enum
 {
+    T_VOID,
     T_SCALAR,
     T_ARRAY,
     T_POINTER,
@@ -162,6 +178,8 @@ typedef struct type_list_s
 } type_list;
 type_list* types_head = NULL, * types_tail = NULL;
 
+type_list* VOID_TYPE;
+type_list* check_add_type(const char* name);
 bool type_same(type_list const* a, type_list const* b)
 {
     if (a->type != b->type)
@@ -181,6 +199,10 @@ bool type_same(type_list const* a, type_list const* b)
             return false;
     }
 }
+
+void allocate_scope(stack_frame* frame);
+#define ADD_SYM(type, head, tail) ((type*) add_symbol((linked_list_header**)(head), (linked_list_header**)(tail), sizeof(type)))
+
 
 int type_size(type_list const* type)
 {
@@ -206,6 +228,8 @@ int type_size(type_list const* type)
     }
 }
 
+var_list* check_add_var(const char* name, stack_frame* frame, type_list const* type);
+
 const char* type_display(type_list const* type);
 
 const char* type_display_full(type_list const* type, bool inner, bool expand)
@@ -215,6 +239,8 @@ const char* type_display_full(type_list const* type, bool inner, bool expand)
 
     switch (type->type)
     {
+        case T_VOID:
+            return "void";
         case T_SCALAR:
             return "word";
         case T_ARRAY:
@@ -260,6 +286,35 @@ const char* type_display(type_list const* type)
 
 int label = 0;
 
+void free_scope(stack_frame* frame)
+{
+    if (frame->end)
+    {
+        instr("FROM @%d", ++label);
+        instr("'/|'0|'1|'[,'[,'_,'_ R,R,S,S");
+        instr("'/|'0|'1|'[,'/,'_,'_ R,R,S,S");
+        instr("'/|'0|'1|'[,'_,'_,'_ R,S,S,S");
+        instr("'_,'_,'_,'_ L,S,S,S @%d", label + 1);
+        for (int i = 0; i < frame->end - 1; i++)
+        {
+            instr("FROM @%d", ++label);
+            instr("'/|'0|'1,'_,'_,'_ '_,'_,'_,'_ L,S,S,S @%d", ++label);
+            instr("FROM @%d", label);
+            instr("'0|'1,'_,'_,'_ '_,'_,'_,'_ L,S,S,S");
+            instr("'/,'_,'_,'_ '_,'_,'_,'_ L,S,S,S @%d", label + 1);
+        }
+        instr("FROM @%d", ++label);
+        instr("'/|'0|'1,'_,'_,'_ '_,'_,'_,'_ L,S,S,S @%d", ++label);
+        instr("FROM @%d", label);
+        instr("'0|'1,'_,'_,'_ '_,'_,'_,'_ L,S,S,S");
+        instr("'/,'_,'_,'_ L,S,S,S @%d", label + 1);
+        instr("'[,'_,'_,'_ S,L,S,S @%d", label + 2);
+        instr("FROM @%d", ++label);
+        instr("'/|'0|'1,'_,'_,'_ L,S,S,S");
+        instr("'[,'_,'_,'_ S,L,S,S @%d", label + 1);
+    }
+}
+
 call_site_list* add_call_site(call_site_list** list)
 {
     call_site_list* newNode = malloc(sizeof(call_site_list));
@@ -301,7 +356,11 @@ linked_list_header* find_symbol(linked_list_header* list, ast_node* node, find_f
             return ptr;
         }
     }
-    if (list && (flags & F_RECURSE) && ((stack_frame*) list->owner)->parent)
+    // todo: broken
+    if (list && ((stack_frame*)list->owner)->parent &&
+            ((flags & F_RECURSE) || !((stack_frame*)list->owner)->is_root))
+        // either F_RECURSE forces recursing through all frames
+        // or we simply allow looking up from parent scopes (but in the same frame)
         return find_symbol(&((stack_frame*) list->owner)->parent->vars.head->header, node, flags);
     if (flags & F_NULLABLE)
         return NULL;
@@ -310,9 +369,24 @@ linked_list_header* find_symbol(linked_list_header* list, ast_node* node, find_f
 
 #define FIND_SYM(type, list, name, flags) ((type*)find_symbol(&((list)->header), name, flags))
 
-var_list* get_var_id(ast_node* name, stack_frame* frame, find_flags flags)
+var_list* get_var_id(ast_node* node, stack_frame* frame, find_flags flags)
 {
-    return FIND_SYM(var_list, frame->vars.head, name, flags);
+    const char* name = VAR_NAME(node);
+    for (linked_list_header* ptr = &frame->vars.head->header; ptr; ptr = ptr->next)
+    {
+        if (!strcmp(ptr->name, name))
+        {
+            return (var_list*)ptr;
+        }
+    }
+    if (frame->parent &&
+        ((flags & F_RECURSE) || !frame->is_root))
+        // either F_RECURSE forces recursing through all frames
+        // or we simply allow looking up from parent scopes (but in the same frame)
+        return get_var_id(node, frame->parent, flags);
+    if (flags & F_NULLABLE)
+        return NULL;
+    missing_symbol(node, name);
 }
 
 void push_number(int value)
@@ -360,7 +434,7 @@ void pop(int n)
     instr("'[,'/|'[,'_,'_ S,S,S,S @%d", label + 1);
 }
 
-#define RETURN(x) do{*n = x; return true;}while(0)
+
 
 #define NEW_TYPE() (calloc(1, sizeof(type_list)))
 
@@ -378,34 +452,55 @@ type_list const* decay_array_ptr(type_list const* t)
 
 type_list const* type_check(ast_node* n, stack_frame* frame);
 
-type_list const* infer_type(ast_node* n, stack_frame* frame)
+type_list const* infer_type(ast_node* n)
 {
-    type_list const* type = type_check(n, frame);
-
-    if (!type)
-    {
-        error_msg(n, "CANNOT INFER TYPE OF EXPRESSION!\n");
-        exit(1);
-    }
-
-    return type;
-}
-
-type_list const* type_check(ast_node* n, stack_frame* frame)
-{
-    assert(frame);
-
     if (!n)
         return NULL;
 
+    if (AST_INFERRED(n))
+        return AST_INFERRED(n);
+
+    error_msg(n, "Node without type\n");
+    exit(1);
+}
+
+type_list const* type_check_internal(ast_node* n, stack_frame* frame);
+linked_list_header* add_symbol(linked_list_header** head, linked_list_header** tail, size_t size)
+{
+    linked_list_header* newNode = malloc(size);
+    newNode->next = NULL;
+    if (*head == NULL)
+    {
+        newNode->id = 0;
+        *head = newNode;
+        *tail = newNode;
+    }
+    else
+    {
+        newNode->id = (*tail)->id + 1;
+        (*tail)->next = newNode;
+        *tail = newNode;
+    }
+    return newNode;
+}
+
+
+
+type_list const* type_check_internal(ast_node* n, stack_frame* frame)
+{
     switch (AST_KIND(n))
     {
         case k_number:
             return WORD_TYPE;
         case k_ident:
         {
-            var_list* ptr = get_var_id(n, frame, F_NULLABLE | F_RECURSE);
-            if (ptr && (ptr->type->type == T_CONST || ptr->header.owner == frame))
+            var_list* ptr = get_var_id(n, frame, F_NULLABLE);
+            if (ptr)
+            {
+                return ptr->type;
+            }
+            ptr = get_var_id(n, frame, F_NULLABLE | F_RECURSE);
+            if (ptr && ptr->type->type == T_CONST)
             {
                 return ptr->type;
             }
@@ -420,8 +515,8 @@ type_list const* type_check(ast_node* n, stack_frame* frame)
                     return WORD_TYPE;
                 case '+':
                 {
-                    type_list const* left = decay_array_ptr(infer_type(op[0], frame));
-                    type_list const* right = decay_array_ptr(infer_type(op[1], frame));
+                    type_list const* left = decay_array_ptr(infer_type(op[0]));
+                    type_list const* right = decay_array_ptr(infer_type(op[1]));
                     if (left->type == T_POINTER && right->type == T_POINTER)
                     {
                         error_msg(n, "Cannot add two pointers\n");
@@ -438,8 +533,8 @@ type_list const* type_check(ast_node* n, stack_frame* frame)
                 }
                 case '-':
                 {
-                    type_list const* left = decay_array_ptr(infer_type(op[0], frame));
-                    type_list const* right = decay_array_ptr(infer_type(op[1], frame));
+                    type_list const* left = decay_array_ptr(infer_type(op[0]));
+                    type_list const* right = decay_array_ptr(infer_type(op[1]));
                     if (left->type == T_POINTER && right->type == T_SCALAR)
                         return left;
                     if (left->type == T_SCALAR && right->type == T_SCALAR)
@@ -450,7 +545,7 @@ type_list const* type_check(ast_node* n, stack_frame* frame)
                 case UMINUS:
                 case '~':
                 {
-                    type_list const* left = infer_type(op[0], frame);
+                    type_list const* left = infer_type(op[0]);
                     if (left->type == T_SCALAR)
                         return left;
                     error_msg(n, "Cannot perform arithmetic operation '%c' on non-numeric type %s\n", OPER_OPERATOR(n),
@@ -460,7 +555,7 @@ type_list const* type_check(ast_node* n, stack_frame* frame)
                 case INC:
                 case DEC:
                 {
-                    type_list const* left = infer_type(op[0], frame);
+                    type_list const* left = infer_type(op[0]);
                     if (left->type == T_SCALAR || left->type == T_POINTER)
                         return left;
                     error_msg(n, "Cannot perform arithmetic operation '%c' on non-numeric type %s\n", OPER_OPERATOR(n),
@@ -470,8 +565,8 @@ type_list const* type_check(ast_node* n, stack_frame* frame)
                 case '*':
                 case '/':
                 {
-                    type_list const* left = infer_type(op[0], frame);
-                    type_list const* right = infer_type(op[1], frame);
+                    type_list const* left = infer_type(op[0]);
+                    type_list const* right = infer_type(op[1]);
                     if (left->type == T_SCALAR && right->type == T_SCALAR)
                         return left;
                     error_msg(n, "Cannot perform arithmetic operation '%c' on types %s and %s\n", OPER_OPERATOR(n),
@@ -485,8 +580,8 @@ type_list const* type_check(ast_node* n, stack_frame* frame)
                 case NE:
                 case EQ:
                 {
-                    type_list const* left = decay_array_ptr(infer_type(op[0], frame));
-                    type_list const* right = decay_array_ptr(infer_type(op[1], frame));
+                    type_list const* left = decay_array_ptr(infer_type(op[0]));
+                    type_list const* right = decay_array_ptr(infer_type(op[1]));
                     if (!type_same(left, right))
                     {
                         error_msg(n, "Cannot perform arithmetic comparison '%c' on different types %s and %s",
@@ -505,8 +600,8 @@ type_list const* type_check(ast_node* n, stack_frame* frame)
                     return WORD_TYPE; // future bool?
                 case '=':
                 {
-                    type_list const* left = infer_type(op[0], frame);
-                    type_list const* right = infer_type(op[1], frame);
+                    type_list const* left = infer_type(op[0]);
+                    type_list const* right = infer_type(op[1]);
                     if (!type_same(left, right))
                     {
                         error_msg(n, "Cannot assign rvalue of type '%s' to lvalue of type '%s'\n", type_display(right), type_display(left));
@@ -518,7 +613,7 @@ type_list const* type_check(ast_node* n, stack_frame* frame)
                 {
                     type_list* ret = NEW_TYPE();
                     ret->type = T_POINTER;
-                    if (!(ret->pointer_target = infer_type(op[0], frame)))
+                    if (!(ret->pointer_target = infer_type(op[0])))
                     {
                         error_msg(n, "Cannot determine type of referenced value\n");
                         exit(1);
@@ -527,7 +622,7 @@ type_list const* type_check(ast_node* n, stack_frame* frame)
                 }
                 case DEREF:
                 {
-                    type_list const* inner = infer_type(op[0], frame);
+                    type_list const* inner = infer_type(op[0]);
                     if (!inner)
                         break;
                     if (inner->type != T_POINTER)
@@ -540,71 +635,199 @@ type_list const* type_check(ast_node* n, stack_frame* frame)
                 case '(':
                     return WORD_TYPE; // functions can only return numbers for now, todo
                 case '{':
-                    return infer_type(op[1], frame);
+                    return infer_type(op[1]);
             }
             break;
         }
+        case k_scope:
+        {
+            return NULL;
+        }
         case k_list:
-            break;
+        {
+            error_msg(n, "INTERNAL: Invalid type_check parameter\n");
+            exit(1);
+        }
     }
 
     return NULL;
 }
 
-type_list const* decode_spec(ast_node* spec);
+type_list const* decode_spec(ast_node* spec, stack_frame* frame);
 
-bool static_fold(ast_node** n, stack_frame* frame)
+ast_node* set_inferred(ast_node* n, type_list const* type)
 {
-    assert(frame);
+    AST_INFERRED(n) = type;
+    return n;
+}
 
+#define RETURN(x, type) do{*n = x; AST_INFERRED(*n) = type; return;}while(0)
+#define SET_TYPE(type) do {AST_INFERRED(*n) = type; return;}while(0)
+void static_fold(ast_node** n, stack_frame* frame)
+{
     if (!*n)
-        return false;
+        return;
 
     switch (AST_KIND(*n))
     {
         case k_number:
         {
-            RETURN(*n);
+            if (!AST_INFERRED(*n))
+                SET_TYPE(WORD_TYPE);
+            return;
         }
         case k_ident:
         {
-            var_list* ptr = get_var_id(*n, frame, F_NULLABLE | F_RECURSE);
-            if (ptr)
+            if (frame)
             {
-                if (ptr->type->type == T_CONST &&
-                    ptr->type->const_target == WORD_TYPE) // allow higher-level constant resolution
-                {
-                    RETURN(make_number(ptr->value));
-                }
-                if (ptr->header.owner == frame) // only local mutables can be referenced
+                var_list* ptr = get_var_id(*n, frame, F_NULLABLE);
+                if (ptr)
                 {
                     if (ptr->type->type == T_ARRAY) // array
                     {
-                        RETURN(make_number(ptr->position));
+                        RETURN(make_number(var_position(ptr)), decay_array_ptr(ptr->type));
+                    }
+                    SET_TYPE(ptr->type);
+                }
+                ptr = get_var_id(*n, frame, F_RECURSE);
+                if (ptr)
+                {
+                    if (ptr->type->type == T_CONST &&
+                        ptr->type->const_target == WORD_TYPE) // allow higher-level constant resolution
+                    {
+                        RETURN(make_number(ptr->value), ptr->type);
                     }
                 }
             }
-            return false;
+            break;
         }
         case k_operator:
         {
             ast_node** op = OPER_OPERANDS(*n);
+            int arity = OPER_ARITY(*n);
 
             switch (OPER_OPERATOR(*n))
             {
                 /* Expressions */
                 case KSIZEOF:
                 {
-                    type_list const* type = decode_spec(op[0]);
-                    RETURN(make_number(type_size(type)));
+                    if (frame)
+                    {
+                        type_list const* type = decode_spec(op[0], frame);
+                        RETURN(make_number(type_size(type)), WORD_TYPE);
+                    }
+                }
+                case KCONST:
+                {
+                    var_list* var = check_add_var(VAR_NAME(op[0]), frame, NULL);
+                    if (!var)
+                    {
+                        error_msg(*n, "Cannot redeclare constant '%s'\n", VAR_NAME(op[0]));
+                        exit(1);
+                    }
+                    type_list* type = NEW_TYPE();
+                    type->type = T_CONST;
+                    type->const_target = WORD_TYPE;
+                    var->type = type;
+                    var->value = static_eval(op[1], frame);
+                    SET_TYPE(VOID_TYPE);
+                }
+                case KTYPE:
+                {
+                    type_list* type = check_add_type(VAR_NAME(op[0]));
+                    if (!type)
+                    {
+                        error_msg(*n, "Cannot redeclare type '%s'\n", VAR_NAME(op[0]));
+                        exit(1);
+                    }
+                    ast_node* spec = op[1];
+                    type_list const* nt = decode_spec(spec, frame);
+                    linked_list_header h = type->header;
+                    *type = *nt;
+                    type->header = h;
+                    SET_TYPE(VOID_TYPE);
+                }
+                case KVAR:
+                {
+                    switch (OPER_ARITY(*n))
+                    {
+                        case 2:
+                        {
+                            const type_list* type = op[1] ? decode_spec(op[1], frame) : WORD_TYPE;
+                            var_list* var = check_add_var(VAR_NAME(op[0]), frame, type);
+                            if (!var)
+                            {
+                                error_msg(*n, "Cannot redeclare variable '%s'\n", VAR_NAME(op[0]));
+                                exit(1);
+                            }
+                            SET_TYPE(VOID_TYPE);
+                        }
+                        case 3:
+                        {
+                            type_list* type = NEW_TYPE();
+                            type->type = T_ARRAY;
+                            type->array_size = static_eval(op[1], frame);
+                            type->array_target = WORD_TYPE;
+                            var_list* var = check_add_var(VAR_NAME(op[0]), frame, type);
+                            if (!var)
+                            {
+                                error_msg(*n, "Cannot redeclare array '%s'\n", VAR_NAME(op[0]));
+                                exit(1);
+                            }
+                            ast_node* initial = op[2];
+                            if (initial)
+                            {
+                                var->initial = VAR_NAME(initial);
+                            }
+                            SET_TYPE(VOID_TYPE);
+                        }
+                    }
+                }
+                case KFUNC:
+                case KPROC:
+                {
+                    func_list* newNode = ADD_SYM(func_list, &funcs_head, &funcs_tail);
+                    newNode->header.name = VAR_NAME(op[0]);
+                    newNode->header.owner = NULL;
+                    newNode->is_void = OPER_OPERATOR(n) == KPROC;
+                    newNode->arglist = ((ast_linked_list*) op[1])->list;
+                    newNode->callsites = NULL;
+                    newNode->frame = (stack_frame) {.function = newNode, .is_root = true, .vars = {NULL,
+                                                                                                   NULL}, .parent = frame};
+                    newNode->code = make_scope(op[2]);
+                    SC_SCOPE(newNode->code) = &newNode->frame;
+                    for (linked_list* ptr = newNode->arglist; ptr; ptr = ptr->next)
+                    {
+                        var_list* var = check_add_var(VAR_NAME(ptr->value), &newNode->frame, WORD_TYPE);
+                    }
+
+                    static_fold(&newNode->code, &newNode->frame);
+                    SET_TYPE(VOID_TYPE);
+                }
+                case ';':
+                {
+                    if (arity)
+                    {
+                        static_fold(&op[0], frame);
+                        static_fold(&op[1], frame);
+                    }
+                    SET_TYPE(VOID_TYPE);
+                }
+                case '(':
+                {
+                    for (linked_list* list = ((ast_linked_list*)op[1])->list; list; list = list->next)
+                    {
+                        static_fold(&list->value, frame);
+                    }
+                    SET_TYPE(WORD_TYPE);
                 }
             }
 
-            int arity = OPER_ARITY(*n);
             struct
             {
                 bool is_num;
                 int value;
+                type_list const* type;
             } * o = malloc(arity * sizeof(*o));
             for (int i = 0; i < arity; i++)
             {
@@ -613,6 +836,40 @@ bool static_fold(ast_node** n, stack_frame* frame)
                 static_fold(&op[i], frame);
                 if ((o[i].is_num = AST_KIND(op[i]) == k_number))
                     o[i].value = NUMBER_VALUE(op[i]);
+                if (!AST_INFERRED(op[i]))
+                    return;
+                o[i].type = decay_array_ptr(AST_INFERRED(op[i]));
+            }
+
+            type_list const* result;
+
+            switch(OPER_OPERATOR(*n))
+            {
+                case '<':
+                case '>':
+                case GE:
+                case LE:
+                case NE:
+                case EQ:
+                {
+                    type_list const* left = decay_array_ptr(infer_type(op[0]));
+                    type_list const* right = decay_array_ptr(infer_type(op[1]));
+                    if (!type_same(left, right))
+                    {
+                        error_msg(*n, "Cannot perform arithmetic comparison '%c' on different types %s and %s",
+                                  OPER_OPERATOR(*n), type_display(left), type_display(right));
+                        exit(1);
+                    }
+                    if (!(left->type == T_SCALAR || left->type == T_POINTER))
+                    {
+                        error_msg(*n, "Cannot perform arithmetic comparison '%c' on non-numeric types %s and %s\n",
+                                  OPER_OPERATOR(*n), type_display(left), type_display(right));
+                        exit(1);
+                    }
+                    result = left;
+                    break;
+                }
+
             }
 
             switch (OPER_OPERATOR(*n))
@@ -620,25 +877,38 @@ bool static_fold(ast_node** n, stack_frame* frame)
                 /* Expressions */
                 case UMINUS:
                 {
+                    type_list const* left = o[0].type;
+                    if (left->type != T_SCALAR)
+                    {
+                        error_msg(*n, "Cannot perform unary minus on non-integral type %s\n", type_display(left));
+                        exit(1);
+                    }
                     if (o[0].is_num)
                     {
-                        RETURN(make_number(-o[0].value));
+                        RETURN(make_number(-o[0].value), left);
                     }
-                    return false;
+                    SET_TYPE(left);
                 }
                 case '~':
                 {
+                    type_list const* left = o[0].type;
+                    if (left->type != T_SCALAR)
+                    {
+                        error_msg(*n, "Cannot perform binary complement on non-integral type %s\n", type_display(left));
+                        exit(1);
+                    }
                     if (o[0].is_num)
                     {
-                        RETURN(make_number(~o[0].value));
+                        RETURN(make_number(~o[0].value), left);
                     }
-                    return false;
+                    SET_TYPE(left);
                 }
                 case REF:
                 {
                     if (frame)
                     {
                         int ptr;
+                        type_list* type;
                         if (AST_KIND(op[0]) == k_ident)
                         {
                             var_list* var = get_var_id(op[0], frame, F_DEFAULT);
@@ -647,7 +917,10 @@ bool static_fold(ast_node** n, stack_frame* frame)
                                 error_msg(*n, "Cannot take address of constant '%s'\n", var->header.name);
                                 exit(1);
                             }
-                            ptr = var->position;
+                            ptr = var_position(var);
+                            type = NEW_TYPE();
+                            type->type = T_POINTER;
+                            type->pointer_target = var->type;
                         }
                         else if (AST_KIND(op[0]) == k_number)
                         {
@@ -657,53 +930,84 @@ bool static_fold(ast_node** n, stack_frame* frame)
                         {
                             ast_node* inner = OPER_OPERANDS(op[0])[0];
                             static_fold(&inner, frame);
-                            RETURN(inner);
+                            RETURN(inner, AST_INFERRED(inner));
                         }
 
-                        if (op[1] == NULL)
+                        if (op[1] && o[1].is_num)
                         {
-                            RETURN(make_number(ptr));
+                            ptr += o[1].value;
                         }
-                        else if (o[1].is_num)
-                        {
-                            RETURN(make_number(ptr + o[1].value));
-                        }
+
+                        RETURN(make_number(ptr), type);
                     }
-                    return false;
+                    break;
                 }
                 case '+':
                 {
+                    type_list const* left = o[0].type;
+                    type_list const* right = o[1].type;
+                    type_list const* result;
+                    if (left->type == T_POINTER && right->type == T_POINTER)
+                    {
+                        error_msg(*n, "Cannot add two pointers\n");
+                        exit(1);
+                    }
+                    if (left->type == T_POINTER && right->type == T_SCALAR)
+                        result = left;
+                    else if (left->type == T_SCALAR && right->type == T_POINTER)
+                        result = right;
+                    else if (left->type == T_SCALAR && right->type == T_SCALAR)
+                        result = left;
+                    else
+                    {
+                        error_msg(*n, "Cannot add types %s and %s\n", type_display(left), type_display(right));
+                        exit(1);
+                    }
                     if (o[0].is_num && o[1].is_num)
                     {
-                        RETURN(make_number(o[0].value + o[1].value));
+                        RETURN(make_number(o[0].value + o[1].value), result);
                     }
                     else if (o[0].is_num && o[0].value == 0)
                     {
-                        RETURN(op[1]);
+                        RETURN(op[1], result);
                     }
                     else if (o[1].is_num && o[1].value == 0)
                     {
-                        RETURN(op[0]);
+                        RETURN(op[0], result);
                     }
-                    return false;
+                    SET_TYPE(result);
                 }
                 case '-':
                 {
+                    type_list const* left = o[0].type;
+                    type_list const* right = o[1].type;
+                    type_list const* result;
+                    if (left->type == T_POINTER && right->type == T_POINTER)
+                        result = WORD_TYPE;
+                    else if (left->type == T_POINTER && right->type == T_SCALAR)
+                        result = left;
+                    else if (left->type == T_SCALAR && right->type == T_SCALAR)
+                        result = left;
+                    else
+                    {
+                        error_msg(*n, "Cannot subtract types %s and %s\n", type_display(left), type_display(right));
+                        exit(1);
+                    }
                     if (o[0].is_num && o[1].is_num)
                     {
-                        RETURN(make_number(o[0].value - o[1].value));
+                        RETURN(make_number(o[0].value - o[1].value), result);
                     }
                     else if (o[0].is_num && o[0].value == 0)
                     {
-                        RETURN(make_node(UMINUS, 1, op[1]));
+                        RETURN(make_node(UMINUS, 1, op[1]), result);
                     }
                     else if (o[1].is_num && o[1].value == 0)
                     {
-                        RETURN(op[0]);
+                        RETURN(op[0], result);
                     }
-                    return false;
+                    SET_TYPE(result);
                 }
-                case '*':
+                /*case '*':
                 {
                     if (o[0].is_num && o[1].is_num)
                     {
@@ -735,56 +1039,56 @@ bool static_fold(ast_node** n, stack_frame* frame)
                 }
                 case '/':
                     // todo: implement division
-                    return false;
+                    return false;*/
                 case '<':
                 {
                     if (o[0].is_num && o[1].is_num)
                     {
-                        RETURN(make_number(o[0].value < o[1].value));
+                        RETURN(make_number(o[0].value < o[1].value), result);
                     }
-                    return false;
+                    SET_TYPE(result);
                 }
                 case '>':
                 {
                     if (o[0].is_num && o[1].is_num)
                     {
-                        RETURN(make_number(o[0].value > o[1].value));
+                        RETURN(make_number(o[0].value > o[1].value), result);
                     }
-                    return false;
+                    SET_TYPE(result);
                 }
                 case GE:
                 {
                     if (o[0].is_num && o[1].is_num)
                     {
-                        RETURN(make_number(o[0].value >= o[1].value));
+                        RETURN(make_number(o[0].value >= o[1].value), result);
                     }
-                    return false;
+                    SET_TYPE(result);
                 }
                 case LE:
                 {
                     if (o[0].is_num && o[1].is_num)
                     {
-                        RETURN(make_number(o[0].value <= o[1].value));
+                        RETURN(make_number(o[0].value <= o[1].value), result);
                     }
-                    return false;
+                    SET_TYPE(result);
                 }
                 case NE:
                 {
                     if (o[0].is_num && o[1].is_num)
                     {
-                        RETURN(make_number(o[0].value != o[1].value));
+                        RETURN(make_number(o[0].value != o[1].value), result);
                     }
-                    return false;
+                    SET_TYPE(result);
                 }
                 case EQ:
                 {
                     if (o[0].is_num && o[1].is_num)
                     {
-                        RETURN(make_number(o[0].value == o[1].value));
+                        RETURN(make_number(o[0].value == o[1].value), result);
                     }
-                    return false;
+                    SET_TYPE(result);
                 }
-                case AND:
+                /*case AND:
                 {
                     if (o[0].is_num && o[1].is_num)
                     {
@@ -799,37 +1103,99 @@ bool static_fold(ast_node** n, stack_frame* frame)
                         RETURN(make_number(o[0].value || o[1].value));
                     }
                     return false;
+                }*/
+                case INC:
+                case DEC:
+                {
+                    type_list const* left = infer_type(op[0]);
+                    if (left->type != T_SCALAR && left->type != T_POINTER)
+                    {
+                        error_msg(*n, "Cannot perform arithmetic operation '%s' on non-numeric type %s\n",
+                                  OPER_OPERATOR(*n) == INC ? "++" : "--",
+                                  type_display(left));
+                        exit(1);
+                    }
+                    else
+                        SET_TYPE(left);
                 }
                 case '=':
                 {
+                    type_list const* left = infer_type(op[0]);
+                    type_list const* right = infer_type(op[1]);
+                    if (!type_same(left, right))
+                    {
+                        error_msg(*n, "Cannot assign rvalue of type '%s' to lvalue of type '%s'\n", type_display(right), type_display(left));
+                        exit(1);
+                    }
                     if (AST_KIND(op[1]) == k_ident && !strcmp(VAR_NAME(op[0]), VAR_NAME(op[1])))
                     {
                         info_msg(*n, "Assignment has no effect\n");
-                        RETURN(op[0]);
                     }
-                    return false;
+                    SET_TYPE(left);
                 }
-                case KIF:
+                case DEREF:
                 {
-                    if (o[0].is_num)
+                    type_list const* inner = infer_type(op[0]);
+                    if (!inner)
+                        break;
+                    if (inner->type != T_POINTER)
                     {
-                        info_msg(*n, "Condition is always %s\n", o[0].value ? "true" : "false");
-                        RETURN(o[0].value ? op[1] : op[2]);
+                        info_msg(*n, "Dereferencing a non-pointer value\n");
+                        break;
                     }
-                    return false;
+                    SET_TYPE(inner->pointer_target);
                 }
+                case KFOR:
+                case KIF:
+                case KWHILE:
+                case KDO:
+                case KPRINT:
+                case KREAD:
+                case KBREAK:
+                case KCONTINUE:
+                case KRETURN:
+                    SET_TYPE(VOID_TYPE);
+                    /* case KIF:
+                     {
+                         if (o[0].is_num)
+                         {
+                             info_msg(*n, "Condition is always %s\n", o[0].value ? "true" : "false");
+                             RETURN(o[0].value ? op[1] : op[2]);
+                         }
+                         return false;
+                     }*/
+                default:
+                    break;
             }
+            break;
+        }
+        case k_list:
+        {
+           SET_TYPE(VOID_TYPE);
+        }
+        case k_scope:
+        {
+            if (!SC_SCOPE(*n))
+            {
+                stack_frame* sc_frame = malloc(sizeof(*sc_frame));
+                *sc_frame = (stack_frame) {.function = frame->function, .is_root = false, .vars = {.head = NULL, .tail = NULL}, .parent = frame};
+                SC_SCOPE(*n) = sc_frame;
+            }
+            AST_INFERRED(*n) = VOID_TYPE;
+            static_fold(&SC_CODE(*n), SC_SCOPE(*n));
+            return;
         }
     }
 
-    return false;
+    error_msg(*n, "Could not type check\n");
+    exit(1);
 }
 
 #undef RETURN
 
 int static_eval(ast_node* n, stack_frame* frame)
 {
-    if (!static_fold(&n, frame) || AST_KIND(n) != k_number)
+    if (AST_KIND(n) != k_number)
     {
         error_msg(n, "Value must be compile-time constant\n");
         exit(1);
@@ -848,19 +1214,13 @@ void exec(ast_node* n, stack_frame* frame, loop_info* loop)
         return;
     }
 
-    type_check(n, frame);
+    //type_check(n, frame);
 
     instr("# KIND = %d (%s)", AST_KIND(n), node_kind_NAMES[AST_KIND(n)]);
 
     bool clean_stack = AST_CLEAN_STACK(n);
 
-    if (optimize)
-    {
-        if (static_fold(&n, frame))
-        {
-            PROD0("statically evaluated");
-        }
-    }
+    //static_fold(&n, frame);
 
     switch (AST_KIND(n))
     {
@@ -880,7 +1240,7 @@ void exec(ast_node* n, stack_frame* frame, loop_info* loop)
             var_list* ptr = get_var_id(n, frame, F_DEFAULT);
             if (ptr->type->type == T_ARRAY) // array
             {
-                push_number(ptr->position);
+                push_number(var_position(ptr));
             }
             else
             {
@@ -983,7 +1343,7 @@ void exec(ast_node* n, stack_frame* frame, loop_info* loop)
                     {
                         USELESS();
                     }
-                    int ptr = get_var_id(op[0], frame, F_DEFAULT)->position;
+                    int ptr = var_position(get_var_id(op[0], frame, F_DEFAULT));
                     if (op[1] != NULL)
                     {
                         if (AST_KIND(op[1]) == k_number)
@@ -1768,8 +2128,20 @@ void exec(ast_node* n, stack_frame* frame, loop_info* loop)
                     exit(1);
             }
         }
-        default:
+        case k_scope:
+        {
+            allocate_scope(SC_SCOPE(n));
+            PROD0("; entering scope");
+            exec(SC_CODE(n), SC_SCOPE(n), loop);
+            PROD0("; exiting scope");
+            free_scope(SC_SCOPE(n));
             return;
+        }
+        case k_list:
+        {
+            error_msg(n, "INTERNAL: Invalid exec parameter\n");
+            exit(1);
+        }
     }
 }
 
@@ -1785,7 +2157,7 @@ void nav_to_var(ast_node* op, stack_frame* frame, loop_info* loop)
                       "Cannot navigate to constant; this usually indicates that an internal error occurred during static analysis\n");
             exit(1);
         }
-        int vid = var->position;
+        int vid = var_position(var);
         while (vid-- > 0)
         {
             instr("FROM @%d", ++label);
@@ -1861,26 +2233,7 @@ void deref()
 }
 
 
-linked_list_header* add_symbol(linked_list_header** head, linked_list_header** tail, size_t size)
-{
-    linked_list_header* newNode = malloc(size);
-    newNode->next = NULL;
-    if (*head == NULL)
-    {
-        newNode->id = 0;
-        *head = newNode;
-        *tail = newNode;
-    }
-    else
-    {
-        newNode->id = (*tail)->id + 1;
-        (*tail)->next = newNode;
-        *tail = newNode;
-    }
-    return newNode;
-}
 
-#define ADD_SYM(type, head, tail) ((type*) add_symbol((linked_list_header**)(head), (linked_list_header**)(tail), sizeof(type)))
 
 type_list* check_add_type(const char* name)
 {
@@ -1904,7 +2257,7 @@ type_list* check_add_type(const char* name)
  * @param vars_tail
  * @return NULL if the variable already exists
  */
-var_list* check_add_var(const char* name, stack_frame* frame)
+var_list* check_add_var(const char* name, stack_frame* frame, type_list const* type)
 {
     bool found = false;
     int i = 0;
@@ -1928,13 +2281,16 @@ var_list* check_add_var(const char* name, stack_frame* frame)
         newNode->header.owner = frame;
         newNode->position = i;
         newNode->initial = NULL;
+        newNode->type = type;
+        if (type)
+            frame->end += type_size(type);
         return newNode;
     }
     return NULL;
 }
 
 
-type_list const* decode_spec(ast_node* spec)
+type_list const* decode_spec(ast_node* spec, stack_frame* frame)
 {
     if (AST_KIND(spec) == k_ident)
     {
@@ -1950,26 +2306,27 @@ type_list const* decode_spec(ast_node* spec)
             {
                 type_list* ret = NEW_TYPE();
                 ret->type = T_POINTER;
-                ret->pointer_target = decode_spec(OPER_OPERANDS(spec)[0]);
+                ret->pointer_target = decode_spec(OPER_OPERANDS(spec)[0], frame);
                 return ret;
             }
             case KCONST:
             {
                 type_list* ret = NEW_TYPE();
                 ret->type = T_CONST;
-                ret->const_target = decode_spec(OPER_OPERANDS(spec)[0]);
+                ret->const_target = decode_spec(OPER_OPERANDS(spec)[0], frame);
                 return ret;
             }
             case '[':
             {
                 type_list* ret = NEW_TYPE();
                 ret->type = T_ARRAY;
-                ret->array_target = decode_spec(OPER_OPERANDS(spec)[0]);
-                ret->array_size = static_eval(OPER_OPERANDS(spec)[1], &global_frame);
+                ret->array_target = decode_spec(OPER_OPERANDS(spec)[0], frame);
+                ret->array_size = static_eval(OPER_OPERANDS(spec)[1], frame);
                 return ret;
             }
             case KTYPEOF:
-                return infer_type(OPER_OPERANDS(spec)[0], &global_frame);
+                static_fold(&OPER_OPERANDS(spec)[0], frame);
+                return infer_type(OPER_OPERANDS(spec)[0]);
         }
     }
 }
@@ -1992,7 +2349,8 @@ void traverse_vars(ast_node* n, stack_frame* frame)
 
         if (OPER_OPERATOR(n) == KCONST)
         {
-            var_list* var = check_add_var(VAR_NAME(op[0]), frame);
+
+            var_list* var = check_add_var(VAR_NAME(op[0]), frame, NULL);
             if (!var)
             {
                 error_msg(n, "Cannot redeclare constant '%s'\n", VAR_NAME(op[0]));
@@ -2013,7 +2371,7 @@ void traverse_vars(ast_node* n, stack_frame* frame)
                 exit(1);
             }
             ast_node* spec = op[1];
-            type_list const* nt = decode_spec(spec);
+            type_list const* nt = decode_spec(spec, frame);
             linked_list_header h = type->header;
             *type = *nt;
             type->header = h;
@@ -2024,28 +2382,27 @@ void traverse_vars(ast_node* n, stack_frame* frame)
             {
                 case 2:
                 {
-                    var_list* var = check_add_var(VAR_NAME(op[0]), frame);
+                    const type_list* type = op[1] ? decode_spec(op[1], frame) : WORD_TYPE;
+                    var_list* var = check_add_var(VAR_NAME(op[0]), frame, type);
                     if (!var)
                     {
                         error_msg(n, "Cannot redeclare variable '%s'\n", VAR_NAME(op[0]));
                         exit(1);
                     }
-                    var->type = op[1] ? decode_spec(op[1]) : WORD_TYPE;
                     break;
                 }
                 case 3:
                 {
-                    var_list* var = check_add_var(VAR_NAME(op[0]), frame);
+                    type_list* type = NEW_TYPE();
+                    type->type = T_ARRAY;
+                    type->array_size = static_eval(op[1], frame);
+                    type->array_target = WORD_TYPE;
+                    var_list* var = check_add_var(VAR_NAME(op[0]), frame, type);
                     if (!var)
                     {
                         error_msg(n, "Cannot redeclare array '%s'\n", VAR_NAME(op[0]));
                         exit(1);
                     }
-                    type_list* type = NEW_TYPE();
-                    type->type = T_ARRAY;
-                    type->array_size = static_eval(op[1], frame);
-                    type->array_target = WORD_TYPE;
-                    var->type = type;
                     ast_node* initial = op[2];
                     if (initial)
                     {
@@ -2059,18 +2416,27 @@ void traverse_vars(ast_node* n, stack_frame* frame)
         {
             if (OPER_OPERATOR(n) == '=')
             {
-                var_list* var = check_add_var(VAR_NAME(op[0]), frame);
-                type_list const* value_type = decay_array_ptr(infer_type(op[1], frame));
+                type_list const* value_type = decay_array_ptr(infer_type(op[1]));
+                var_list* var = check_add_var(VAR_NAME(op[0]), frame, value_type);
                 if (!var)
                 {
                     //var = (var_list*) find_symbol(&frame->vars.head->header, op[0], F_DEFAULT);
                 }
                 else
                 {
-                    var->type = value_type;
                 }
             }
         }
+    }
+    else if (AST_KIND(n) == k_scope)
+    {
+        if (!SC_SCOPE(n))
+        {
+            stack_frame* sc_frame = malloc(sizeof(*sc_frame));
+            *sc_frame = (stack_frame) {.function = frame->function, .is_root = false, .vars = {.head = NULL, .tail = NULL}, .parent = frame};
+            SC_SCOPE(n) = sc_frame;
+        }
+        traverse_vars(SC_CODE(n), SC_SCOPE(n));
     }
 }
 
@@ -2088,14 +2454,14 @@ void traverse_funcs(ast_node* n, stack_frame* frame)
             newNode->header.owner = NULL;
             newNode->is_void = OPER_OPERATOR(n) == KPROC;
             newNode->arglist = ((ast_linked_list*) OPER_OPERANDS(n)[1])->list;
-            newNode->code = OPER_OPERANDS(n)[2];
             newNode->callsites = NULL;
-            newNode->frame = (stack_frame) {.function = newNode, .vars = {NULL, NULL}, .parent = frame};
-
+            newNode->frame = (stack_frame) {.function = newNode, .is_root = true, .vars = {NULL,
+                                                                                           NULL}, .parent = frame};
+            newNode->code = make_scope(OPER_OPERANDS(n)[2]);
+            SC_SCOPE(newNode->code) = &newNode->frame;
             for (linked_list* ptr = newNode->arglist; ptr; ptr = ptr->next)
             {
-                var_list* var = check_add_var(VAR_NAME(ptr->value), &newNode->frame);
-                var->type = WORD_TYPE;
+                var_list* var = check_add_var(VAR_NAME(ptr->value), &newNode->frame, WORD_TYPE);
             }
 
             traverse_vars(newNode->code, &newNode->frame);
@@ -2107,6 +2473,52 @@ void traverse_funcs(ast_node* n, stack_frame* frame)
                 traverse_funcs(OPER_OPERANDS(n)[i], frame);
         }
     }
+    else if (AST_KIND(n) == k_scope)
+    {
+        traverse_funcs(SC_CODE(n), frame);
+    }
+}
+
+void allocate_scope(stack_frame* frame)
+{
+    if (!frame->end)
+        return;
+    instr("FROM @%d", ++label);
+    instr("'/|'0|'1|'[,'[,'_,'_ R,S,S,S");
+    instr("'/|'0|'1|'[,'/,'_,'_ R,S,S,S");
+    instr("'_,'/|'[,'_,'_ S,R,S,S @%d", label + 1);
+    for (var_list* ptr = frame->vars.head; ptr; ptr = (var_list*) ptr->header.next)
+    {
+        if (ptr->type->type == T_CONST)
+            continue;
+        instr("# allocate variable %s (position %d, size %d)", ptr->header.name, ptr->position, type_size(ptr->type));
+        char* str = ptr->initial;
+        for (int j = 0; j < type_size(ptr->type); j++, (str && *str && str++))
+        {
+            if (str && *str)
+            {
+                char value = *str;
+                for (int i = 0; i < INT_WIDTH; i++, value >>= 1)
+                {
+                    instr("FROM @%d", ++label);
+                    instr("'_,'_,'_,'_ '%d,'_,'_,'_ R,S,S,S @%d", value & 1, label + 1);
+                }
+            }
+            else
+            {
+                for (int i = 0; i < INT_WIDTH; i++)
+                {
+                    instr("FROM @%d", ++label);
+                    instr("'_,'_,'_,'_ '0,'_,'_,'_ R,S,S,S @%d", label + 1);
+                }
+            }
+            instr("FROM @%d", ++label);
+            instr("'_,'_,'_,'_ '/,'_,'_,'_ R,S,S,S @%d", label + 1);
+        }
+    }
+    instr("FROM @%d", ++label);
+    instr("'_|'/|'0|'1,'_,'_,'_ L,S,S,S");
+    instr("'[,'_,'_,'_ S,L,S,S @%d", label + 1);
 }
 
 
@@ -2118,13 +2530,17 @@ void produce_code(ast_node* n)
 {
     optimize = true;
 
+    VOID_TYPE = NEW_TYPE();
+
     type_list* word_type = ADD_SYM(type_list, &types_head, &types_tail);
     word_type->header.name = "word";
     word_type->type = T_SCALAR;
     word_type->scalar_size = 1;
 
-    traverse_vars(n, &global_frame);
-    traverse_funcs(n, &global_frame);
+    static_fold(&n, &global_frame);
+
+    //traverse_vars(n, &global_frame);
+    //traverse_funcs(n, &global_frame);
 
     {
         printf("# Types\n");
@@ -2153,40 +2569,9 @@ void produce_code(ast_node* n)
     instr("END @DEFAULT \"default option\"");
 
     instr("FROM @INIT");
-    instr("'_,'_,'_,'_ '[,'[,'_,'_ R,S,S,S @0");
+    instr("'_,'_,'_,'_ '[,'[,'_,'_ S,S,S,S @1");
 
-    for (var_list* ptr = global_frame.vars.head; ptr; ptr = (var_list*) ptr->header.next)
-    {
-        if (ptr->type->type == T_CONST)
-            continue;
-        instr("# allocate variable %s (position %d, size %d)", ptr->header.name, ptr->position, type_size(ptr->type));
-        char* str = ptr->initial;
-        for (int j = 0; j < type_size(ptr->type); j++, (str && *str && str++))
-        {
-            if (str && *str)
-            {
-                char value = *str;
-                for (int i = 0; i < INT_WIDTH; i++, value >>= 1)
-                {
-                    instr("FROM @%d", label);
-                    instr("'_,'[,'_,'_ '%d,'[,'_,'_ R,S,S,S @%d", value & 1, ++label);
-                }
-            }
-            else
-            {
-                for (int i = 0; i < INT_WIDTH; i++)
-                {
-                    instr("FROM @%d", label);
-                    instr("'_,'[,'_,'_ '0,'[,'_,'_ R,S,S,S @%d", ++label);
-                }
-            }
-            instr("FROM @%d", label);
-            instr("'_,'[,'_,'_ '/,'[,'_,'_ R,S,S,S @%d", ++label);
-        }
-    }
-    instr("FROM @%d", label);
-    instr("'_|'/|'0|'1,'[,'_,'_ L,S,S,S");
-    instr("'[,'[,'_,'_ S,S,S,S @%d", label + 1);
+    allocate_scope(&global_frame);
 
     BLOCK("program",
           {
@@ -2205,7 +2590,7 @@ void produce_code(ast_node* n)
         instr("'[,'/|'[,'_,'_ S,S,S,S @%d", label + 1);
         BLOCK("function code",
               {
-                  exec(ptr->code, &ptr->frame, NULL);
+                  exec(SC_CODE(ptr->code), &ptr->frame, NULL);
               });
         instr("FROM @%d", ++label);
         instr("'[,'/|'[,'_,'_ S,S,S,S @F%dret", ptr->header.id);

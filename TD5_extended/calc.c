@@ -18,6 +18,7 @@
   AST_LINENO(p) = yylineno;          \
   AST_KIND(p)   = kind;              \
   AST_CLEAN_STACK(p) = false;        \
+  AST_INFERRED(p) = NULL;            \
 }
 
 extern int yylineno;                    // line number defined by lex
@@ -74,6 +75,14 @@ ast_node* make_node(int operator, int arity, ...)
     return p;
 }
 
+ast_node* make_scope(ast_node* code)
+{
+    ast_node* p = allocate_node(sizeof(ast_scope));
+    initialize_header(p, k_scope);
+    SC_CODE(p) = code;
+    SC_SCOPE(p) = NULL;
+    return p;
+}
 
 // ----------------------------------------------------------------------
 //	Utilities

@@ -1,4 +1,19 @@
 {
-	const N = 10;
-	var x = sizeof(word[N]*);
+    # parameters
+    var x = 0;
+    var y = 1;
+    var n = 9;
+
+    # fibonacci
+    n = n - 1;
+    while (n)
+    {
+        var tmp = x + y;
+        x = y;
+        y = tmp;
+        n = n - 1;
+    }
+
+    # output
+    print y;
 }

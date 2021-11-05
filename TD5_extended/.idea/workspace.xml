@@ -18,7 +18,14 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="a6805983-d57b-442f-a29f-dcb10bd9ca72" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/lexical.l" beforeDir="false" afterPath="$PROJECT_DIR$/lexical.l" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Resources/fibo_iter.in" beforeDir="false" afterPath="$PROJECT_DIR$/Resources/fibo_iter.in" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Resources/fibo_ptrs.am" beforeDir="false" afterPath="$PROJECT_DIR$/Resources/fibo_ptrs.am" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Resources/fibo_ptrs.in" beforeDir="false" afterPath="$PROJECT_DIR$/Resources/fibo_ptrs.in" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Resources/tests.am" beforeDir="false" afterPath="$PROJECT_DIR$/Resources/tests.am" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Resources/tests.in" beforeDir="false" afterPath="$PROJECT_DIR$/Resources/tests.in" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/calc.c" beforeDir="false" afterPath="$PROJECT_DIR$/calc.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/calc.h" beforeDir="false" afterPath="$PROJECT_DIR$/calc.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/syntax.y" beforeDir="false" afterPath="$PROJECT_DIR$/syntax.y" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/turing.c" beforeDir="false" afterPath="$PROJECT_DIR$/turing.c" afterDir="false" />
     </list>
@@ -117,7 +124,7 @@
       <workItem from="1635528573435" duration="31287000" />
       <workItem from="1635631379438" duration="2000" />
       <workItem from="1635631641836" duration="10507000" />
-      <workItem from="1635715239343" duration="30688000" />
+      <workItem from="1635715239343" duration="45880000" />
     </task>
     <servers />
   </component>
@@ -129,23 +136,42 @@
       <breakpoints>
         <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
           <url>file://$PROJECT_DIR$/turing.c</url>
-          <line>831</line>
-          <option name="timeStamp" value="28" />
+          <line>462</line>
+          <option name="timeStamp" value="57" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
+          <url>file://$PROJECT_DIR$/turing.c</url>
+          <line>344</line>
+          <option name="timeStamp" value="58" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
+          <url>file://$PROJECT_DIR$/turing.c</url>
+          <line>1126</line>
+          <option name="timeStamp" value="67" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
+          <condition expression="f == 100" language="ObjectiveC" />
+          <url>file://$PROJECT_DIR$/calc.c</url>
+          <line>47</line>
+          <option name="timeStamp" value="70" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
+          <url>file://$PROJECT_DIR$/turing.c</url>
+          <line>1142</line>
+          <option name="timeStamp" value="72" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
+          <url>file://$PROJECT_DIR$/turing.c</url>
+          <line>1189</line>
+          <option name="timeStamp" value="74" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
     <watches-manager>
       <configuration name="CMakeRunConfiguration">
-        <watch expression="o[1]" language="ObjectiveC" />
-        <watch expression="(struct ast_operator*)*n" language="ObjectiveC" />
-        <watch expression="(struct linked_list*) OPER_OPERANDS(n)[0]" language="ObjectiveC" />
-        <watch expression="VAR_NAME(var-&gt;value)" language="ObjectiveC" />
-        <watch expression="OPER_ARITY(n)" language="ObjectiveC" />
-        <watch expression="OPER_OPERANDS(n)[0]" language="ObjectiveC" />
-        <watch expression="OPER_OPERANDS(n)[1]" language="ObjectiveC" />
-        <watch expression="OPER_OPERANDS(n)[2]" language="ObjectiveC" />
-        <watch expression="(struct ast_operator*)op[i]" language="ObjectiveC" />
-        <watch expression="OPER_OPERATOR(n)" language="ObjectiveC" />
+        <watch expression="(ast_operator*)*n" language="ObjectiveC" />
+        <watch expression="(ast_operator*)n" language="ObjectiveC" />
+        <watch expression="OPER_OPERANDS(spec)[0]" language="ObjectiveC" />
       </configuration>
     </watches-manager>
   </component>
