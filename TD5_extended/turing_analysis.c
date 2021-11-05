@@ -2,6 +2,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <assert.h>
 
 #define NEW_TYPE() (calloc(1, sizeof(type_list)))
 #define WORD_TYPE types_head
@@ -10,6 +11,7 @@
  * Adds an item to a linked list
  */
 #define ADD_SYM(type, head, tail) ((type*) add_symbol((linked_list_header**)(head), (linked_list_header**)(tail), sizeof(type)))
+
 // Internal.
 linked_list_header* add_symbol(linked_list_header** head, linked_list_header** tail, size_t size)
 {
@@ -209,7 +211,7 @@ type_list const* decode_spec(ast_node* spec, stack_frame* frame)
         {
             case '*':
             {
-                return make_pointer( decode_spec(op[0], frame));
+                return make_pointer(decode_spec(op[0], frame));
             }
             case KCONST:
             {
@@ -242,7 +244,7 @@ type_list const* decode_spec(ast_node* spec, stack_frame* frame)
                         type_list const* type = decode_spec(OPER_OPERANDS(first)[1], frame);
 
                         int pos = 0;
-                        for (var_list* ptr = ret->composite_members.head; ptr; ptr = (var_list*)ptr->header.next)
+                        for (var_list* ptr = ret->composite_members.head; ptr; ptr = (var_list*) ptr->header.next)
                         {
                             if (!strcmp(ptr->header.name, name))
                             {
@@ -281,7 +283,6 @@ type_list const* decode_spec(ast_node* spec, stack_frame* frame)
     error_msg(spec, "Invalid type specification\n");
     exit(1);
 }
-
 
 
 /**
@@ -354,11 +355,13 @@ ast_node* set_inferred_type(ast_node* n, type_list const* type)
  */
 void analysis(ast_node** n, stack_frame* frame)
 {
+    assert(frame);
+
     if (!*n)
         return;
 
-   /* if (AST_INFERRED_POS(*n) != *n)
-        analysis(&AST_INFERRED_POS(*n), frame);*/
+    /* if (AST_INFERRED_POS(*n) != *n)
+         analysis(&AST_INFERRED_POS(*n), frame);*/
 
     switch (AST_KIND(*n))
     {
@@ -371,31 +374,25 @@ void analysis(ast_node** n, stack_frame* frame)
         }
         case k_ident:
         {
-            if (frame)
+            var_list* ptr = get_var_id(*n, frame, F_NULLABLE);
+            if (ptr)
             {
-                var_list* ptr = get_var_id(*n, frame, F_NULLABLE);
-                if (ptr)
+                if (ptr->type->type == T_ARRAY) // referencing an array directly is equivalent to &array[0]
                 {
-                    if (ptr->type->type == T_ARRAY) // referencing an array directly is equivalent to &array[0]
-                    {
-                        ast_node* ret = set_inferred_type(make_number(var_position(ptr)), decay_array_ptr(ptr->type));
-                        AST_INFERRED_POS(ret) = ret;
-                        RETURN_VAL(ret);
-                    }
-                    AST_INFERRED_POS(*n) = set_inferred_type(make_number(var_position(ptr)), make_pointer(ptr->type));
-                    SET_TYPE(ptr->type);
+                    ast_node* ret = set_inferred_type(make_number(var_position(ptr)), decay_array_ptr(ptr->type));
+                    AST_INFERRED_POS(ret) = ret;
+                    RETURN_VAL(ret);
                 }
-                ptr = get_var_id(*n, frame, F_RECURSE);
-                if (ptr)
-                {
-                    if (ptr->type->type == T_CONST &&
-                        ptr->type->const_target == WORD_TYPE) // allow resolving constants for parent frames
-                    {
-                        RETURN(make_number(ptr->value), ptr->type);
-                    }
-                }
+                AST_INFERRED_POS(*n) = set_inferred_type(make_number(var_position(ptr)), make_pointer(ptr->type));
+                SET_TYPE(ptr->type);
             }
-            break;
+            ptr = get_var_id(*n, frame, F_RECURSE);
+            if (ptr->type->type == T_CONST &&
+                ptr->type->const_target == WORD_TYPE) // allow resolving constants for parent frames
+            {
+                RETURN(make_number(ptr->value), ptr->type);
+            }
+            missing_symbol(*n, VAR_NAME(*n));
         }
         case k_operator:
         {
@@ -422,11 +419,8 @@ void analysis(ast_node** n, stack_frame* frame)
                 }
                 case KSIZEOF:
                 {
-                    if (frame)
-                    {
-                        type_list const* type = decode_spec(op[0], frame);
-                        RETURN(make_number(type_size(type)), WORD_TYPE);
-                    }
+                    type_list const* type = decode_spec(op[0], frame);
+                    RETURN(make_number(type_size(type)), WORD_TYPE);
                 }
                 case KCONST:
                 {
