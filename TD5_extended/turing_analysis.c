@@ -8,6 +8,9 @@
 
 type_list* check_add_type(const char* name);
 
+/**
+ * @returns Whether the two type instances refer to the same type
+ */
 bool type_same(type_list const* a, type_list const* b)
 {
     if (a->type != b->type)
@@ -28,7 +31,9 @@ bool type_same(type_list const* a, type_list const* b)
     }
 }
 
-
+/**
+ * @return The size of the specified type
+ */
 int type_size(type_list const* type)
 {
     switch (type->type)
@@ -53,9 +58,11 @@ int type_size(type_list const* type)
     }
 }
 
-
-const char* type_display(type_list const* type);
-
+/**
+ * @param inner If true, and the type has a name, return that name
+ * @param expand If true, will expand composite types, otherwise will display "<anonymous type>"
+ * @return A human-readable textual representation of the specified type
+ */
 const char* type_display_full(type_list const* type, bool inner, bool expand)
 {
     if (!inner && type->header.name)
@@ -101,11 +108,18 @@ const char* type_display_full(type_list const* type, bool inner, bool expand)
     }
 }
 
+/**
+ * @return A human-readable textual representation of the specified type
+ */
 const char* type_display(type_list const* type)
 {
     return type_display_full(type, false, false);
 }
 
+/**
+ * Statically evaluates the specified node.
+ * @throws exit If the node cannot be resolved to a compile-time constant
+ */
 int static_eval(ast_node* n, stack_frame* frame)
 {
     if (AST_KIND(n) != k_number)
@@ -117,7 +131,10 @@ int static_eval(ast_node* n, stack_frame* frame)
     return NUMBER_VALUE(n);
 }
 
-
+/**
+ * @return The type of the specified expression node.
+ * @throws exit If the type-checker could not resolve a type for the node
+ */
 type_list const* infer_type(ast_node* n)
 {
     if (!n)
@@ -130,6 +147,10 @@ type_list const* infer_type(ast_node* n)
     exit(1);
 }
 
+/**
+ * @return The pointer type corresponding to the specified array type. If a non-array type is passed, will do nothing
+ * @example The array type word[10] decays to the pointer type word*
+ */
 type_list const* decay_array_ptr(type_list const* t)
 {
     if (t->type != T_ARRAY)
@@ -142,7 +163,10 @@ type_list const* decay_array_ptr(type_list const* t)
     return ret;
 }
 
-
+/**
+ * @return A type instance corresponding to the specified type specification node
+ * @throws exit If the node is invalid
+ */
 type_list const* decode_spec(ast_node* spec, stack_frame* frame)
 {
     if (AST_KIND(spec) == k_ident)
@@ -185,8 +209,7 @@ type_list const* decode_spec(ast_node* spec, stack_frame* frame)
     exit(1);
 }
 
-#define ADD_SYM(type, head, tail) ((type*) add_symbol((linked_list_header**)(head), (linked_list_header**)(tail), sizeof(type)))
-
+// Internal.
 linked_list_header* add_symbol(linked_list_header** head, linked_list_header** tail, size_t size)
 {
     linked_list_header* newNode = malloc(size);
@@ -206,6 +229,14 @@ linked_list_header* add_symbol(linked_list_header** head, linked_list_header** t
     return newNode;
 }
 
+/**
+ * Adds an item to a linked list
+ */
+#define ADD_SYM(type, head, tail) ((type*) add_symbol((linked_list_header**)(head), (linked_list_header**)(tail), sizeof(type)))
+
+/**
+ * @return A new type instance with the specified name, or NULL if a type with the same name already exists
+ */
 type_list* check_add_type(const char* name)
 {
     for (type_list* ptr = types_head; ptr; ptr = (type_list*) ptr->header.next)
@@ -222,12 +253,7 @@ type_list* check_add_type(const char* name)
 
 
 /**
- *
- * @param name
- * @param size
- * @param vars_head
- * @param vars_tail
- * @return NULL if the variable already exists
+ * @return A new variable with the specified name, or NULL if a variable with the same name already exists
  */
 var_list* check_add_var(const char* name, stack_frame* frame, type_list const* type)
 {
@@ -242,12 +268,13 @@ var_list* check_add_var(const char* name, stack_frame* frame, type_list const* t
                 found = true;
                 break;
             }
-            if (ptr->type->type != T_CONST)
+            if (ptr->type->type != T_CONST) // constants are not stored in memory
                 i += type_size(ptr->type);
         }
     }
     if (!found)
     {
+        // variable not found, create a new one
         var_list* newNode = ADD_SYM(var_list, &frame->vars.head, &frame->vars.tail);
         newNode->header.name = name;
         newNode->header.owner = frame;
@@ -265,6 +292,9 @@ var_list* check_add_var(const char* name, stack_frame* frame, type_list const* t
 #define RETURN(x, type) do{*n = x; AST_INFERRED(*n) = type; return;}while(0)
 #define SET_TYPE(type) do {AST_INFERRED(*n) = type; return;}while(0)
 
+/**
+ * Static analysis + type checking + constant folding
+ */
 void analysis(ast_node** n, stack_frame* frame)
 {
     if (!*n)
@@ -274,6 +304,7 @@ void analysis(ast_node** n, stack_frame* frame)
     {
         case k_number:
         {
+            // preserve inferred type
             if (!AST_INFERRED(*n))
                 SET_TYPE(WORD_TYPE);
             return;
@@ -285,7 +316,7 @@ void analysis(ast_node** n, stack_frame* frame)
                 var_list* ptr = get_var_id(*n, frame, F_NULLABLE);
                 if (ptr)
                 {
-                    if (ptr->type->type == T_ARRAY) // array
+                    if (ptr->type->type == T_ARRAY) // referencing an array directly is equivalent to &array[0]
                     {
                         RETURN(make_number(var_position(ptr)), decay_array_ptr(ptr->type));
                     }
@@ -295,7 +326,7 @@ void analysis(ast_node** n, stack_frame* frame)
                 if (ptr)
                 {
                     if (ptr->type->type == T_CONST &&
-                        ptr->type->const_target == WORD_TYPE) // allow higher-level constant resolution
+                        ptr->type->const_target == WORD_TYPE) // allow resolving constants for parent frames
                     {
                         RETURN(make_number(ptr->value), ptr->type);
                     }
@@ -394,15 +425,18 @@ void analysis(ast_node** n, stack_frame* frame)
                     newNode->is_void = OPER_OPERATOR(n) == KPROC;
                     newNode->arglist = ((ast_linked_list*) op[1])->list;
                     newNode->callsites = NULL;
-                    newNode->frame = (stack_frame) {.function = newNode, .is_root = true, .vars = {NULL,
-                                                                                                   NULL}, .parent = frame};
+                    newNode->frame = (stack_frame) {
+                            .function = newNode,
+                            .is_root = true,
+                            .vars = {NULL, NULL},
+                            .parent = frame
+                    };
                     newNode->code = make_scope(op[2]);
                     SC_SCOPE(newNode->code) = &newNode->frame;
                     for (linked_list* ptr = newNode->arglist; ptr; ptr = ptr->next)
                     {
-                        var_list* var = check_add_var(VAR_NAME(ptr->value), &newNode->frame, WORD_TYPE);
+                        check_add_var(VAR_NAME(ptr->value), &newNode->frame, WORD_TYPE);
                     }
-
                     analysis(&newNode->code, &newNode->frame);
                     SET_TYPE(VOID_TYPE);
                 }
@@ -445,6 +479,7 @@ void analysis(ast_node** n, stack_frame* frame)
 
             type_list const* result;
 
+            // Common type checks
             switch (OPER_OPERATOR(*n))
             {
                 case '<':
@@ -471,12 +506,10 @@ void analysis(ast_node** n, stack_frame* frame)
                     result = left;
                     break;
                 }
-
             }
 
             switch (OPER_OPERATOR(*n))
             {
-                /* Expressions */
                 case UMINUS:
                 {
                     type_list const* left = o[0].type;
@@ -765,15 +798,6 @@ void analysis(ast_node** n, stack_frame* frame)
                 case KCONTINUE:
                 case KRETURN:
                     SET_TYPE(VOID_TYPE);
-                    /* case KIF:
-                     {
-                         if (o[0].is_num)
-                         {
-                             info_msg(*n, "Condition is always %s\n", o[0].value ? "true" : "false");
-                             RETURN(o[0].value ? op[1] : op[2]);
-                         }
-                         return false;
-                     }*/
                 case '{':
                     SET_TYPE(infer_type(op[1]));
                 default:
@@ -806,9 +830,11 @@ void analysis(ast_node** n, stack_frame* frame)
 #undef RETURN
 #undef SET_TYPE
 
+/**
+ * Initialize builtin types (void and word)
+ */
 void init_builtin_types()
 {
-
     VOID_TYPE = NEW_TYPE();
 
     type_list* word_type = ADD_SYM(type_list, &types_head, &types_tail);

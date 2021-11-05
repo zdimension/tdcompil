@@ -18,7 +18,9 @@
 
 stack_frame global_frame = {.function = NULL, .is_root = true, .end = 0, .vars = {NULL, NULL}, .parent = NULL};
 
-
+/**
+ * @return the position in memory of the beginning of a call frame
+ */
 int frame_start(stack_frame* frame)
 {
     if (frame->is_root)
@@ -27,6 +29,9 @@ int frame_start(stack_frame* frame)
     return frame->parent->end + frame_start(frame->parent);
 }
 
+/**
+ * @return the position of a variable in memory relative to the current call frame
+ */
 int var_position(var_list* var)
 {
     return frame_start((stack_frame*) var->header.owner) + var->position;
@@ -48,6 +53,11 @@ _Noreturn void missing_symbol(ast_node* node, const char* name)
     exit(1);
 }
 
+/**
+ * Searches for a symbol recursively
+ * @return The symbol, if found
+ * @throws exit The symbol was not found
+ */
 linked_list_header* find_symbol(linked_list_header* list, ast_node* node)
 {
     const char* name = VAR_NAME(node);
@@ -63,7 +73,12 @@ linked_list_header* find_symbol(linked_list_header* list, ast_node* node)
     missing_symbol(NULL, name);
 }
 
-
+/**
+ * Searches for a variable recursively
+ * @param flags F_NULLABLE (return NULL instead of throwing when variable is missing)\n F_RECURSE (search for variable in parent call frames, not only in parent scopes)
+ * @return the variable, if found
+ * @throws exit The symbol was not found
+ */
 var_list* get_var_id(ast_node* node, stack_frame* frame, find_flags flags)
 {
     const char* name = VAR_NAME(node);
@@ -85,10 +100,19 @@ var_list* get_var_id(ast_node* node, stack_frame* frame, find_flags flags)
 }
 
 
+/**
+ * Emits the main code for all declared functions
+ */
 void emit_functions();
 
+/**
+ * Emits the call site handling and epilogue code for all declared functions
+ */
 void emit_functions_epilogues();
 
+/**
+ * Emits the code for the specified main program
+ */
 void emit_main(ast_node* n);
 
 

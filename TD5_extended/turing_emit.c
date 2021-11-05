@@ -53,6 +53,10 @@ instr("FROM @%d", one);\
 instr("'[,'_,'_,'_ '[,'1,'_,'_ S,R,S,S @%d", zero);\
 }
 
+/**
+ * Allocates blank cells for the variables in the scope\n
+ * This will take in account array initializers (strings)
+ */
 void allocate_scope(stack_frame* frame)
 {
     if (!frame->end)
@@ -95,6 +99,9 @@ void allocate_scope(stack_frame* frame)
     instr("'[,'_,'_,'_ S,L,S,S @%d", label + 1);
 }
 
+/**
+ * Frees the cells used by the variables in the scope
+ */
 void free_scope(stack_frame* frame)
 {
     if (frame->end)
@@ -173,7 +180,9 @@ void emit_functions_epilogues()
     }
 }
 
-
+/**
+ * push(*pop());
+ */
 void deref()
 {
     instr("FROM @%d", ++label);
@@ -227,7 +236,11 @@ void deref()
 
 void eval(ast_node* n, stack_frame* frame);
 
-void nav_to_var(ast_node* op, stack_frame* frame, loop_info* loop)
+/**
+ * Moves the heap pointer to the specified variable
+ * @throws exit If the given node is not an lvalue (variable or dereference)
+ */
+void nav_to_var(ast_node* op, stack_frame* frame)
 {
     if (AST_KIND(op) == k_ident)
     {
@@ -254,7 +267,7 @@ void nav_to_var(ast_node* op, stack_frame* frame, loop_info* loop)
     else if (AST_KIND(op) == k_operator && OPER_OPERATOR(op) == DEREF)
     {
         eval(OPER_OPERANDS(op)[0], frame);
-        deref(label);
+        deref();
     }
     else
     {
@@ -263,7 +276,9 @@ void nav_to_var(ast_node* op, stack_frame* frame, loop_info* loop)
     }
 }
 
-
+/**
+ * Removes n values from the top of the stack
+ */
 void pop(int n)
 {
     if (!n)
@@ -284,6 +299,9 @@ void pop(int n)
     instr("'[,'/|'[,'_,'_ S,S,S,S @%d", label + 1);
 }
 
+/**
+ * Pushes a number to the stack
+ */
 void push_number(int value)
 {
     instr("FROM @%d", ++(label));
@@ -325,6 +343,9 @@ call_site_list* add_call_site(call_site_list** list)
     return newNode;
 }
 
+/**
+ * Emits the code for the specified node.
+ */
 void exec(ast_node* n, stack_frame* frame, loop_info* loop)
 {
     if (!n)
@@ -335,7 +356,7 @@ void exec(ast_node* n, stack_frame* frame, loop_info* loop)
 
     instr("# KIND = %d (%s)", AST_KIND(n), node_kind_NAMES[AST_KIND(n)]);
 
-    bool clean_stack = AST_CLEAN_STACK(n);
+    bool clean_stack = AST_CLEAN_STACK(n); // whether this node is expected to "leave" something on the stack or not
 
     switch (AST_KIND(n))
     {
@@ -355,11 +376,11 @@ void exec(ast_node* n, stack_frame* frame, loop_info* loop)
             var_list* ptr = get_var_id(n, frame, F_DEFAULT);
             if (ptr->type->type == T_ARRAY) // array
             {
-                push_number(var_position(ptr));
+                push_number(var_position(ptr));// todo: check unused
             }
             else
             {
-                nav_to_var(n, frame, NULL);
+                nav_to_var(n, frame);
                 instr("FROM @%d", ++label);
                 instr("'/|'[,'/,'_,'_ R,R,S,S @%d", ++label);
                 instr("'/|'[,'[,'_,'_ R,R,S,S @%d", label);
@@ -860,7 +881,7 @@ void exec(ast_node* n, stack_frame* frame, loop_info* loop)
                 case INC:
                 {
                     PROD0("inc");
-                    nav_to_var(op[0], frame, NULL);
+                    nav_to_var(op[0], frame);
                     instr("FROM @%d", ++label);
                     instr("'/|'[,'[,'_,'_ R,R,S,S @%d", ++label);
                     instr("'/|'[,'/,'_,'_ R,R,S,S @%d", label);
@@ -902,7 +923,7 @@ void exec(ast_node* n, stack_frame* frame, loop_info* loop)
                 case DEC:
                 {
                     PROD0("dec");
-                    nav_to_var(op[0], frame, NULL);
+                    nav_to_var(op[0], frame);
                     instr("FROM @%d", ++label);
                     instr("'/|'[,'[,'_,'_ R,R,S,S @%d", ++label);
                     instr("'/|'[,'/,'_,'_ R,R,S,S @%d", label);
@@ -1098,7 +1119,7 @@ void exec(ast_node* n, stack_frame* frame, loop_info* loop)
                     instr("FROM @%d", ++label);
                     instr("'0|'1|'/,'/,'_,'_ L,S,S,S");
                     instr("'[,'/,'_,'_ S,S,S,S @%d", label + 1);
-                    nav_to_var(op[0], frame, NULL);
+                    nav_to_var(op[0], frame);
                     PROD0("navigating to left of stack head");
                     instr("FROM @%d", ++label);
                     instr("'/|'[,'/,'_,'_ S,L,S,S @%d", ++label);
@@ -1213,9 +1234,6 @@ void exec(ast_node* n, stack_frame* frame, loop_info* loop)
                     PROD0("start copying args from stack to heap");
                     instr("FROM @%d", label);
                     instr("'_,'/|'[,'_,'_ '[,'/|'[,'_,'_ R,R,S,S @%d", ++label);
-//                    instr("FROM @%d", label);
-//                    instr("'_,'0|'1,'_,'_ S,L,S,S");
-//                    instr("'_,'/|'[,'_,'_ S,R,S,S @%d", ++label);
                     instr("FROM @%d", label);
                     instr("'_,'0|'1,'_,'_ '0|'1,'_,'_,'_ R,R,S,S");
                     instr("'_,'/,'_,'_ '/,'_,'_,'_ R,R,S,S");
