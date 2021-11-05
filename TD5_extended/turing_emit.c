@@ -482,33 +482,6 @@ void exec(ast_node* n, stack_frame* frame, loop_info* loop)
                     instr("'[,'/,'_,'_ S,S,S,S @%d", label + 1);
                     return;
                 }
-                case REF:
-                {
-                    PROD0("ref");
-                    if (clean_stack)
-                    {
-                        USELESS();
-                    }
-                    int ptr = var_position(get_var_id(op[0], frame, F_DEFAULT));
-                    if (op[1] != NULL)
-                    {
-                        if (AST_KIND(op[1]) == k_number)
-                        {
-                            push_number(ptr + (int) NUMBER_VALUE(op[1]), POINTER_SIZE);
-                        }
-                        else
-                        {
-                            push_number(ptr, POINTER_SIZE);
-                            eval(op[1], frame);
-                            goto ADD;
-                        }
-                    }
-                    else
-                    {
-                        push_number(ptr, POINTER_SIZE);
-                    }
-                    return;
-                }
                 case SHL:
                 {
                     PROD0("shl");
