@@ -46,7 +46,7 @@ void yyerror(const char *s);
 %type   <node>		stmt expr stmt_list var expr_opt basic_expr postfix_expr unary_expr mult_expr add_expr rel_expr eq_expr assign_expr shift_expr
 %type	<node> 		l_and_expr l_or_expr stmt_list_opt expr_discard expr_discard_opt
 %type 	<node>		param_list param_list_ne arg_list arg_list_ne var_decl var_decl_list type_spec_opt type_spec type_decl type_decl_list
-%type	<node>		struct_field struct_field_list
+%type	<node>		struct_field struct_field_list var_typed
 %type   <chr>		aug_assign func_type unary_op
 
 %%
@@ -107,8 +107,12 @@ type_spec
 	| KSTRUCT '{' struct_field_list '}'	{ $$ = make_node(KSTRUCT, 1, $3); }
 	;
 
+var_typed
+	: var ':' type_spec					{ $$ = make_node(':', 2, $1, $3); }
+    ;
+
 struct_field
-	: var ':' type_spec ';'				{ $$ = make_node(':', 2, $1, $3); }
+	: var_typed ';'						{ $$ = $1; }
 	;
 
 struct_field_list
@@ -135,8 +139,8 @@ param_list
 	;
 
 param_list_ne
-	: var							{ $$ = make_list($1); }
-	| var ',' param_list_ne			{ $$ = prepend_list($3, $1); }
+	: var_typed						{ $$ = make_list($1); }
+	| var_typed ',' param_list_ne	{ $$ = prepend_list($3, $1); }
 	;
 
 arg_list

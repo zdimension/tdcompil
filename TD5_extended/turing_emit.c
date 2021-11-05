@@ -70,28 +70,41 @@ void allocate_scope(stack_frame* frame)
         if (ptr->type->type == T_CONST)
             continue;
         instr("# allocate variable %s (position %d, size %d)", ptr->header.name, ptr->position, type_size(ptr->type));
-        char* str = ptr->initial;
-        for (int j = 0; j < type_size(ptr->type); j++, (str && *str && str++))
+        if (ptr->type->type == T_SCALAR)
         {
-            if (str && *str)
+            for (int i = 0; i < INT_WIDTH * ptr->type->scalar_size; i++)
             {
-                char value = *str;
-                for (int i = 0; i < INT_WIDTH; i++, value >>= 1)
-                {
-                    instr("FROM @%d", ++label);
-                    instr("'_,'_,'_,'_ '%d,'_,'_,'_ R,S,S,S @%d", value & 1, label + 1);
-                }
-            }
-            else
-            {
-                for (int i = 0; i < INT_WIDTH; i++)
-                {
-                    instr("FROM @%d", ++label);
-                    instr("'_,'_,'_,'_ '0,'_,'_,'_ R,S,S,S @%d", label + 1);
-                }
+                instr("FROM @%d", ++label);
+                instr("'_,'_,'_,'_ '0,'_,'_,'_ R,S,S,S @%d", label + 1);
             }
             instr("FROM @%d", ++label);
             instr("'_,'_,'_,'_ '/,'_,'_,'_ R,S,S,S @%d", label + 1);
+        }
+        else
+        {
+            char* str = ptr->initial;
+            for (int j = 0; j < type_size(ptr->type); j++, (str && *str && str++))
+            {
+                if (str && *str)
+                {
+                    char value = *str;
+                    for (int i = 0; i < INT_WIDTH; i++, value >>= 1)
+                    {
+                        instr("FROM @%d", ++label);
+                        instr("'_,'_,'_,'_ '%d,'_,'_,'_ R,S,S,S @%d", value & 1, label + 1);
+                    }
+                }
+                else
+                {
+                    for (int i = 0; i < INT_WIDTH; i++)
+                    {
+                        instr("FROM @%d", ++label);
+                        instr("'_,'_,'_,'_ '0,'_,'_,'_ R,S,S,S @%d", label + 1);
+                    }
+                }
+                instr("FROM @%d", ++label);
+                instr("'_,'_,'_,'_ '/,'_,'_,'_ R,S,S,S @%d", label + 1);
+            }
         }
     }
     instr("FROM @%d", ++label);
@@ -298,13 +311,13 @@ void pop(int n)
 /**
  * Pushes a number to the stack
  */
-void push_number(int value)
+void push_number(int value, int size)
 {
     instr("FROM @%d", ++(label));
     instr("'/|'[,'[,'_,'_ S,R,S,S @%d", ++label);
     instr("'/|'[,'/,'_,'_ S,R,S,S @%d", label);
     instr("FROM @%d", label);
-    for (int i = 0; i < INT_WIDTH; i++, value /= 2)
+    for (int i = 0; i < size * INT_WIDTH; i++, value /= 2)
     {
         instr("'/|'[,'_,'_,'_ '/|'[,'%d,'_,'_ S,R,S,S @%d", value & 1, ++label);
         instr("FROM @%d", label);
@@ -361,7 +374,8 @@ void exec(ast_node* n, stack_frame* frame, loop_info* loop)
             PROD1F("push", NUMBER_VALUE(n));
             if (clean_stack)
                 USELESS();
-            push_number(NUMBER_VALUE(n));
+            push_number(NUMBER_VALUE(n), AST_INFERRED(n)->type == T_SCALAR ? AST_INFERRED(n)->scalar_size : type_size(
+                    AST_INFERRED(n)));
             return;
         }
         case k_ident:
@@ -372,7 +386,7 @@ void exec(ast_node* n, stack_frame* frame, loop_info* loop)
             var_list* ptr = get_var_id(n, frame, F_DEFAULT);
             if (ptr->type->type == T_ARRAY) // array
             {
-                push_number(var_position(ptr));// todo: check unused
+                push_number(var_position(ptr), POINTER_SIZE);// todo: check unused
             }
             else
             {
@@ -480,18 +494,18 @@ void exec(ast_node* n, stack_frame* frame, loop_info* loop)
                     {
                         if (AST_KIND(op[1]) == k_number)
                         {
-                            push_number(ptr + (int) NUMBER_VALUE(op[1]));
+                            push_number(ptr + (int) NUMBER_VALUE(op[1]), POINTER_SIZE);
                         }
                         else
                         {
-                            push_number(ptr);
+                            push_number(ptr, POINTER_SIZE);
                             eval(op[1], frame);
                             goto ADD;
                         }
                     }
                     else
                     {
-                        push_number(ptr);
+                        push_number(ptr, POINTER_SIZE);
                     }
                     return;
                 }
@@ -528,7 +542,9 @@ void exec(ast_node* n, stack_frame* frame, loop_info* loop)
                     instr("'[,'_,'_,'_ S,S,R,S @%d", no_carry);
                     instr("FROM @%d", copy);
                     instr("'[,'_,'1,'0|'1 '[,'0|'1,'_,'_ S,R,L,R");
+                    instr("'[,'_,'_,'0|'1 '[,'0|'1,'_,'_ S,R,S,R");
                     instr("'[,'/,'1,'0|'1 '[,'/,'_,'_ S,S,L,R");
+                    instr("'[,'/,'_,'0|'1 '[,'/,'_,'_ S,S,S,R");
                     instr("'[,'/,'_,'_ S,S,S,S @%d", label + 1);
                     return;
                 }
@@ -565,7 +581,9 @@ void exec(ast_node* n, stack_frame* frame, loop_info* loop)
                     instr("'[,'_,'_,'_ S,S,R,R @%d", no_carry);
                     instr("FROM @%d", copy);
                     instr("'[,'_,'1,'0|'1 '[,'0|'1,'_,'_ S,R,L,R");
+                    instr("'[,'_,'_,'0|'1 '[,'0|'1,'_,'_ S,R,S,R");
                     instr("'[,'_,'1,'_ '[,'0,'_,'_ S,R,L,S");
+                    instr("'[,'_,'_,'_ '[,'0,'_,'_ S,R,S,S");
                     instr("'[,'/,'1,'_ '[,'/,'_,'_ S,S,L,S @%d", label + 1);
                     instr("'[,'/,'_,'_ S,S,S,S @%d", label + 1);
                     return;
@@ -1205,6 +1223,7 @@ void exec(ast_node* n, stack_frame* frame, loop_info* loop)
                         instr("'0|'1,'0,'_,'_ '0,'_,'_,'_ R,R,S,S");
                         instr("'0|'1,'1,'_,'_ '1,'_,'_,'_ R,R,S,S");
                         instr("'/,'/,'_,'_ '/,'_,'_,'_ L,L,S,S @%d", ++label);
+                        instr("'0|'1,'/,'_,'_ '0,'/,'_,'_ R,S,S,S");
                         instr("FROM @%d", label);
                         instr("'/|'0|'1|'[,'_,'_,'_ L,L,S,S");
                         instr("'/|'0|'1|'[,'/,'_,'_ S,S,S,S @%d", label + 1);
@@ -1220,6 +1239,7 @@ void exec(ast_node* n, stack_frame* frame, loop_info* loop)
                         instr("'0|'1,'0,'_,'_ '0,'0,'_,'_ R,R,S,S");
                         instr("'0|'1,'1,'_,'_ '1,'1,'_,'_ R,R,S,S");
                         instr("'/,'/,'_,'_ L,S,S,S @%d", ++label);
+                        instr("'0|'1,'/,'_,'_ '0,'/,'_,'_ R,S,S,S");
                         instr("FROM @%d", label);
                         instr("'0|'1,'/,'_,'_ L,S,S,S");
                         instr("'/|'[,'/,'_,'_ S,S,S,S @%d", label + 1);

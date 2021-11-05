@@ -6,6 +6,8 @@
 
 #define NEW_TYPE() (calloc(1, sizeof(type_list)))
 #define WORD_TYPE types_head
+#define U16_TYPE (type_list*)(types_head->header.next)
+#define U32_TYPE (type_list*)(types_head->header.next->next)
 
 /**
  * Adds an item to a linked list
@@ -66,7 +68,7 @@ int type_size(type_list const* type)
     switch (type->type)
     {
         case T_SCALAR:
-            return type->scalar_size;
+            return 1;
         case T_ARRAY:
             return type->array_size;
         case T_POINTER:
@@ -100,7 +102,11 @@ const char* type_display_full(type_list const* type, bool inner, bool expand)
         case T_VOID:
             return "void";
         case T_SCALAR:
-            return "word";
+        {
+            char* buf = malloc(256);
+            sprintf(buf, "u%d", type->scalar_size * 8);
+            return buf;
+        }
         case T_ARRAY:
         {
             char* buf = malloc(256);
@@ -184,7 +190,7 @@ type_list const* make_pointer(type_list const* target)
 
 /**
  * @return The pointer type corresponding to the specified array type. If a non-array type is passed, will do nothing
- * @example The array type word[10] decays to the pointer type word*
+ * @example The array type u8[10] decays to the pointer type u8*
  */
 type_list const* decay_array_ptr(type_list const* t)
 {
@@ -350,6 +356,8 @@ ast_node* set_inferred_type(ast_node* n, type_list const* type)
     return n;
 }
 
+#define ALWAYS_ZERO() info_msg(*n, "Value is always zero\n")
+
 /**
  * Static analysis + type checking + constant folding
  */
@@ -369,7 +377,15 @@ void analysis(ast_node** n, stack_frame* frame)
         {
             // preserve inferred type
             if (!AST_INFERRED(*n))
-                SET_TYPE(WORD_TYPE);
+            {
+                unsigned int value = (unsigned int)NUMBER_VALUE(*n);
+                if (value >= 65536)
+                    SET_TYPE(U32_TYPE);
+                else if (value >= 256)
+                    SET_TYPE(U16_TYPE);
+                else
+                    SET_TYPE(WORD_TYPE);
+            }
             return;
         }
         case k_ident:
@@ -507,7 +523,7 @@ void analysis(ast_node** n, stack_frame* frame)
                     SC_SCOPE(newNode->code) = &newNode->frame;
                     for (linked_list* ptr = newNode->arglist; ptr; ptr = ptr->next)
                     {
-                        check_add_var(VAR_NAME(ptr->value), &newNode->frame, WORD_TYPE);
+                        check_add_var(VAR_NAME(OPER_OPERANDS(ptr->value)[0]), &newNode->frame, decode_spec(OPER_OPERANDS(ptr->value)[1], frame));
                     }
                     analysis(&newNode->code, &newNode->frame);
                     SET_TYPE(VOID_TYPE);
@@ -614,8 +630,9 @@ void analysis(ast_node** n, stack_frame* frame)
                 case SHL:
                 {
                     type_list const* left = o[0].type;
-                    if (o[0].is_num && o[0].value == 0 || o[1].is_num && o[1].value >= (INT_WIDTH * type_size(left)))
+                    if (o[0].is_num && o[0].value == 0 || o[1].is_num && o[1].value >= (INT_WIDTH * left->scalar_size))
                     {
+                        ALWAYS_ZERO();
                         RETURN(make_number(0), left);
                     }
                     if (o[0].is_num && o[1].is_num)
@@ -627,8 +644,9 @@ void analysis(ast_node** n, stack_frame* frame)
                 case SHR:
                 {
                     type_list const* left = o[0].type;
-                    if (o[0].is_num && o[0].value == 0 || o[1].is_num && o[1].value >= (INT_WIDTH * type_size(left)))
+                    if (o[0].is_num && o[0].value == 0 || o[1].is_num && o[1].value >= (INT_WIDTH * left->scalar_size))
                     {
+                        ALWAYS_ZERO();
                         RETURN(make_number(0), left);
                     }
                     if (o[0].is_num && o[1].is_num)
@@ -862,11 +880,19 @@ void analysis(ast_node** n, stack_frame* frame)
                 {
                     type_list const* left = infer_type(op[0]);
                     type_list const* right = infer_type(op[1]);
-                    if (!type_same(left, right))
+                    if (left->type == T_SCALAR && right->type == T_SCALAR && left->scalar_size >= right->scalar_size)
                     {
-                        error_msg(*n, "Cannot assign rvalue of type '%s' to lvalue of type '%s'\n", type_display(right),
-                                  type_display(left));
-                        exit(1);
+                        // ok, can upcast scalar to bigger scalar without loss
+                    }
+                    else
+                    {
+                        if (!type_same(left, right))
+                        {
+                            error_msg(*n, "Cannot assign rvalue of type '%s' to lvalue of type '%s'\n",
+                                      type_display(right),
+                                      type_display(left));
+                            exit(1);
+                        }
                     }
                     if (AST_KIND(op[1]) == k_ident && !strcmp(VAR_NAME(op[0]), VAR_NAME(op[1])))
                     {
@@ -930,14 +956,19 @@ void analysis(ast_node** n, stack_frame* frame)
 #undef SET_TYPE
 
 /**
- * Initialize builtin types (void and word)
+ * Initialize builtin types (void and u*)
  */
 void init_builtin_types()
 {
     VOID_TYPE = NEW_TYPE();
 
-    type_list* word_type = ADD_SYM(type_list, &types_head, &types_tail);
-    word_type->header.name = "word";
-    word_type->type = T_SCALAR;
-    word_type->scalar_size = 1;
+    for (int i = 1; i <= 4; i *= 2)
+    {
+        type_list* word_type = ADD_SYM(type_list, &types_head, &types_tail);
+        char* name = malloc(8);
+        sprintf(name, "u%d", 8 * i);
+        word_type->header.name = name;
+        word_type->type = T_SCALAR;
+        word_type->scalar_size = i;
+    }
 }
