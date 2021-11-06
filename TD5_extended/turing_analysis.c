@@ -41,6 +41,9 @@ type_list* check_add_type(const char* name);
  */
 bool type_same(type_list const* a, type_list const* b)
 {
+    if (a == b)
+        return true;
+
     if (a->type != b->type)
         return false;
 
