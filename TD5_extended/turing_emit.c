@@ -859,92 +859,86 @@ void exec(ast_node* n, stack_frame* frame)
                     instr("'[,'_,'_,'_ '[,'/,'_,'_ S,S,S,S @%d", label + 1);
                     return;
                 }
-                case AND: // todo: short-circuit
+                case AND:
                 {
                     PROD0("and");
                     eval(op[0], frame);
-                    eval(op[1], frame);
-                    if (clean_stack)
-                    {
-                        pop(2);
-                        USELESS();
-                    }
+
                     instr("FROM @%d", ++label);
                     instr("'[,'/,'_,'_ '[,'_,'_,'_ S,L,S,S @%d", ++label);
                     instr("FROM @%d", label);
                     int b_nonzero = ++label;
-                    int check_a = ++label;
-                    int b_zero = ++label;
                     int write_zero = ++label;
                     int a_nonzero = ++label;
                     int write_one = ++label;
                     int end = ++label;
+                    int next = label + 1;
                     instr("'[,'0,'_,'_ '[,'_,'_,'_ S,L,S,S");
                     instr("'[,'1,'_,'_ '[,'_,'_,'_ S,L,S,S @%d", b_nonzero);
-                    instr("'[,'/,'_,'_ '[,'_,'_,'_ S,L,S,S @%d", b_zero);
+                    instr("'[,'/|'[,'_,'_ S,R,S,S @%d", clean_stack ? next : write_zero);
                     instr("FROM @%d", b_nonzero);
                     instr("'[,'0|'1,'_,'_ '[,'_,'_,'_ S,L,S,S");
-                    instr("'[,'/,'_,'_ '[,'_,'_,'_ S,L,S,S @%d", check_a);
-                    instr("FROM @%d", check_a);
+                    instr("'[,'/|'[,'_,'_ S,S,S,S @%d", label + 1);
+                    eval(op[1], frame);
+                    instr("FROM @%d", ++label);
+                    instr("'[,'/,'_,'_ '[,'_,'_,'_ S,L,S,S @%d", ++label);
+                    instr("FROM @%d", label);
                     instr("'[,'0,'_,'_ '[,'_,'_,'_ S,L,S,S");
                     instr("'[,'1,'_,'_ '[,'_,'_,'_ S,L,S,S @%d", a_nonzero);
-                    instr("'[,'/|'[,'_,'_ S,S,S,S @%d", b_zero);
-                    instr("FROM @%d", b_zero);
-                    instr("'[,'0|'1,'_,'_ '[,'_,'_,'_ S,L,S,S");
-                    instr("'[,'/|'[,'_,'_ S,R,S,S @%d", write_zero);
+                    instr("'[,'/|'[,'_,'_ S,R,S,S @%d", clean_stack ? next : write_zero);
                     instr("FROM @%d", write_zero);
                     instr("'[,'_,'_,'_ '[,'0,'_,'_ S,R,S,S @%d", end);
                     instr("FROM @%d", a_nonzero);
                     instr("'[,'0|'1,'_,'_ '[,'_,'_,'_ S,L,S,S");
-                    instr("'[,'/|'[,'_,'_ S,R,S,S @%d", write_one);
+                    instr("'[,'/|'[,'_,'_ S,R,S,S @%d", clean_stack ? next : write_one);
                     instr("FROM @%d", write_one);
                     instr("'[,'_,'_,'_ '[,'1,'_,'_ S,R,S,S @%d", end);
                     instr("FROM @%d", end);
-                    instr("'[,'_,'_,'_ '[,'/,'_,'_ S,S,S,S @%d", label + 1);
+                    instr("'[,'_,'_,'_ '[,'/,'_,'_ S,S,S,S @%d", next);
+
                     return;
                 }
-                case OR: // todo: short-circuit
+                case OR:
                 {
                     PROD0("or");
                     eval(op[0], frame);
-                    eval(op[1], frame);
-                    if (clean_stack)
-                    {
-                        pop(2);
-                        USELESS();
-                    }
                     instr("FROM @%d", ++label);
                     instr("'[,'/,'_,'_ '[,'_,'_,'_ S,L,S,S @%d", ++label);
                     instr("FROM @%d", label);
                     int check_a = ++label;
                     int b_nonzero = ++label;
                     int a_nonzero = ++label;
-                    int scroll_right = ++label;
+                    int write_zero = ++label;
                     int scroll_left = ++label;
                     int write_one = ++label;
                     int end = ++label;
+                    int next = label + 1;
                     instr("'[,'0,'_,'_ '[,'_,'_,'_ S,L,S,S");
                     instr("'[,'1,'_,'_ '[,'_,'_,'_ S,L,S,S @%d", b_nonzero);
+                    instr("'[,'/|'[,'_,'_ S,S,S,S @%d", label + 1);
+                    eval(op[1], frame);
+                    instr("FROM @%d", ++label);
                     instr("'[,'/,'_,'_ '[,'_,'_,'_ S,L,S,S @%d", check_a);
                     instr("FROM @%d", b_nonzero);
                     instr("'[,'0|'1,'_,'_ '[,'_,'_,'_ S,L,S,S");
-                    instr("'[,'/,'_,'_ '[,'_,'_,'_ S,L,S,S @%d", scroll_left);
+                    instr("'[,'/|'[,'_,'_ S,R,S,S @%d", write_one);
                     instr("FROM @%d", scroll_left);
                     instr("'[,'0|'1,'_,'_ '[,'_,'_,'_ S,L,S,S");
-                    instr("'[,'/|'[,'_,'_ S,R,S,S @%d", write_one);
+                    instr("'[,'/|'[,'_,'_ S,R,S,S @%d", clean_stack ? next : write_one);
                     instr("FROM @%d", check_a);
                     instr("'[,'0,'_,'_ '[,'_,'_,'_ S,L,S,S");
                     instr("'[,'1,'_,'_ '[,'_,'_,'_ S,L,S,S @%d", a_nonzero);
-                    instr("'[,'/|'[,'_,'_ S,R,S,S @%d", scroll_right);
+                    instr("'[,'/|'[,'_,'_ S,R,S,S @%d", clean_stack ? next : write_zero);
                     instr("FROM @%d", a_nonzero);
                     instr("'[,'0|'1,'_,'_ '[,'_,'_,'_ S,L,S,S");
-                    instr("'[,'/|'[,'_,'_ S,R,S,S @%d", write_one);
+                    instr("'[,'/|'[,'_,'_ S,R,S,S @%d", clean_stack ? next : write_one);
                     instr("FROM @%d", write_one);
                     instr("'[,'_,'_,'_ '[,'1,'_,'_ S,R,S,S @%d", end);
-                    instr("FROM @%d", scroll_right);
+                    instr("FROM @%d", write_zero);
                     instr("'[,'_,'_,'_ '[,'0,'_,'_ S,R,S,S @%d", end);
                     instr("FROM @%d", end);
                     instr("'[,'_,'_,'_ '[,'/,'_,'_ S,S,S,S @%d", label + 1);
+                    
                     return;
                 }
                 case INC:

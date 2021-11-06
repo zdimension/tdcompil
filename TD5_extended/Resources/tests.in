@@ -1,5 +1,5 @@
 {
 	var x = 0;
-	var y = 5;
-	print y || x;
+	var y = 0;
+	print x || y;
 }
