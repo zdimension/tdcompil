@@ -50,7 +50,7 @@ bool type_same(type_list const* a, type_list const* b)
         case T_SCALAR:
             return a->scalar_size == b->scalar_size;
         case T_ARRAY:
-            return a->array_size == b->array_size && type_same(a->array_target, b->array_target);
+            return a->array_count == b->array_count && type_same(a->array_target, b->array_target);
         case T_POINTER:
             return type_same(a->pointer_target, b->pointer_target);
         case T_CONST:
@@ -70,7 +70,7 @@ int type_size(type_list const* type)
         case T_SCALAR:
             return 1;
         case T_ARRAY:
-            return type->array_size;
+            return type->array_count;
         case T_POINTER:
             return 1;
         case T_CONST:
@@ -110,7 +110,7 @@ const char* type_display_full(type_list const* type, bool inner, bool expand)
         case T_ARRAY:
         {
             char* buf = malloc(256);
-            sprintf(buf, "%s[%d]", type_display(type->array_target), type->array_size);
+            sprintf(buf, "%s[%d]", type_display(type->array_target), type->array_count);
             return buf;
         }
         case T_POINTER:
@@ -231,7 +231,7 @@ type_list const* decode_spec(ast_node* spec, stack_frame* frame)
                 type_list* ret = NEW_TYPE();
                 ret->type = T_ARRAY;
                 ret->array_target = decode_spec(op[0], frame);
-                ret->array_size = static_eval(op[1], frame);
+                ret->array_count = static_eval(op[1], frame);
                 return ret;
             }
             case KTYPEOF:
@@ -501,7 +501,7 @@ void analysis(ast_node** n, stack_frame* frame)
                         {
                             type_list* type = NEW_TYPE();
                             type->type = T_ARRAY;
-                            type->array_size = static_eval(op[1], frame);
+                            type->array_count = static_eval(op[1], frame);
                             type->array_target = WORD_TYPE;
                             var_list* var = check_add_var(VAR_NAME(op[0]), frame, type);
                             if (!var)

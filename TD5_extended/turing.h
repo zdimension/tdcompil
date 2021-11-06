@@ -96,7 +96,7 @@ typedef struct type_list_s
         int scalar_size; // always 1 for now
         struct
         {
-            int array_size;
+            int array_count;
             struct type_list_s const* array_target;
         };
         struct type_list_s const* pointer_target;
