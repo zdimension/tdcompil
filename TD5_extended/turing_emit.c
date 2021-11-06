@@ -54,6 +54,64 @@ instr("FROM @%d", end);    \
 instr("'[,'_,'_,'_ '[,'/,'_,'_ S,S,S,S @%d", label + 1); \
 }
 
+void allocate_var(var_list* ptr)
+{
+    if (ptr->type->type == T_CONST)
+        return;
+    instr("# allocate variable %s (position %d, size %d)", ptr->header.name, ptr->position,
+          type_size_cells(ptr->type));
+    switch(ptr->type->type)
+    {
+        case T_SCALAR:
+        case T_POINTER:
+        {
+            for (int i = 0; i < type_size_bits(ptr->type); i++)
+            {
+                instr("FROM @%d", ++label);
+                instr("'_,'_,'_,'_ '0,'_,'_,'_ R,S,S,S @%d", label + 1);
+            }
+            instr("FROM @%d", ++label);
+            instr("'_,'_,'_,'_ '/,'_,'_,'_ R,S,S,S @%d", label + 1);
+            break;
+        }
+        case T_ARRAY:
+        {
+            char* str = ptr->initial;
+            int cell_bits = type_size_bits(ptr->type->array_target);
+            for (int j = 0; j < ptr->type->array_count; j++, (str && *str && str++))
+            {
+                if (str && *str)
+                {
+                    char value = *str;
+                    for (int i = 0; i < cell_bits; i++, value >>= 1)
+                    {
+                        instr("FROM @%d", ++label);
+                        instr("'_,'_,'_,'_ '%d,'_,'_,'_ R,S,S,S @%d", value & 1, label + 1);
+                    }
+                }
+                else
+                {
+                    for (int i = 0; i < cell_bits; i++)
+                    {
+                        instr("FROM @%d", ++label);
+                        instr("'_,'_,'_,'_ '0,'_,'_,'_ R,S,S,S @%d", label + 1);
+                    }
+                }
+                instr("FROM @%d", ++label);
+                instr("'_,'_,'_,'_ '/,'_,'_,'_ R,S,S,S @%d", label + 1);
+            }
+            break;
+        }
+        case T_COMPOSITE:
+        {
+            for (var_list* member = ptr->type->composite_members.head; member; member = (var_list*) member->header.next)
+            {
+                allocate_var(member);
+            }
+        }
+    }
+}
+
 
 /**
  * Allocates blank cells for the variables in the scope\n
@@ -80,47 +138,7 @@ void allocate_scope(stack_frame* frame)
     instr("'_,'/|'[,'_,'_ S,R,S,S @%d", label + 1);
     for (var_list* ptr = frame->vars.head; ptr; ptr = (var_list*) ptr->header.next)
     {
-        if (ptr->type->type == T_CONST)
-            continue;
-        instr("# allocate variable %s (position %d, size %d)", ptr->header.name, ptr->position,
-              type_size_cells(ptr->type));
-        if (type_size_cells(ptr->type) == 1)
-        {
-            for (int i = 0; i < type_size_bits(ptr->type); i++)
-            {
-                instr("FROM @%d", ++label);
-                instr("'_,'_,'_,'_ '0,'_,'_,'_ R,S,S,S @%d", label + 1);
-            }
-            instr("FROM @%d", ++label);
-            instr("'_,'_,'_,'_ '/,'_,'_,'_ R,S,S,S @%d", label + 1);
-        }
-        else if (ptr->type->type == T_ARRAY)
-        {
-            char* str = ptr->initial;
-            int cell_bits = type_size_bits(ptr->type->array_target);
-            for (int j = 0; j < ptr->type->array_count; j++, (str && *str && str++))
-            {
-                if (str && *str)
-                {
-                    char value = *str;
-                    for (int i = 0; i < cell_bits; i++, value >>= 1)
-                    {
-                        instr("FROM @%d", ++label);
-                        instr("'_,'_,'_,'_ '%d,'_,'_,'_ R,S,S,S @%d", value & 1, label + 1);
-                    }
-                }
-                else
-                {
-                    for (int i = 0; i < cell_bits; i++)
-                    {
-                        instr("FROM @%d", ++label);
-                        instr("'_,'_,'_,'_ '0,'_,'_,'_ R,S,S,S @%d", label + 1);
-                    }
-                }
-                instr("FROM @%d", ++label);
-                instr("'_,'_,'_,'_ '/,'_,'_,'_ R,S,S,S @%d", label + 1);
-            }
-        }
+        allocate_var(ptr);
     }
     instr("FROM @%d", ++label);
     instr("'_|'/|'0|'1,'_,'_,'_ L,S,S,S");
@@ -270,13 +288,13 @@ void eval(ast_node* n, stack_frame* frame);
  */
 void nav_to_var(ast_node* op, stack_frame* frame)
 {
-    ast_node* pos = AST_INFERRED_POS(op);
-
-    if (!pos)
+    if (AST_KIND(op) != k_operator && OPER_OPERATOR(op) != DEREF)
     {
         error_msg(op, "Expected lvalue for assignment\n");
         exit(1);
     }
+
+    ast_node* pos = OPER_OPERANDS(op)[0];
 
     if (AST_KIND(pos) == k_number)
     {
@@ -356,17 +374,7 @@ void eval(ast_node* n, stack_frame* frame)
 
 #define USELESS() do{info_msg(n, "Line has no effect\n");return;}while(0)
 
-call_site_list* add_call_site(call_site_list** list)
-{
-    call_site_list* newNode = malloc(sizeof(call_site_list));
-    newNode->next = *list;
-    if (*list)
-        newNode->id = (*list)->id + 1;
-    else
-        newNode->id = 0;
-    *list = newNode;
-    return newNode;
-}
+
 
 /**
  * Emits the code for the specified node.
@@ -391,23 +399,6 @@ void exec(ast_node* n, stack_frame* frame)
             if (clean_stack)
                 USELESS();
             push_number(NUMBER_VALUE(n), type_size_bits(AST_INFERRED(n)));
-            return;
-        }
-        case k_ident:
-        {
-            PROD1S("load", VAR_NAME(n));
-            if (clean_stack)
-                USELESS();
-            nav_to_var(n, frame); // can only be scalar variable because an array would have been folded to a pointer
-            instr("FROM @%d", ++label);
-            instr("'/|'[,'/,'_,'_ R,R,S,S @%d", ++label);
-            instr("'/|'[,'[,'_,'_ R,R,S,S @%d", label);
-            instr("FROM @%d", label);
-            instr("'0|'1,'_,'_,'_ '0|'1,'0|'1,'_,'_ R,R,S,S");
-            instr("'/,'_,'_,'_ '/,'/,'_,'_ L,S,S,S @%d", ++label);
-            instr("FROM @%d", label);
-            instr("'/|'0|'1,'/,'_,'_ L,S,S,S");
-            instr("'[,'/,'_,'_ S,S,S,S @%d", label + 1);
             return;
         }
         case k_operator:
@@ -469,21 +460,30 @@ void exec(ast_node* n, stack_frame* frame)
                 case DEREF:
                 {
                     PROD0("deref");
-                    eval(op[0], frame);
                     if (clean_stack)
-                    {
-                        pop(1);
                         USELESS();
-                    }
-                    deref();
+                    nav_to_var(n, frame);
                     instr("FROM @%d", ++label);
                     instr("'/|'[,'/,'_,'_ R,R,S,S @%d", ++label);
                     instr("'/|'[,'[,'_,'_ R,R,S,S @%d", label);
+                    int size = type_size_cells(n->inferred_type);
+                    for (int i = 1; i < size; i++)
+                    {
+                        instr("FROM @%d", label);
+                        instr("'0|'1,'_,'_,'_ '0|'1,'0|'1,'_,'_ R,R,S,S");
+                        instr("'/,'_,'_,'_ '/,'/,'_,'_ R,R,S,S @%d", ++label);
+                    }
                     instr("FROM @%d", label);
                     instr("'0|'1,'_,'_,'_ '0|'1,'0|'1,'_,'_ R,R,S,S");
                     instr("'/,'_,'_,'_ '/,'/,'_,'_ L,S,S,S @%d", ++label);
+                    for (int i = 1; i < size; i++)
+                    {
+                        instr("FROM @%d", label);
+                        instr("'0|'1,'/,'_,'_ L,S,S,S");
+                        instr("'/,'/,'_,'_ L,S,S,S @%d", ++label);
+                    }
                     instr("FROM @%d", label);
-                    instr("'0|'1|'/,'/,'_,'_ L,S,S,S");
+                    instr("'/|'0|'1,'/,'_,'_ L,S,S,S");
                     instr("'[,'/,'_,'_ S,S,S,S @%d", label + 1);
                     return;
                 }
@@ -1166,6 +1166,7 @@ void exec(ast_node* n, stack_frame* frame)
                 {
                     PROD0("store");
                     PROD0("evaluating right-hand value");
+                    int size = type_size_cells(op[1]->inferred_type);
                     eval(op[1], frame);
                     instr("FROM @%d", ++label);
                     instr("'0|'1|'/,'/,'_,'_ L,S,S,S");
@@ -1174,6 +1175,14 @@ void exec(ast_node* n, stack_frame* frame)
                     PROD0("navigating to left of stack head");
                     instr("FROM @%d", ++label);
                     instr("'/|'[,'/,'_,'_ S,L,S,S @%d", ++label);
+                    for (int i = 1; i < size; i++)
+                    {
+                        instr("FROM @%d", label);
+                        instr("'/,'0|'1,'_,'_ S,L,S,S");
+                        instr("'[,'0|'1,'_,'_ S,L,S,S");
+                        instr("'/,'/|'[,'_,'_ S,L,S,S @%d", ++label);
+                        instr("'[,'/|'[,'_,'_ S,L,S,S @%d", label);
+                    }
                     instr("FROM @%d", label);
                     instr("'/,'0|'1,'_,'_ S,L,S,S");
                     instr("'[,'0|'1,'_,'_ S,L,S,S");
@@ -1181,11 +1190,19 @@ void exec(ast_node* n, stack_frame* frame)
                     instr("'[,'/|'[,'_,'_ R,R,S,S @%d", label);
                     if (clean_stack) // statement, clear from stack
                     {
+                        for (int i = 1; i < size; i++)
+                        {
+                            instr("FROM @%d", label);
+                            instr("'0|'1,'0,'_,'_ '0,'_,'_,'_ R,R,S,S");
+                            instr("'0|'1,'1,'_,'_ '1,'_,'_,'_ R,R,S,S");
+                            instr("'0|'1,'/,'_,'_ '0,'/,'_,'_ R,S,S,S");
+                            instr("'/,'/,'_,'_ '/,'_,'_,'_ R,R,S,S @%d", ++label);
+                        }
                         instr("FROM @%d", label);
                         instr("'0|'1,'0,'_,'_ '0,'_,'_,'_ R,R,S,S");
                         instr("'0|'1,'1,'_,'_ '1,'_,'_,'_ R,R,S,S");
-                        instr("'/,'/,'_,'_ '/,'_,'_,'_ L,L,S,S @%d", ++label);
                         instr("'0|'1,'/,'_,'_ '0,'/,'_,'_ R,S,S,S");
+                        instr("'/,'/,'_,'_ '/,'_,'_,'_ L,L,S,S @%d", ++label);
                         instr("FROM @%d", label);
                         instr("'/|'0|'1|'[,'_,'_,'_ L,L,S,S");
                         instr("'/|'0|'1|'[,'/,'_,'_ S,S,S,S @%d", label + 1);
@@ -1197,11 +1214,19 @@ void exec(ast_node* n, stack_frame* frame)
                     }
                     else // expression, keep in stack
                     {
+                        for (int i = 1; i < size; i++)
+                        {
+                            instr("FROM @%d", label);
+                            instr("'0|'1,'0,'_,'_ '0,'0,'_,'_ R,R,S,S");
+                            instr("'0|'1,'1,'_,'_ '1,'1,'_,'_ R,R,S,S");
+                            instr("'0|'1,'/,'_,'_ '0,'/,'_,'_ R,S,S,S");
+                            instr("'/,'/,'_,'_ R,R,S,S @%d", ++label);
+                        }
                         instr("FROM @%d", label);
                         instr("'0|'1,'0,'_,'_ '0,'0,'_,'_ R,R,S,S");
                         instr("'0|'1,'1,'_,'_ '1,'1,'_,'_ R,R,S,S");
-                        instr("'/,'/,'_,'_ L,S,S,S @%d", ++label);
                         instr("'0|'1,'/,'_,'_ '0,'/,'_,'_ R,S,S,S");
+                        instr("'/,'/,'_,'_ L,S,S,S @%d", ++label);
                         instr("FROM @%d", label);
                         instr("'/|'0|'1,'/,'_,'_ L,S,S,S");
                         instr("'[,'/,'_,'_ S,S,S,S @%d", label + 1);
@@ -1237,7 +1262,8 @@ void exec(ast_node* n, stack_frame* frame)
                     func_list* fct = FIND_SYM(func_list, funcs_head, op[0]);
                     linked_list* args = ((ast_linked_list*) op[1])->list;
                     int argcount = 0;
-                    for (linked_list* arg = args; arg; arg = arg->next, argcount++)
+                    int argcells = 0;
+                    for (linked_list* arg = args; arg; argcount++, argcells += type_size_cells(arg->value->inferred_type), arg = arg->next)
                     {
                         eval(arg->value, frame);
                     }
@@ -1247,7 +1273,7 @@ void exec(ast_node* n, stack_frame* frame)
                     instr("FROM @%d", start_left);
                     instr("'[,'/,'_,'_ S,L,S,S @%d", ++label);
                     instr("'[,'[,'_,'_ S,S,S,S @%d", right_heap);
-                    for (int i = 1; i < argcount; i++)
+                    for (int i = 1; i < argcells; i++)
                     {
                         instr("FROM @%d", label);
                         instr("'[,'0|'1,'_,'_ S,L,S,S");
@@ -1261,7 +1287,7 @@ void exec(ast_node* n, stack_frame* frame)
                     instr("FROM @%d", right_heap);
                     instr("'/|'0|'1|'[,'/,'_,'_ R,S,S,S");
                     instr("'/|'0|'1|'[,'[,'_,'_ R,S,S,S");
-                    call_site_list* call = add_call_site(&fct->callsites);
+                    call_site_list* call = n->data;
                     instr("'_,'/|'[,'_,'_ '[,'/|'[,'_,'_ R,S,S,S @F%dC%d", fct->header.id, call->id);
                     call->argalloc_address = ++label;
                     PROD0("start copying args from stack to heap");

@@ -90,6 +90,7 @@
 "typeof" { return KTYPEOF; }
 "sizeof" { return KSIZEOF; }
 "struct" { return KSTRUCT; }
+"bitsof" { return KBITSOF; }
 
 	/* ---- Idents ---- */
 [a-zA-Z_][a-zA-Z0-9_]*			{ yylval.var = strdup(yytext); return IDENT; }

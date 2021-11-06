@@ -64,7 +64,7 @@ bool type_same(type_list const* a, type_list const* b)
 
 int type_size_bits(type_list const* type)
 {
-    switch(type->type)
+    switch (type->type)
     {
         case T_SCALAR:
             return type->scalar_bits;
@@ -298,7 +298,7 @@ type_list const* decode_spec(ast_node* spec, stack_frame* frame)
                         if (ret->composite_members.tail)
                         {
                             pos = ret->composite_members.tail->position +
-                                    type_size_cells(ret->composite_members.tail->type);
+                                  type_size_cells(ret->composite_members.tail->type);
                         }
 
                         var_list* new = ADD_SYM(var_list, &ret->composite_members.head, &ret->composite_members.tail);
@@ -385,6 +385,7 @@ var_list* check_add_var(const char* name, stack_frame* frame, type_list const* t
 #define RETURN(x, type) do{*n = x; AST_INFERRED(*n) = type; return;}while(0)
 #define RETURN_VAL(x) do{*n = x; return;}while(0)
 #define SET_TYPE(type) do {AST_INFERRED(*n) = type; return;}while(0)
+#define RETURN_LVALUE(x) do {*n = make_node(DEREF, 1, x); analysis(n, frame); return;}while(0)
 
 ast_node* set_inferred_type(ast_node* n, type_list const* type)
 {
@@ -393,6 +394,29 @@ ast_node* set_inferred_type(ast_node* n, type_list const* type)
 }
 
 #define ALWAYS_ZERO() info_msg(*n, "Value is always zero\n")
+
+ast_node* get_position(ast_node* n)
+{
+    if (AST_KIND(n) != k_operator && OPER_OPERATOR(n) != DEREF)
+    {
+        error_msg(n, "Cannot take address of expression\n");
+        exit(1);
+    }
+
+    return OPER_OPERANDS(n)[0];
+}
+
+call_site_list* add_call_site(call_site_list** list)
+{
+    call_site_list* newNode = malloc(sizeof(call_site_list));
+    newNode->next = *list;
+    if (*list)
+        newNode->id = (*list)->id + 1;
+    else
+        newNode->id = 0;
+    *list = newNode;
+    return newNode;
+}
 
 /**
  * Static analysis + type checking + constant folding
@@ -441,11 +465,9 @@ void analysis(ast_node** n, stack_frame* frame)
                 if (ptr->type->type == T_ARRAY) // referencing an array directly is equivalent to &array[0]
                 {
                     ast_node* ret = set_inferred_type(make_number(var_position(ptr)), decay_array_ptr(ptr->type));
-                    AST_INFERRED_POS(ret) = ret;
-                    RETURN_VAL(ret);
+                    RETURN_LVALUE(ret);
                 }
-                AST_INFERRED_POS(*n) = set_inferred_type(make_number(var_position(ptr)), make_pointer(ptr->type));
-                SET_TYPE(ptr->type);
+                RETURN_LVALUE(set_inferred_type(make_number(var_position(ptr)), make_pointer(ptr->type)));
             }
             ptr = get_var_id(*n, frame, F_RECURSE);
             if (ptr->type->type == T_CONST &&
@@ -472,16 +494,20 @@ void analysis(ast_node** n, stack_frame* frame)
                         exit(1);
                     }
                     var_list* member = FIND_SYM(var_list, ltype->composite_members.head, op[1]);
-                    AST_INFERRED_POS(*n) = set_inferred_type(
-                            make_node('+', 2, op[0]->inferred_position, make_number(member->position)),
-                            make_pointer(member->type));
-                    analysis(&AST_INFERRED_POS(*n), frame);
-                    SET_TYPE(member->type);
+                    RETURN_LVALUE(make_node('+', 2,
+                                      set_inferred_type(get_position(op[0]),make_pointer(member->type)),
+                                      make_number(member->position))
+                            );
                 }
                 case KSIZEOF:
                 {
                     type_list const* type = decode_spec(op[0], frame);
                     RETURN(make_number(type_size_cells(type)), WORD_TYPE);
+                }
+                case KBITSOF:
+                {
+                    type_list const* type = decode_spec(op[0], frame);
+                    RETURN(make_number(type_size_bits(type)), WORD_TYPE);
                 }
                 case KCONST:
                 {
@@ -588,35 +614,43 @@ void analysis(ast_node** n, stack_frame* frame)
                 }
                 case '(':
                 {
-                    func_list* func = FIND_SYM(func_list, funcs_head, op[0]);
-                    linked_list* list, *flist;
-                    var_list* fargs;
-                    int i = 1;
-                    for (list = ((ast_linked_list*) op[1])->list,
-                            flist = func->arglist, fargs = func->frame.vars.head;
-                         list && flist;
-                         list = list->next, flist = flist->next, fargs = (var_list*)fargs->header.next, i++)
+                    if (!AST_DATA(*n))
                     {
-                        analysis(&list->value, frame);
-                        if (!type_same(infer_type(list->value), fargs->type))
+                        func_list* func = FIND_SYM(func_list, funcs_head, op[0]);
+                        linked_list* list, * flist;
+                        var_list* fargs;
+                        int i = 1;
+                        for (list = ((ast_linked_list*) op[1])->list,
+                             flist = func->arglist, fargs = func->frame.vars.head;
+                             list && flist;
+                             list = list->next, flist = flist->next, fargs = (var_list*) fargs->header.next, i++)
                         {
-                            error_msg(list->value, "Type mismatch for argument %d in call to '%s'; expected %s, got %s\n",
-                                      i, func->header.name, type_display(fargs->type), type_display(infer_type(list->value)));
+                            analysis(&list->value, frame);
+                            if (!type_same(infer_type(list->value), fargs->type))
+                            {
+                                error_msg(list->value,
+                                          "Type mismatch for argument %d in call to '%s'; expected %s, got %s\n",
+                                          i, func->header.name, type_display(fargs->type),
+                                          type_display(infer_type(list->value)));
+                                exit(1);
+                            }
+                        }
+                        if (flist || list)
+                        {
+                            error_msg(*n, "Invalid number of arguments in call to '%s'\n", func->header.name);
                             exit(1);
                         }
+                        AST_DATA(*n) = add_call_site(&func->callsites);
+                        SET_TYPE(func->return_type);
                     }
-                    if (flist || list)
-                    {
-                        error_msg(*n, "Invalid number of arguments in call to '%s'\n", func->header.name);
-                        exit(1);
-                    }
-                    SET_TYPE(func->return_type);
+                    return;
                 }
                 case KDO:
                 {
                     op[0] = make_scope(op[0]);
                     stack_frame* sc_frame = malloc(sizeof(*sc_frame));
-                    *sc_frame = (stack_frame) {.function = frame->function, .loop = malloc(sizeof(loop_info)), .is_root = false, .vars = {.head = NULL, .tail = NULL}, .parent = frame};
+                    *sc_frame = (stack_frame) {.function = frame->function, .loop = malloc(
+                            sizeof(loop_info)), .is_root = false, .vars = {.head = NULL, .tail = NULL}, .parent = frame};
                     SC_SCOPE(op[0]) = sc_frame;
                     break;
                 }
@@ -624,7 +658,8 @@ void analysis(ast_node** n, stack_frame* frame)
                 {
                     op[3] = make_scope(op[3]);
                     stack_frame* sc_frame = malloc(sizeof(*sc_frame));
-                    *sc_frame = (stack_frame) {.function = frame->function, .loop = malloc(sizeof(loop_info)), .is_root = false, .vars = {.head = NULL, .tail = NULL}, .parent = frame};
+                    *sc_frame = (stack_frame) {.function = frame->function, .loop = malloc(
+                            sizeof(loop_info)), .is_root = false, .vars = {.head = NULL, .tail = NULL}, .parent = frame};
                     SC_SCOPE(op[3]) = sc_frame;
                     break;
                 }
@@ -772,13 +807,7 @@ void analysis(ast_node** n, stack_frame* frame)
                 }
                 case REF:
                 {
-                    ast_node* pos = AST_INFERRED_POS(op[0]);
-                    if (!pos)
-                    {
-                        error_msg(*n, "Cannot take address of expression\n");
-                        exit(1);
-                    }
-                    *n = pos;
+                    *n = get_position(op[0]);
                     return;
                 }
                 case '+':
@@ -882,9 +911,35 @@ void analysis(ast_node** n, stack_frame* frame)
                     }
                     SET_TYPE(left);
                 }
-                    /*case '/':
-                        // todo: implement division
-                        return false;*/
+                case '/':
+                {
+                    type_list const* left = infer_type(op[0]);
+                    type_list const* right = infer_type(op[1]);
+                    if (left->type != T_SCALAR || right->type != T_SCALAR)
+                    {
+                        error_msg(*n, "Cannot perform division on types %s and %s\n",
+                                  type_display(left), type_display(right));
+                        exit(1);
+                    }
+                    if (o[1].is_num && o[1].value == 0)
+                    {
+                        error_msg(*n, "Division by zero\n");
+                        exit(1);
+                    }
+                    if (o[0].is_num && o[1].is_num)
+                    {
+                        RETURN(make_number(o[0].value / o[1].value), left);
+                    }
+                    else if (o[0].is_num && o[1].value == 0)
+                    {
+                        RETURN(make_number(0), left);
+                    }
+                    else if (o[1].is_num && o[1].value == 1)
+                    {
+                        RETURN(op[0], left);
+                    }
+                    SET_TYPE(left);
+                }
                 case '<':
                 {
                     if (o[0].is_num && o[1].is_num)
@@ -997,7 +1052,6 @@ void analysis(ast_node** n, stack_frame* frame)
                         info_msg(*n, "Dereferencing a non-pointer value\n");
                         break;
                     }
-                    AST_INFERRED_POS(*n) = op[0];
                     SET_TYPE(inner->pointer_target);
                 }
                 case KREAD:
