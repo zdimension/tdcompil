@@ -1205,8 +1205,8 @@ void exec(ast_node* n, stack_frame* frame)
                         instr("'/,'/,'_,'_ L,S,S,S @%d", ++label);
                         instr("'0|'1,'/,'_,'_ '0,'/,'_,'_ R,S,S,S");
                         instr("FROM @%d", label);
-                        instr("'0|'1,'/,'_,'_ L,S,S,S");
-                        instr("'/|'[,'/,'_,'_ S,S,S,S @%d", label + 1);
+                        instr("'/|'0|'1,'/,'_,'_ L,S,S,S");
+                        instr("'[,'/,'_,'_ S,S,S,S @%d", label + 1);
                     }
                     return;
                 }

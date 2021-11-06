@@ -459,18 +459,6 @@ void analysis(ast_node** n, stack_frame* frame)
 
             switch (OPER_OPERATOR(*n))
             {
-                case '{':
-                {
-                    stack_frame* sc_frame = malloc(sizeof(*sc_frame));
-                    *sc_frame = (stack_frame) {.function = frame->function, .loop = frame->loop, .is_root = false, .vars = {.head = NULL, .tail = NULL}, .parent = frame};
-                    ast_node** stmt = &OPER_OPERANDS(*n)[0];
-                    ast_node** expr = &OPER_OPERANDS(*n)[1];
-                    analysis(stmt, sc_frame);
-                    analysis(expr, sc_frame);
-                    *n = make_scope(*n);
-                    SC_SCOPE(*n) = sc_frame;
-                    SET_TYPE(infer_type(*expr));
-                }
                 case '.':
                 {
                     analysis(&op[0], frame);
@@ -591,6 +579,7 @@ void analysis(ast_node** n, stack_frame* frame)
                     {
                         analysis(&op[0], frame);
                         analysis(&op[1], frame);
+                        SET_TYPE(infer_type(op[1]));
                     }
                     SET_TYPE(VOID_TYPE);
                 }
@@ -658,9 +647,13 @@ void analysis(ast_node** n, stack_frame* frame)
 
             type_list const* result;
 
-            // Common type checks
             switch (OPER_OPERATOR(*n))
             {
+                case '{':
+                {
+                    SET_TYPE(o[1].type);
+                }
+
                 case '<':
                 case '>':
                 case GE:
@@ -1111,8 +1104,8 @@ void analysis(ast_node** n, stack_frame* frame)
                     *sc_frame = (stack_frame) {.function = frame->function, .loop = frame->loop, .is_root = false, .vars = {.head = NULL, .tail = NULL}, .parent = frame};
                     SC_SCOPE(*n) = sc_frame;
                 }
-                AST_INFERRED(*n) = VOID_TYPE;
                 analysis(&SC_CODE(*n), SC_SCOPE(*n));
+                AST_INFERRED(*n) = infer_type(SC_CODE(*n));
             }
             return;
         }

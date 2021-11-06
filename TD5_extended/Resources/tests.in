@@ -1,6 +1,8 @@
 {
-	var x = 5;
-	var y = 7;
-	var z = { var u = x + y; 2 * u };
-	print z;
+	var x = 17;
+
+	if (var y = x >> 1)
+	{
+		print y;
+	}
 }
