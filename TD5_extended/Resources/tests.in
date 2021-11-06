@@ -1,16 +1,7 @@
 {
-	var sum;
-
-	for (var i = 0; i < 15; i++)
+	proc truc(h: u8)
 	{
-		if ((i << 7) == 0)
-			continue;
-
-		if (i > 7)
-			break;
-
-		sum += i;
 	}
 
-	print sum;
+	var x: u8 = 32768;
 }

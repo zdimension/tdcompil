@@ -13,6 +13,17 @@
 
 #include <stdbool.h>
 
+#define YYLTYPE_IS_DECLARED 1
+typedef struct YYLTYPE YYLTYPE;
+struct YYLTYPE
+{
+    int first_line;
+    int first_column;
+    int last_line;
+    int last_column;
+    char* code;
+};
+
 #define ENUM_ITEM(X) X,
 #define ENUM_NAME(X) #X,
 
@@ -42,14 +53,14 @@ ENUM_DEFINE(node_kind, KINDS)
 
 typedef struct ast_node_s
 {
-    int lineno;                   // source line number of the node
+    struct { int line; int col; char* code; } info;                   // source line number of the node
     enum node_kind kind;        // kind of node
     bool clean_stack;
     struct type_list_s const* inferred_type;
     struct ast_node_s* inferred_position;
 } ast_node;
 
-#define AST_LINENO(p)        (((ast_node *)(p))->lineno)
+#define AST_INFO(p)        (((ast_node *)(p))->info)
 #define AST_KIND(p)        (((ast_node *)(p))->kind)
 #define AST_CLEAN_STACK(p)        (((ast_node *) (p))->clean_stack)
 #define AST_INFERRED(p)         (((ast_node*)(p))->inferred_type)

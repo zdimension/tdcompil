@@ -554,7 +554,7 @@ void analysis(ast_node** n, stack_frame* frame)
                         analysis(&list->value, frame);
                         if (!type_same(infer_type(list->value), fargs->type))
                         {
-                            error_msg(*n, "Type mismatch for argument %d in call to '%s'; expected %s, got %s\n",
+                            error_msg(list->value, "Type mismatch for argument %d in call to '%s'; expected %s, got %s\n",
                                       i, type_display(fargs->type), type_display(infer_type(list->value)));
                             exit(1);
                         }
@@ -925,7 +925,7 @@ void analysis(ast_node** n, stack_frame* frame)
                     {
                         if (!type_same(left, right))
                         {
-                            error_msg(*n, "Cannot assign rvalue of type '%s' to lvalue of type '%s'\n",
+                            error_msg(op[1], "Cannot assign rvalue of type '%s' to lvalue of type '%s'\n",
                                       type_display(right),
                                       type_display(left));
                             exit(1);

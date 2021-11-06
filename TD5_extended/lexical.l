@@ -8,14 +8,28 @@
 
 %{
 #include <stdlib.h>
-#include <strings.h>
+#include <string.h>
 
 #include "calc.h"
 #include "syntax.h"
 
+#define YY_USER_ACTION \
+    yylloc.first_line = yylloc.last_line; \
+    yylloc.first_column = yylloc.last_column; \
+    for(char* ptr = yytext; *ptr; ptr++) { \
+        if(*ptr  == '\n') { \
+            yylloc.last_line++; \
+            yylloc.last_column = 1; \
+        } \
+        else { \
+        	yylloc.last_column++; \
+        } \
+    }\
+    strcat(yylloc.code, yytext);
 %}
 
 %option yylineno
+
 
 %%
 
@@ -81,7 +95,8 @@
 
 
 	/* ---- Spaces ----*/
-[ \t\r\n]+        		{ ; }
+[ \t\r]+        		{ ; }
+\n        		{ yylloc.code[0] = 0 ; }
 
 	/* ---- Comments ---- */
 #.*$				{ ; }

@@ -19,8 +19,16 @@
 int  yylex(void);
 void yyerror(const char *s);
 
+
 #define  YYERROR_VERBOSE 1      // produce verbose syntax error messages
 %}
+%locations
+
+%initial-action
+{
+	yylloc = (YYLTYPE){1, 1, 1, 1, malloc(1024)};
+	yylloc.code[0] = 0;
+};
 
 %union {
     int value;                 // number value

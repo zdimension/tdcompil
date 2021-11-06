@@ -11,11 +11,15 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
+#include <string.h>
 
 #include "calc.h"
+#include "syntax.h"
 
 #define initialize_header(p, kind) { \
-  AST_LINENO(p) = yylineno;          \
+  AST_INFO(p).line = yylloc.first_line;\
+  AST_INFO(p).col = yylloc.first_column;\
+  AST_INFO(p).code = strdup(yylloc.code);\
   AST_KIND(p)   = kind;              \
   AST_CLEAN_STACK(p) = false;        \
   AST_INFERRED(p) = NULL;            \
@@ -120,25 +124,36 @@ void free_node(ast_node* p)
     free(p);
 }
 
+void display_code(ast_node* node)
+{
+    int left = (node ? node->info.col : yylloc.first_column);
+    char* ptr = (node ? node->info.code : yylloc.code);
+    for (; *ptr == ' ' || *ptr == '\t'; ptr++, left--)
+        ;
+    fprintf(stderr, "\t%s\n\t%*s^\n", ptr, left - 1, "");
+}
+
 
 void error_msg(ast_node* node, const char* format, ...)
 {
     va_list ap;
 
-    fprintf(stderr, "*** Error on line %d: ", node ? node->lineno : yylineno);
+    fprintf(stderr, "*** Error on line %d: ", node ? node->info.line : yylineno);
     va_start(ap, format);
     vfprintf(stderr, format, ap);
     va_end(ap);
+    display_code(node);
 }
 
 void info_msg(ast_node* node, const char* format, ...)
 {
     va_list ap;
 
-    fprintf(stderr, "*** Info on line %d: ", node ? node->lineno : yylineno);
+    fprintf(stderr, "*** Info on line %d: ", node ? node->info.line : yylineno);
     va_start(ap, format);
     vfprintf(stderr, format, ap);
     va_end(ap);
+    display_code(node);
 }
 
 
