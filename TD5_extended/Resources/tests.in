@@ -1,7 +1,3 @@
 {
-	proc truc(h: u8)
-	{
-	}
-
-	var x: u8 = 32768u8;
+	var x: u3;
 }

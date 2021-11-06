@@ -6,8 +6,6 @@
 
 #define NEW_TYPE() (calloc(1, sizeof(type_list)))
 #define WORD_TYPE (type_list const*)types_head
-#define U16_TYPE (type_list const*)(types_head->header.next)
-#define U32_TYPE (type_list const*)(types_head->header.next->next)
 
 /**
  * Adds an item to a linked list
@@ -60,10 +58,23 @@ bool type_same(type_list const* a, type_list const* b)
     }
 }
 
+int type_size_bits(type_list const* type)
+{
+    switch(type->type)
+    {
+        case T_SCALAR:
+            return type->scalar_bits;
+        case T_POINTER:
+            return POINTER_BITS;
+        default:
+            assert(false);
+    }
+}
+
 /**
  * @return The size of the specified type
  */
-int type_size(type_list const* type)
+int type_size_cells(type_list const* type)
 {
     switch (type->type)
     {
@@ -74,13 +85,13 @@ int type_size(type_list const* type)
         case T_POINTER:
             return 1;
         case T_CONST:
-            return type_size(type->const_target);
+            return type_size_cells(type->const_target);
         case T_COMPOSITE:
         {
             int sum = 0;
             for (var_list* ptr = type->composite_members.head; ptr; ptr = (var_list*) ptr->header.next)
             {
-                sum += type_size(ptr->type);
+                sum += type_size_cells(ptr->type);
             }
             return sum;
         }
@@ -104,7 +115,7 @@ const char* type_display_full(type_list const* type, bool inner, bool expand)
         case T_SCALAR:
         {
             char* buf = malloc(256);
-            sprintf(buf, "u%d", type->scalar_bits * 8);
+            sprintf(buf, "u%d", type->scalar_bits);
             return buf;
         }
         case T_ARRAY:
@@ -200,6 +211,14 @@ type_list const* decay_array_ptr(type_list const* t)
     return make_pointer(t->array_target);
 }
 
+type_list const* make_scalar_type(int size)
+{
+    type_list* res = NEW_TYPE();
+    res->type = T_SCALAR;
+    res->scalar_bits = size;
+    return res;
+}
+
 /**
  * @return A type instance corresponding to the specified type specification node
  * @throws exit If the node is invalid
@@ -208,6 +227,16 @@ type_list const* decode_spec(ast_node* spec, stack_frame* frame)
 {
     if (AST_KIND(spec) == k_ident)
     {
+        const char* name = VAR_NAME(spec);
+        if (name[0] == 'u')
+        {
+            char* end = NULL;
+            int size = (int) strtol(name + 1, &end, 10);
+            if (!*end)
+            {
+                return make_scalar_type(size);
+            }
+        }
         return FIND_SYM(type_list, types_head, spec);
     }
     else
@@ -262,7 +291,8 @@ type_list const* decode_spec(ast_node* spec, stack_frame* frame)
 
                         if (ret->composite_members.tail)
                         {
-                            pos = ret->composite_members.tail->position + type_size(ret->composite_members.tail->type);
+                            pos = ret->composite_members.tail->position +
+                                    type_size_cells(ret->composite_members.tail->type);
                         }
 
                         var_list* new = ADD_SYM(var_list, &ret->composite_members.head, &ret->composite_members.tail);
@@ -326,7 +356,7 @@ var_list* check_add_var(const char* name, stack_frame* frame, type_list const* t
                 break;
             }
             if (ptr->type->type != T_CONST) // constants are not stored in memory
-                i += type_size(ptr->type);
+                i += type_size_cells(ptr->type);
         }
     }
     if (!found)
@@ -339,7 +369,7 @@ var_list* check_add_var(const char* name, stack_frame* frame, type_list const* t
         newNode->initial = NULL;
         newNode->type = type;
         if (type)
-            frame->size += type_size(type);
+            frame->size += type_size_cells(type);
         return newNode;
     }
     return NULL;
@@ -383,21 +413,16 @@ void analysis(ast_node** n, stack_frame* frame)
                 {
                     unsigned int value = (unsigned int) NUMBER_VALUE(*n);
                     if (value >= 65536)
-                        SET_TYPE(U32_TYPE);
+                        SET_TYPE(make_scalar_type(32));
                     else if (value >= 256)
-                        SET_TYPE(U16_TYPE);
+                        SET_TYPE(make_scalar_type(16));
                     else
                         SET_TYPE(WORD_TYPE);
                 }
                 else
                 {
                     NUMBER_VALUE(*n) &= (1 << size) - 1;
-                    if (size == 32)
-                        SET_TYPE(U32_TYPE);
-                    else if (size == 16)
-                        SET_TYPE(U16_TYPE);
-                    else
-                        SET_TYPE(WORD_TYPE);
+                    SET_TYPE(make_scalar_type(size));
                 }
             }
             return;
@@ -418,7 +443,7 @@ void analysis(ast_node** n, stack_frame* frame)
             }
             ptr = get_var_id(*n, frame, F_RECURSE);
             if (ptr->type->type == T_CONST &&
-                ptr->type->const_target == WORD_TYPE) // allow resolving constants for parent frames
+                ptr->type->const_target->type == T_SCALAR) // allow resolving constants for parent frames
             {
                 RETURN(make_number(ptr->value), ptr->type);
             }
@@ -450,7 +475,7 @@ void analysis(ast_node** n, stack_frame* frame)
                 case KSIZEOF:
                 {
                     type_list const* type = decode_spec(op[0], frame);
-                    RETURN(make_number(type_size(type)), WORD_TYPE);
+                    RETURN(make_number(type_size_cells(type)), WORD_TYPE);
                 }
                 case KCONST:
                 {
@@ -681,7 +706,7 @@ void analysis(ast_node** n, stack_frame* frame)
                 case SHL:
                 {
                     type_list const* left = o[0].type;
-                    if (o[0].is_num && o[0].value == 0 || o[1].is_num && o[1].value >= (INT_WIDTH * left->scalar_bits))
+                    if (o[0].is_num && o[0].value == 0 || o[1].is_num && o[1].value >= left->scalar_bits)
                     {
                         ALWAYS_ZERO();
                         RETURN(make_number(0), left);
@@ -695,7 +720,7 @@ void analysis(ast_node** n, stack_frame* frame)
                 case SHR:
                 {
                     type_list const* left = o[0].type;
-                    if (o[0].is_num && o[0].value == 0 || o[1].is_num && o[1].value >= (INT_WIDTH * left->scalar_bits))
+                    if (o[0].is_num && o[0].value == 0 || o[1].is_num && o[1].value >= left->scalar_bits)
                     {
                         ALWAYS_ZERO();
                         RETURN(make_number(0), left);
@@ -1091,13 +1116,8 @@ void init_builtin_types()
 {
     VOID_TYPE = NEW_TYPE();
 
-    for (int i = 1; i <= 4; i *= 2)
-    {
-        type_list* word_type = ADD_SYM(type_list, &types_head, &types_tail);
-        char* name = malloc(8);
-        sprintf(name, "u%d", 8 * i);
-        word_type->header.name = name;
-        word_type->type = T_SCALAR;
-        word_type->scalar_bits = i;
-    }
+    type_list* word_type = ADD_SYM(type_list, &types_head, &types_tail);
+    word_type->header.name = "u8";
+    word_type->type = T_SCALAR;
+    word_type->scalar_bits = 8;
 }

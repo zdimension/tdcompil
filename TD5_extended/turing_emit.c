@@ -68,7 +68,7 @@ void allocate_scope(stack_frame* frame)
     {
         if (ptr->type->type == T_CONST)
             continue;
-        printf("# %8d  %4d  %-10s  %-10s\n", ptr->position, type_size(ptr->type), ptr->header.name,
+        printf("# %8d  %4d  %-10s  %-10s\n", ptr->position, type_size_cells(ptr->type), ptr->header.name,
                type_display(ptr->type));
     }
 
@@ -80,10 +80,11 @@ void allocate_scope(stack_frame* frame)
     {
         if (ptr->type->type == T_CONST)
             continue;
-        instr("# allocate variable %s (position %d, size %d)", ptr->header.name, ptr->position, type_size(ptr->type));
-        if (ptr->type->type == T_SCALAR)
+        instr("# allocate variable %s (position %d, size %d)", ptr->header.name, ptr->position,
+              type_size_cells(ptr->type));
+        if (type_size_cells(ptr->type) == 1)
         {
-            for (int i = 0; i < INT_WIDTH * ptr->type->scalar_bits; i++)
+            for (int i = 0; i < type_size_bits(ptr->type); i++)
             {
                 instr("FROM @%d", ++label);
                 instr("'_,'_,'_,'_ '0,'_,'_,'_ R,S,S,S @%d", label + 1);
@@ -91,15 +92,16 @@ void allocate_scope(stack_frame* frame)
             instr("FROM @%d", ++label);
             instr("'_,'_,'_,'_ '/,'_,'_,'_ R,S,S,S @%d", label + 1);
         }
-        else
+        else if (ptr->type->type == T_ARRAY)
         {
             char* str = ptr->initial;
-            for (int j = 0; j < type_size(ptr->type); j++, (str && *str && str++))
+            int cell_bits = type_size_bits(ptr->type->array_target);
+            for (int j = 0; j < ptr->type->array_count; j++, (str && *str && str++))
             {
                 if (str && *str)
                 {
                     char value = *str;
-                    for (int i = 0; i < INT_WIDTH; i++, value >>= 1)
+                    for (int i = 0; i < cell_bits; i++, value >>= 1)
                     {
                         instr("FROM @%d", ++label);
                         instr("'_,'_,'_,'_ '%d,'_,'_,'_ R,S,S,S @%d", value & 1, label + 1);
@@ -107,7 +109,7 @@ void allocate_scope(stack_frame* frame)
                 }
                 else
                 {
-                    for (int i = 0; i < INT_WIDTH; i++)
+                    for (int i = 0; i < cell_bits; i++)
                     {
                         instr("FROM @%d", ++label);
                         instr("'_,'_,'_,'_ '0,'_,'_,'_ R,S,S,S @%d", label + 1);
@@ -324,11 +326,12 @@ void pop(int n)
  */
 void push_number(int value, int size)
 {
+    value &= (1 << size) - 1;
     instr("FROM @%d", ++(label));
     instr("'/|'[,'[,'_,'_ S,R,S,S @%d", ++label);
     instr("'/|'[,'/,'_,'_ S,R,S,S @%d", label);
     instr("FROM @%d", label);
-    for (int i = 0; i < size * INT_WIDTH; i++, value /= 2)
+    for (int i = 0; i < size; i++, value /= 2)
     {
         instr("'/|'[,'_,'_,'_ '/|'[,'%d,'_,'_ S,R,S,S @%d", value & 1, ++label);
         instr("FROM @%d", label);
@@ -385,8 +388,7 @@ void exec(ast_node* n, stack_frame* frame)
             PROD1F("push", NUMBER_VALUE(n));
             if (clean_stack)
                 USELESS();
-            push_number(NUMBER_VALUE(n), AST_INFERRED(n)->type == T_SCALAR ? AST_INFERRED(n)->scalar_bits : type_size(
-                    AST_INFERRED(n)));
+            push_number(NUMBER_VALUE(n), type_size_bits(AST_INFERRED(n)));
             return;
         }
         case k_ident:
@@ -397,7 +399,7 @@ void exec(ast_node* n, stack_frame* frame)
             var_list* ptr = get_var_id(n, frame, F_DEFAULT);
             if (ptr->type->type == T_ARRAY) // array
             {
-                push_number(var_position(ptr), POINTER_SIZE);// todo: check unused
+                push_number(var_position(ptr), POINTER_BITS);// todo: check unused
             }
             else
             {
@@ -809,7 +811,7 @@ void exec(ast_node* n, stack_frame* frame)
                     instr("'[,'0|'1,'_,'_ S,R,S,S");
                     instr("'[,'/,'_,'_ S,L,S,S @%d", ++label);
                     instr("FROM @%d", label);
-                    for (int i = 0; i < INT_WIDTH - 1; i++)
+                    for (int i = 0; i < 8 - 1; i++)// TODO
                     {
                         instr("'[,'0|'1,'_,'_ '[,'0,'_,'_ S,L,S,S @%d", ++label);
                         instr("FROM @%d", label);
@@ -845,7 +847,7 @@ void exec(ast_node* n, stack_frame* frame)
                     instr("'[,'0|'1,'1|'0,'_ '[,'0|'1,'_,'_ S,R,R,S @%d", not_equal);
                     instr("'[,'/,'_,'_ S,L,S,S @%d", ++label);
                     instr("FROM @%d", label); // equal
-                    for (int i = 0; i < INT_WIDTH - 1; i++)
+                    for (int i = 0; i < 8 - 1; i++)// TODO
                     {
                         instr("'[,'0|'1,'_,'_ '[,'0,'_,'_ S,L,S,S @%d", ++label);
                         instr("FROM @%d", label);

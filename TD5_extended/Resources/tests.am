@@ -1,1 +1,53 @@
 # Optimizations enabled
+# Types
+# NAME        VALUE
+# u8          u8        
+NEW "generated" 4		# line 1348
+START @INIT		# line 1349
+END @END "END"		# line 1350
+END @DEFAULT "default option"		# line 1351
+FROM @INIT		# line 1353
+'_,'_,'_,'_ '[,'[,'_,'_ S,S,S,S @1		# line 1354
+#	------ BEGIN: program
+# KIND = 4 (k_scope)		# line 380
+# Memory map
+# POSITION  SIZE  NAME        TYPE
+#        0     1  x           u3        
+FROM @1		# line 75
+'/|'0|'1|'[,'[,'_,'_ R,S,S,S		# line 76
+'/|'0|'1|'[,'/,'_,'_ R,S,S,S		# line 77
+'_,'/|'[,'_,'_ S,R,S,S @2		# line 78
+# allocate variable x (position 0, size 1)		# line 83
+FROM @2		# line 89
+'_,'_,'_,'_ '0,'_,'_,'_ R,S,S,S @3		# line 90
+FROM @3		# line 89
+'_,'_,'_,'_ '0,'_,'_,'_ R,S,S,S @4		# line 90
+FROM @4		# line 89
+'_,'_,'_,'_ '0,'_,'_,'_ R,S,S,S @5		# line 90
+FROM @5		# line 92
+'_,'_,'_,'_ '/,'_,'_,'_ R,S,S,S @6		# line 93
+FROM @6		# line 123
+'_|'/|'0|'1,'_,'_,'_ L,S,S,S		# line 124
+'[,'_,'_,'_ S,L,S,S @7		# line 125
+#	; entering scope
+# KIND = 2 (k_operator)		# line 380
+#	var
+#	; exiting scope
+FROM @7		# line 135
+'/|'0|'1|'[,'[,'_,'_ R,R,S,S		# line 136
+'/|'0|'1|'[,'/,'_,'_ R,R,S,S		# line 137
+'/|'0|'1|'[,'_,'_,'_ R,S,S,S		# line 138
+'_,'_,'_,'_ L,S,S,S @8		# line 139
+FROM @8		# line 148
+'/|'0|'1,'_,'_,'_ '_,'_,'_,'_ L,S,S,S @9		# line 149
+FROM @9		# line 150
+'0|'1,'_,'_,'_ '_,'_,'_,'_ L,S,S,S		# line 151
+'/,'_,'_,'_ L,S,S,S @10		# line 152
+'[,'_,'_,'_ S,L,S,S @11		# line 153
+FROM @10		# line 154
+'/|'0|'1,'_,'_,'_ L,S,S,S		# line 155
+'[,'_,'_,'_ S,L,S,S @11		# line 156
+#	------ END: program
+FROM @11		# line 1362
+'[,'/,'_,'_ S,S,S,S @END		# line 1363
+'[,'[,'_,'_ S,S,S,S @END		# line 1364

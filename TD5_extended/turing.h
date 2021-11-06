@@ -2,8 +2,7 @@
 #include "calc.h"
 #include "syntax.h"
 
-#define INT_WIDTH 8
-#define POINTER_SIZE 1
+#define POINTER_BITS 8
 
 // ----------------------------------------------------------------------
 //		Utilities
@@ -122,7 +121,7 @@ typedef enum
 
 const char* type_display(type_list const* type);
 
-int type_size(type_list const* type);
+int type_size_cells(type_list const* type);
 
 const char* type_display_full(type_list const* type, bool inner, bool expand);
 
@@ -139,3 +138,5 @@ _Noreturn void missing_symbol(ast_node* node, const char* name);
 int var_position(var_list* var);
 
 void init_builtin_types();
+
+int type_size_bits(type_list const* type);
