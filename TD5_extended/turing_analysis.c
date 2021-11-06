@@ -598,7 +598,7 @@ void analysis(ast_node** n, stack_frame* frame)
                         if (!type_same(infer_type(list->value), fargs->type))
                         {
                             error_msg(list->value, "Type mismatch for argument %d in call to '%s'; expected %s, got %s\n",
-                                      i, type_display(fargs->type), type_display(infer_type(list->value)));
+                                      i, func->header.name, type_display(fargs->type), type_display(infer_type(list->value)));
                             exit(1);
                         }
                     }
