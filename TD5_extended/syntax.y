@@ -75,6 +75,7 @@ stmt
     | KIF '(' expr ')' stmt    %prec THEN    										{ $$ = make_node(KIF, 3, $3, $5, NULL); }
     | KIF '(' expr ')' stmt KELSE stmt      										{ $$ = make_node(KIF, 3, $3, $5, $7); }
     | KFOR '(' expr_discard_opt ';' expr_opt ';' expr_discard_opt ')' stmt 			{ $$ = make_node(KFOR, 4, $3, $5, $7, $9); }
+    | KFOR '(' KVAR var_decl_list ';' expr_opt ';' expr_discard_opt ')' stmt 		{ $$ = make_scope(make_node(KFOR, 4, $4, $6, $8, $10)); }
     | KDO stmt KWHILE '(' expr ')' ';' 												{ $$ = make_node(KDO, 2, $2, $5); }
     | func_type var '(' param_list ')' stmt											{ $$ = make_node($1, 3, $2, $4, $6); }
     | '{' stmt_list_opt '}'                											{ $$ = make_scope($2); }

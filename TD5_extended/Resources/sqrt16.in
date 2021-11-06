@@ -2,9 +2,9 @@
 	# requires INT_WIDTH = 16
 	func isqrt(x: u16)
 	{
-		var rem: u16, root: u16, i;
+		var rem: u16, root: u16;
 
-		for (i = 0; i < 8; i++)
+		for (var i = 0; i < 8; i++)
 		{
 			root = root << 1;
 			rem = (rem << 2) + (x >> 14);
