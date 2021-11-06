@@ -31,14 +31,14 @@ void yyerror(const char *s);
 };
 
 %union {
-    int value;                 // number value
+	struct { int value; int size; } number; // number value
     char *var;                   // ident name
     int chr;
     ast_node *node;              // node pointer
 };
 
 //                      Tokens
-%token  <value>         NUMBER
+%token  <number>         NUMBER
 %token  <var>           IDENT STRING
 %token                  KWHILE KIF KPRINT KELSE KREAD KFOR KDO KVAR KFUNC KRETURN KPROC KBREAK KCONTINUE KCONST KTYPE KTYPEOF KSIZEOF KSTRUCT
 %token '+' '-' '*' '/' GE LE EQ NE '>' '<' REF DEREF APL AMN AML ADV INC DEC AND OR SHL SHR
@@ -185,7 +185,7 @@ aug_assign
     ;
 
 basic_expr
-	: NUMBER												{ $$ = make_number($1); }
+	: NUMBER												{ $$ = make_number_sized($1.value, $1.size); }
 	| KSIZEOF '(' type_spec ')' 							{ $$ = make_node(KSIZEOF, 1, $3); }
 	| var													{ $$ = $1; }
 	| var '(' arg_list ')'									{ $$ = make_node('(', 2, $1, $3); }

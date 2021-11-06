@@ -35,19 +35,22 @@
 
 	/* ---- Numbers ---- */
 
-[0-9]+ 			{ yylval.value = atol(yytext); return NUMBER; }
+[0-9]+u32 			{ yylval.number.value = atol(yytext); yylval.number.size = 32; return NUMBER; }
+[0-9]+u16 			{ yylval.number.value = atol(yytext); yylval.number.size = 16; return NUMBER; }
+[0-9]+u8 			{ yylval.number.value = atol(yytext); yylval.number.size = 8; return NUMBER; }
+[0-9]+ 				{ yylval.number.value = atol(yytext); yylval.number.size = 0; return NUMBER; }
 
-\'\\a\'	{ yylval.value = '\a'; return NUMBER; }
-\'\\b\'	{ yylval.value = '\b'; return NUMBER; }
-\'\\e\'	{ yylval.value = '\e'; return NUMBER; }
-\'\\f\'	{ yylval.value = '\f'; return NUMBER; }
-\'\\n\'	{ yylval.value = '\n'; return NUMBER; }
-\'\\r\'	{ yylval.value = '\r'; return NUMBER; }
-\'\\t\'	{ yylval.value = '\t'; return NUMBER; }
-\'\\v\'	{ yylval.value = '\v'; return NUMBER; }
-\'\\'\'	{ yylval.value = '\''; return NUMBER; }
-\'\\\\\'	{ yylval.value = '\\'; return NUMBER; }
-\'[^\']\' { yylval.value = yytext[1]; return NUMBER; }
+\'\\a\'	{ yylval.number.value = '\a'; yylval.number.size = 0; return NUMBER; }
+\'\\b\'	{ yylval.number.value = '\b'; yylval.number.size = 0; return NUMBER; }
+\'\\e\'	{ yylval.number.value = '\e'; yylval.number.size = 0; return NUMBER; }
+\'\\f\'	{ yylval.number.value = '\f'; yylval.number.size = 0; return NUMBER; }
+\'\\n\'	{ yylval.number.value = '\n'; yylval.number.size = 0; return NUMBER; }
+\'\\r\'	{ yylval.number.value = '\r'; yylval.number.size = 0; return NUMBER; }
+\'\\t\'	{ yylval.number.value = '\t'; yylval.number.size = 0; return NUMBER; }
+\'\\v\'	{ yylval.number.value = '\v'; yylval.number.size = 0; return NUMBER; }
+\'\\'\'	{ yylval.number.value = '\''; yylval.number.size = 0; return NUMBER; }
+\'\\\\\'	{ yylval.number.value = '\\'; yylval.number.size = 0; return NUMBER; }
+\'[^\']\' { yylval.number.value = yytext[1]; yylval.number.size = 0; return NUMBER; }
 \"[^\"]*\" { yylval.var = strndup(yytext + 1, strlen(yytext) - 2); return STRING; }
 
 

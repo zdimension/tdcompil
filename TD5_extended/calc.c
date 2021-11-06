@@ -50,10 +50,16 @@ ast_node* make_ident(char* str)
 
 ast_node* make_number(int f)
 {
+    return make_number_sized(f, 0);
+}
+
+ast_node* make_number_sized(int f, int s)
+{
     ast_node* p = allocate_node(sizeof(ast_number));
 
     initialize_header(p, k_number);
     NUMBER_VALUE(p) = f;
+    NUMBER_SIZE(p) = s;
     return p;
 }
 

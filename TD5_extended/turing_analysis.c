@@ -378,13 +378,27 @@ void analysis(ast_node** n, stack_frame* frame)
             // preserve inferred type
             if (!AST_INFERRED(*n))
             {
-                unsigned int value = (unsigned int) NUMBER_VALUE(*n);
-                if (value >= 65536)
-                    SET_TYPE(U32_TYPE);
-                else if (value >= 256)
-                    SET_TYPE(U16_TYPE);
+                int size = NUMBER_SIZE(*n);
+                if (size == 0)
+                {
+                    unsigned int value = (unsigned int) NUMBER_VALUE(*n);
+                    if (value >= 65536)
+                        SET_TYPE(U32_TYPE);
+                    else if (value >= 256)
+                        SET_TYPE(U16_TYPE);
+                    else
+                        SET_TYPE(WORD_TYPE);
+                }
                 else
-                    SET_TYPE(WORD_TYPE);
+                {
+                    NUMBER_VALUE(*n) &= (1 << size) - 1;
+                    if (size == 32)
+                        SET_TYPE(U32_TYPE);
+                    else if (size == 16)
+                        SET_TYPE(U16_TYPE);
+                    else
+                        SET_TYPE(WORD_TYPE);
+                }
             }
             return;
         }

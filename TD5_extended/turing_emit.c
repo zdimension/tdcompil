@@ -61,6 +61,17 @@ void allocate_scope(stack_frame* frame)
 {
     if (!frame->end)
         return;
+
+    printf("# Memory map\n");
+    printf("# POSITION  SIZE  NAME        TYPE\n");
+    for (var_list* ptr = frame->vars.head; ptr; ptr = (var_list*) ptr->header.next)
+    {
+        if (ptr->type->type == T_CONST)
+            continue;
+        printf("# %8d  %4d  %-10s  %-10s\n", ptr->position, type_size(ptr->type), ptr->header.name,
+               type_display(ptr->type));
+    }
+
     instr("FROM @%d", ++label);
     instr("'/|'0|'1|'[,'[,'_,'_ R,S,S,S");
     instr("'/|'0|'1|'[,'/,'_,'_ R,S,S,S");
