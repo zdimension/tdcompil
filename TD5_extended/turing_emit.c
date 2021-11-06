@@ -29,18 +29,17 @@ instr("'[,'0|'1,'_,'_ '[,'_,'0|'1,'_ S,L,L,S");\
 instr("'[,'/,'_,'_ S,S,R,S @%d", ++label);\
 instr("FROM @%d", label);\
 instr("'[,'/,'0|'1,'_ S,S,R,S");\
-instr("'[,'/,'_,'_ S,L,L,S @%d", ++label);\
+instr("'[,'/,'_,'_ '[,'_,'_,'_ S,L,L,S @%d", ++label);\
 instr("FROM @%d", label);\
 int left_then_one = ++label;\
 int left_then_zero = ++label;\
 int one = ++label;\
 int zero = ++label;\
-int end = label + 1;\
+int end = ++label;\
 instr("'[,'0|'1,'0|'1,'_ '[,'_,'_,'_ S,L,L,S");\
 code \
 instr("FROM @%d", zero);\
-instr("'[,'_,'_,'_ '[,'0,'_,'_ S,R,S,S");\
-instr("'[,'/,'_,'_ S,S,S,S @%d", end);\
+instr("'[,'_,'_,'_ '[,'0,'_,'_ S,R,S,S @%d", end);   \
 instr("FROM @%d", left_then_zero);\
 instr("'[,'0|'1,'0,'_ '[,'_,'_,'_ S,L,L,S");\
 instr("'[,'0|'1,'1,'_ '[,'_,'_,'_ S,L,L,S");\
@@ -50,8 +49,11 @@ instr("'[,'0|'1,'0,'_ '[,'_,'_,'_ S,L,L,S");\
 instr("'[,'0|'1,'1,'_ '[,'_,'_,'_ S,L,L,S");\
 instr("'[,'/|'[,'_,'_ S,R,S,S @%d", one);\
 instr("FROM @%d", one);\
-instr("'[,'_,'_,'_ '[,'1,'_,'_ S,R,S,S @%d", zero);\
+instr("'[,'_,'_,'_ '[,'1,'_,'_ S,R,S,S @%d", end);   \
+instr("FROM @%d", end);    \
+instr("'[,'_,'_,'_ '[,'/,'_,'_ S,S,S,S @%d", label + 1); \
 }
+
 
 /**
  * Allocates blank cells for the variables in the scope\n
@@ -792,26 +794,25 @@ void exec(ast_node* n, stack_frame* frame)
                     int end = ++label;
                     instr("'[,'0|'1,'0|'1,'_ '[,'0|'1,'_,'_ S,R,R,S");
                     instr("'[,'0|'1,'1|'0,'_ '[,'0|'1,'_,'_ S,R,R,S @%d", not_equal);
-                    instr("'[,'/,'_,'_ S,L,S,S @%d", ++label);
+                    instr("'[,'/,'_,'_ '[,'_,'_,'_ S,L,S,S @%d", ++label);
                     instr("FROM @%d", label); // equal
-                    instr("'[,'0|'1,'_,'_ '[,'0,'_,'_ S,L,S,S");
-                    instr("'[,'/|'[,'_,'_ S,R,S,S @%d", end);
+                    instr("'[,'0|'1,'_,'_ '[,'_,'_,'_ S,L,S,S");
+                    instr("'[,'/|'[,'_,'_ S,R,S,S @%d", ++label);
+                    instr("FROM @%d", label);
+                    instr("'[,'_,'_,'_ '[,'0,'_,'_ S,R,S,S @%d", end);
                     instr("FROM @%d", not_equal);
                     instr("'[,'0|'1,'0,'_ '[,'0|'1,'_,'_ S,R,R,S");
                     instr("'[,'0|'1,'1,'_ '[,'0|'1,'_,'_ S,R,R,S");
                     instr("'[,'/,'0|'1,'_ '[,'/,'_,'_ S,S,R,S");
                     instr("'[,'0|'1,'_,'_ S,R,S,S");
-                    instr("'[,'/,'_,'_ S,L,S,S @%d", ++label);
+                    instr("'[,'/,'_,'_ '[,'_,'_,'_ S,L,S,S @%d", ++label);
                     instr("FROM @%d", label);
-                    for (int i = 0; i < 8 - 1; i++)// TODO
-                    {
-                        instr("'[,'0|'1,'_,'_ '[,'0,'_,'_ S,L,S,S @%d", ++label);
-                        instr("FROM @%d", label);
-                    }
-                    instr("'[,'0|'1,'_,'_ '[,'1,'_,'_ S,R,S,S @%d", end);
+                    instr("'[,'0|'1,'_,'_ '[,'_,'_,'_ S,L,S,S");
+                    instr("'[,'/|'[,'_,'_ S,R,S,S @%d", ++label);
+                    instr("FROM @%d", label);
+                    instr("'[,'_,'_,'_ '[,'1,'_,'_ S,R,S,S @%d", end);
                     instr("FROM @%d", end);
-                    instr("'[,'0|'1,'_,'_ S,R,S,S");
-                    instr("'[,'/|'[,'_,'_ S,S,S,S @%d", label + 1);
+                    instr("'[,'_,'_,'_ '[,'/,'_,'_ S,S,S,S @%d", label + 1);
                     return;
                 }
                 case EQ:
@@ -837,26 +838,25 @@ void exec(ast_node* n, stack_frame* frame)
                     int end = ++label;
                     instr("'[,'0|'1,'0|'1,'_ '[,'0|'1,'_,'_ S,R,R,S");
                     instr("'[,'0|'1,'1|'0,'_ '[,'0|'1,'_,'_ S,R,R,S @%d", not_equal);
-                    instr("'[,'/,'_,'_ S,L,S,S @%d", ++label);
+                    instr("'[,'/,'_,'_ '[,'_,'_,'_ S,L,S,S @%d", ++label);
                     instr("FROM @%d", label); // equal
-                    for (int i = 0; i < 8 - 1; i++)// TODO
-                    {
-                        instr("'[,'0|'1,'_,'_ '[,'0,'_,'_ S,L,S,S @%d", ++label);
-                        instr("FROM @%d", label);
-                    }
-                    instr("'[,'0|'1,'_,'_ '[,'1,'_,'_ S,R,S,S @%d", end);
+                    instr("'[,'0|'1,'_,'_ '[,'_,'_,'_ S,L,S,S");
+                    instr("'[,'/|'[,'_,'_ S,R,S,S @%d", ++label);
+                    instr("FROM @%d", label);
+                    instr("'[,'_,'_,'_ '[,'1,'_,'_ S,R,S,S @%d", end);
                     instr("FROM @%d", not_equal);
                     instr("'[,'0|'1,'0,'_ '[,'0|'1,'_,'_ S,R,R,S");
                     instr("'[,'0|'1,'1,'_ '[,'0|'1,'_,'_ S,R,R,S");
                     instr("'[,'/,'0|'1,'_ '[,'/,'_,'_ S,S,R,S");
                     instr("'[,'0|'1,'_,'_ S,R,S,S");
-                    instr("'[,'/,'_,'_ S,L,S,S @%d", ++label);
+                    instr("'[,'/,'_,'_ '[,'_,'_,'_ S,L,S,S @%d", ++label);
                     instr("FROM @%d", label);
-                    instr("'[,'0|'1,'_,'_ '[,'0,'_,'_ S,L,L,S");
-                    instr("'[,'/|'[,'_,'_ S,R,S,S @%d", end);
+                    instr("'[,'0|'1,'_,'_ '[,'_,'_,'_ S,L,S,S");
+                    instr("'[,'/|'[,'_,'_ S,R,S,S @%d", ++label);
+                    instr("FROM @%d", label);
+                    instr("'[,'_,'_,'_ '[,'0,'_,'_ S,R,S,S @%d", end);
                     instr("FROM @%d", end);
-                    instr("'[,'0|'1,'_,'_ S,R,S,S");
-                    instr("'[,'/|'[,'_,'_ S,S,S,S @%d", label + 1);
+                    instr("'[,'_,'_,'_ '[,'/,'_,'_ S,S,S,S @%d", label + 1);
                     return;
                 }
                 case AND:

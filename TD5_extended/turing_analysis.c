@@ -6,6 +6,7 @@
 
 #define NEW_TYPE() (calloc(1, sizeof(type_list)))
 #define WORD_TYPE (type_list const*)types_head
+#define BOOL_TYPE (type_list const*)types_head->header.next
 
 /**
  * Adds an item to a linked list
@@ -114,6 +115,8 @@ const char* type_display_full(type_list const* type, bool inner, bool expand)
             return "void";
         case T_SCALAR:
         {
+            if (type->scalar_bits == 1)
+                return "bool";
             char* buf = malloc(256);
             sprintf(buf, "u%d", type->scalar_bits);
             return buf;
@@ -681,7 +684,7 @@ void analysis(ast_node** n, stack_frame* frame)
                                   OPER_OPERATOR(*n), type_display(left), type_display(right));
                         exit(1);
                     }
-                    result = left;
+                    result = BOOL_TYPE;
                     break;
                 }
                 case SHL:
@@ -1120,4 +1123,9 @@ void init_builtin_types()
     word_type->header.name = "u8";
     word_type->type = T_SCALAR;
     word_type->scalar_bits = 8;
+
+    type_list* bool_type = ADD_SYM(type_list, &types_head, &types_tail);
+    bool_type->header.name = "bool";
+    bool_type->type = T_SCALAR;
+    bool_type->scalar_bits = 1;
 }
