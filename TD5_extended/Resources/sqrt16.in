@@ -1,6 +1,6 @@
 {
 	# requires INT_WIDTH = 16
-	func isqrt(x: u16)
+	func isqrt(x: u16): u16
 	{
 		var rem: u16, root: u16;
 

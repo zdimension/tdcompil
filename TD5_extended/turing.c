@@ -41,7 +41,7 @@ func_list* funcs_head = NULL, * funcs_tail = NULL;
 
 type_list* types_head = NULL, * types_tail = NULL;
 
-type_list* VOID_TYPE;
+type_list const* VOID_TYPE;
 
 
 int label = 0;

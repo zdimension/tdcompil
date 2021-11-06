@@ -46,8 +46,8 @@ void yyerror(const char *s);
 %type   <node>		stmt expr stmt_list var expr_opt basic_expr postfix_expr unary_expr mult_expr add_expr rel_expr eq_expr assign_expr shift_expr
 %type	<node> 		l_and_expr l_or_expr stmt_list_opt expr_discard expr_discard_opt
 %type 	<node>		param_list param_list_ne arg_list arg_list_ne var_decl var_decl_list type_spec_opt type_spec type_decl type_decl_list
-%type	<node>		struct_field struct_field_list var_typed
-%type   <chr>		aug_assign func_type unary_op
+%type	<node>		struct_field struct_field_list var_typed stmt_braced
+%type   <chr>		aug_assign unary_op
 
 %%
 
@@ -77,9 +77,14 @@ stmt
     | KFOR '(' expr_discard_opt ';' expr_opt ';' expr_discard_opt ')' stmt 			{ $$ = make_node(KFOR, 4, $3, $5, $7, $9); }
     | KFOR '(' KVAR var_decl_list ';' expr_opt ';' expr_discard_opt ')' stmt 		{ $$ = make_scope(make_node(KFOR, 4, $4, $6, $8, $10)); }
     | KDO stmt KWHILE '(' expr ')' ';' 												{ $$ = make_node(KDO, 2, $2, $5); }
-    | func_type var '(' param_list ')' stmt											{ $$ = make_node($1, 3, $2, $4, $6); }
-    | '{' stmt_list_opt '}'                											{ $$ = make_scope($2); }
+    | KPROC var '(' param_list ')' stmt_braced										{ $$ = make_node(KPROC, 3, $2, $4, $6); }
+    | KFUNC var '(' param_list ')' type_spec_opt stmt_braced						{ $$ = make_node(KFUNC, 4, $2, $4, $7, $6); }
+    | stmt_braced		                											{ $$ = $1; }
     ;
+
+stmt_braced
+	: '{' stmt_list_opt '}'                											{ $$ = make_scope($2); }
+	;
 
 var_decl
     : var type_spec_opt																{ $$ = make_node(KVAR, 2, $1, $2); }
@@ -128,11 +133,6 @@ var_decl_list
 type_decl_list
 	: type_decl						{ $$ = $1; }
 	| type_decl ',' type_decl_list	{ $$ = make_node(';', 2, $1, $3); }
-
-func_type
-	: KFUNC							{ $$ = KFUNC; }
-	| KPROC							{ $$ = KPROC; }
-	;
 
 param_list
 	: 								{ $$ = NULL; }

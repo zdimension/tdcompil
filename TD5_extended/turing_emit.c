@@ -1237,21 +1237,6 @@ void exec(ast_node* n, stack_frame* frame, loop_info* loop)
                 case KRETURN:
                 {
                     PROD0("return");
-                    if (!frame->function)
-                    {
-                        error_msg(n, "Can only return from a function or procedure\n");
-                        exit(1);
-                    }
-                    if (frame->function->is_void && op[0])
-                    {
-                        error_msg(n, "Cannot return value from procedure\n");
-                        exit(1);
-                    }
-                    if (!frame->function->is_void && !op[0])
-                    {
-                        error_msg(n, "Function must return a value\n");
-                        exit(1);
-                    }
                     eval(op[0], frame);
                     instr("FROM @%d", ++label);
                     instr("'[,'/|'[,'_,'_ S,S,S,S @F%dret", frame->function->header.id);
@@ -1261,11 +1246,6 @@ void exec(ast_node* n, stack_frame* frame, loop_info* loop)
                 {
                     PROD0("call");
                     func_list* fct = FIND_SYM(func_list, funcs_head, op[0]);
-                    if (fct->is_void && !clean_stack)
-                    {
-                        error_msg(n, "Procedure call does not have a value\n");
-                        exit(1);
-                    }
                     linked_list* args = ((ast_linked_list*) op[1])->list;
                     int argcount = 0;
                     for (linked_list* arg = args; arg; arg = arg->next, argcount++)
@@ -1348,7 +1328,7 @@ void emit_functions()
     {
         if (!ptr->callsites)
             continue;
-        instr("# %s %s (F%d)", ptr->is_void ? "procedure" : "function", ptr->header.name, ptr->header.id);
+        instr("# %s %s (F%d)", ptr->return_type == VOID_TYPE ? "procedure" : "function", ptr->header.name, ptr->header.id);
         instr("FROM @F%d", ptr->header.id);
         instr("'[,'/|'[,'_,'_ S,S,S,S @%d", label + 1);
         BLOCK("function code",

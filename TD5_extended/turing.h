@@ -63,7 +63,7 @@ extern stack_frame global_frame;
 typedef struct func_list_s
 {
     linked_list_header header;
-    bool is_void;
+    struct type_list_s const* return_type;
     linked_list* arglist;
     ast_node* code;
     call_site_list* callsites;
@@ -106,7 +106,8 @@ typedef struct type_list_s
         } composite_members;
     };
 } type_list;
-extern type_list* types_head, * types_tail, * VOID_TYPE;
+extern type_list* types_head, * types_tail;
+extern type_list const* VOID_TYPE;
 
 extern int label;
 

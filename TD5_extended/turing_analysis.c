@@ -5,9 +5,9 @@
 #include <assert.h>
 
 #define NEW_TYPE() (calloc(1, sizeof(type_list)))
-#define WORD_TYPE types_head
-#define U16_TYPE (type_list*)(types_head->header.next)
-#define U32_TYPE (type_list*)(types_head->header.next->next)
+#define WORD_TYPE (type_list const*)types_head
+#define U16_TYPE (type_list const*)(types_head->header.next)
+#define U32_TYPE (type_list const*)(types_head->header.next->next)
 
 /**
  * Adds an item to a linked list
@@ -378,7 +378,7 @@ void analysis(ast_node** n, stack_frame* frame)
             // preserve inferred type
             if (!AST_INFERRED(*n))
             {
-                unsigned int value = (unsigned int)NUMBER_VALUE(*n);
+                unsigned int value = (unsigned int) NUMBER_VALUE(*n);
                 if (value >= 65536)
                     SET_TYPE(U32_TYPE);
                 else if (value >= 256)
@@ -510,7 +510,8 @@ void analysis(ast_node** n, stack_frame* frame)
                     func_list* newNode = ADD_SYM(func_list, &funcs_head, &funcs_tail);
                     newNode->header.name = VAR_NAME(op[0]);
                     newNode->header.owner = NULL;
-                    newNode->is_void = OPER_OPERATOR(n) == KPROC;
+                    newNode->return_type = OPER_OPERATOR(*n) == KPROC ? VOID_TYPE :
+                                           (op[3] ? decode_spec(op[3], frame) : WORD_TYPE);
                     newNode->arglist = ((ast_linked_list*) op[1])->list;
                     newNode->callsites = NULL;
                     newNode->frame = (stack_frame) {
@@ -523,7 +524,8 @@ void analysis(ast_node** n, stack_frame* frame)
                     SC_SCOPE(newNode->code) = &newNode->frame;
                     for (linked_list* ptr = newNode->arglist; ptr; ptr = ptr->next)
                     {
-                        check_add_var(VAR_NAME(OPER_OPERANDS(ptr->value)[0]), &newNode->frame, decode_spec(OPER_OPERANDS(ptr->value)[1], frame));
+                        check_add_var(VAR_NAME(OPER_OPERANDS(ptr->value)[0]), &newNode->frame,
+                                      decode_spec(OPER_OPERANDS(ptr->value)[1], frame));
                     }
                     analysis(&newNode->code, &newNode->frame);
                     SET_TYPE(VOID_TYPE);
@@ -539,11 +541,29 @@ void analysis(ast_node** n, stack_frame* frame)
                 }
                 case '(':
                 {
-                    for (linked_list* list = ((ast_linked_list*) op[1])->list; list; list = list->next)
+                    func_list* func = FIND_SYM(func_list, funcs_head, op[0]);
+                    linked_list* list, *flist;
+                    var_list* fargs;
+                    int i = 1;
+                    for (list = ((ast_linked_list*) op[1])->list,
+                            flist = func->arglist, fargs = func->frame.vars.head;
+                         list && flist;
+                         list = list->next, flist = flist->next, fargs = (var_list*)fargs->header.next, i++)
                     {
                         analysis(&list->value, frame);
+                        if (!type_same(infer_type(list->value), fargs->type))
+                        {
+                            error_msg(*n, "Type mismatch for argument %d in call to '%s'; expected %s, got %s\n",
+                                      i, type_display(fargs->type), type_display(infer_type(list->value)));
+                            exit(1);
+                        }
                     }
-                    SET_TYPE(WORD_TYPE);
+                    if (flist || list)
+                    {
+                        error_msg(*n, "Invalid number of arguments in call to '%s'\n", func->header.name);
+                        exit(1);
+                    }
+                    SET_TYPE(func->return_type);
                 }
             }
 
@@ -914,15 +934,69 @@ void analysis(ast_node** n, stack_frame* frame)
                     SET_TYPE(inner->pointer_target);
                 }
                 case KFOR:
-                case KIF:
-                case KWHILE:
-                case KDO:
-                case KPRINT:
                 case KREAD:
                 case KBREAK:
                 case KCONTINUE:
-                case KRETURN:
                     SET_TYPE(VOID_TYPE);
+                case KIF:
+                {
+                    if (infer_type(op[0]) == VOID_TYPE)
+                    {
+                        error_msg(op[0], "Expected condition, got void\n");
+                        exit(1);
+                    }
+                    SET_TYPE(VOID_TYPE);
+                }
+                case KDO:
+                {
+                    if (infer_type(op[1]) == VOID_TYPE)
+                    {
+                        error_msg(op[1], "Expected condition, got void\n");
+                        exit(1);
+                    }
+                    SET_TYPE(VOID_TYPE);
+                }
+                case KPRINT:
+                {
+                    if (infer_type(op[0]) == VOID_TYPE)
+                    {
+                        error_msg(op[0], "Expected value, got void\n");
+                        exit(1);
+                    }
+                    SET_TYPE(VOID_TYPE);
+                }
+                case KRETURN:
+                {
+                    if (!frame->function)
+                    {
+                        error_msg(*n, "Can only return from a function or procedure\n");
+                        exit(1);
+                    }
+                    if (frame->function->return_type == VOID_TYPE)
+                    {
+                        if (op[0])
+                        {
+                            error_msg(op[0], "Cannot return value from procedure\n");
+                            exit(1);
+                        }
+                    }
+                    else
+                    {
+                        if (!op[0])
+                        {
+                            error_msg(*n, "Function must return a value\n");
+                            exit(1);
+                        }
+
+                        if (!type_same(infer_type(op[0]), frame->function->return_type))
+                        {
+                            error_msg(op[0], "Return type mismatch; expected %s got %s\n",
+                                      type_display(frame->function->return_type), type_display(infer_type(op[0])));
+                            exit(1);
+                        }
+                    }
+                    SET_TYPE(VOID_TYPE);
+                }
                 case '{':
                     SET_TYPE(infer_type(op[1]));
                 default:

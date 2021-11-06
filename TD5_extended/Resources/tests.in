@@ -1,27 +1,7 @@
 {
-	# requires INT_WIDTH = 16
-	func isqrt(x: u16)
+	proc isqrt(x: u16)
 	{
-		var rem: u16, root: u16, i;
 
-		for (i = 0; i < 8; i++)
-		{
-			root = root << 1;
-			rem = (rem << 2) + (x >> 14);
-			x = x << 2;
-			root++;
-			if (root <= rem)
-			{
-				rem -= root;
-				root++;
-			}
-			else
-			{
-				root--;
-			}
-		}
-
-		return root >> 1;
 	}
 
 
