@@ -93,7 +93,7 @@ typedef struct type_list_s
     type_type type;
     union
     {
-        int scalar_size; // always 1 for now
+        int scalar_bits; // always 1 for now
         struct
         {
             int array_count;

@@ -48,7 +48,7 @@ bool type_same(type_list const* a, type_list const* b)
     switch (a->type)
     {
         case T_SCALAR:
-            return a->scalar_size == b->scalar_size;
+            return a->scalar_bits == b->scalar_bits;
         case T_ARRAY:
             return a->array_count == b->array_count && type_same(a->array_target, b->array_target);
         case T_POINTER:
@@ -104,7 +104,7 @@ const char* type_display_full(type_list const* type, bool inner, bool expand)
         case T_SCALAR:
         {
             char* buf = malloc(256);
-            sprintf(buf, "u%d", type->scalar_size * 8);
+            sprintf(buf, "u%d", type->scalar_bits * 8);
             return buf;
         }
         case T_ARRAY:
@@ -681,7 +681,7 @@ void analysis(ast_node** n, stack_frame* frame)
                 case SHL:
                 {
                     type_list const* left = o[0].type;
-                    if (o[0].is_num && o[0].value == 0 || o[1].is_num && o[1].value >= (INT_WIDTH * left->scalar_size))
+                    if (o[0].is_num && o[0].value == 0 || o[1].is_num && o[1].value >= (INT_WIDTH * left->scalar_bits))
                     {
                         ALWAYS_ZERO();
                         RETURN(make_number(0), left);
@@ -695,7 +695,7 @@ void analysis(ast_node** n, stack_frame* frame)
                 case SHR:
                 {
                     type_list const* left = o[0].type;
-                    if (o[0].is_num && o[0].value == 0 || o[1].is_num && o[1].value >= (INT_WIDTH * left->scalar_size))
+                    if (o[0].is_num && o[0].value == 0 || o[1].is_num && o[1].value >= (INT_WIDTH * left->scalar_bits))
                     {
                         ALWAYS_ZERO();
                         RETURN(make_number(0), left);
@@ -931,7 +931,7 @@ void analysis(ast_node** n, stack_frame* frame)
                 {
                     type_list const* left = infer_type(op[0]);
                     type_list const* right = infer_type(op[1]);
-                    if (left->type == T_SCALAR && right->type == T_SCALAR && left->scalar_size >= right->scalar_size)
+                    if (left->type == T_SCALAR && right->type == T_SCALAR && left->scalar_bits >= right->scalar_bits)
                     {
                         // ok, can upcast scalar to bigger scalar without loss
                     }
@@ -1098,6 +1098,6 @@ void init_builtin_types()
         sprintf(name, "u%d", 8 * i);
         word_type->header.name = name;
         word_type->type = T_SCALAR;
-        word_type->scalar_size = i;
+        word_type->scalar_bits = i;
     }
 }

@@ -83,7 +83,7 @@ void allocate_scope(stack_frame* frame)
         instr("# allocate variable %s (position %d, size %d)", ptr->header.name, ptr->position, type_size(ptr->type));
         if (ptr->type->type == T_SCALAR)
         {
-            for (int i = 0; i < INT_WIDTH * ptr->type->scalar_size; i++)
+            for (int i = 0; i < INT_WIDTH * ptr->type->scalar_bits; i++)
             {
                 instr("FROM @%d", ++label);
                 instr("'_,'_,'_,'_ '0,'_,'_,'_ R,S,S,S @%d", label + 1);
@@ -385,7 +385,7 @@ void exec(ast_node* n, stack_frame* frame)
             PROD1F("push", NUMBER_VALUE(n));
             if (clean_stack)
                 USELESS();
-            push_number(NUMBER_VALUE(n), AST_INFERRED(n)->type == T_SCALAR ? AST_INFERRED(n)->scalar_size : type_size(
+            push_number(NUMBER_VALUE(n), AST_INFERRED(n)->type == T_SCALAR ? AST_INFERRED(n)->scalar_bits : type_size(
                     AST_INFERRED(n)));
             return;
         }
