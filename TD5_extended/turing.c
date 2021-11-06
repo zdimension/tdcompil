@@ -16,7 +16,7 @@
 #include "turing.h"
 
 
-stack_frame global_frame = {.function = NULL, .is_root = true, .end = 0, .vars = {NULL, NULL}, .parent = NULL};
+stack_frame global_frame = {.function = NULL, .loop = NULL, .is_root = true, .end = 0, .vars = {NULL, NULL}, .parent = NULL};
 
 /**
  * @return the position in memory of the beginning of a call frame

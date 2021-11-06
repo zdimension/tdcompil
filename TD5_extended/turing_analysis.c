@@ -516,6 +516,7 @@ void analysis(ast_node** n, stack_frame* frame)
                     newNode->callsites = NULL;
                     newNode->frame = (stack_frame) {
                             .function = newNode,
+                            .loop = NULL,
                             .is_root = true,
                             .vars = {NULL, NULL},
                             .parent = frame
@@ -564,6 +565,22 @@ void analysis(ast_node** n, stack_frame* frame)
                         exit(1);
                     }
                     SET_TYPE(func->return_type);
+                }
+                case KDO:
+                {
+                    op[0] = make_scope(op[0]);
+                    stack_frame* sc_frame = malloc(sizeof(*sc_frame));
+                    *sc_frame = (stack_frame) {.function = frame->function, .loop = malloc(sizeof(loop_info)), .is_root = false, .vars = {.head = NULL, .tail = NULL}, .parent = frame};
+                    SC_SCOPE(op[0]) = sc_frame;
+                    break;
+                }
+                case KFOR:
+                {
+                    op[3] = make_scope(op[3]);
+                    stack_frame* sc_frame = malloc(sizeof(*sc_frame));
+                    *sc_frame = (stack_frame) {.function = frame->function, .loop = malloc(sizeof(loop_info)), .is_root = false, .vars = {.head = NULL, .tail = NULL}, .parent = frame};
+                    SC_SCOPE(op[3]) = sc_frame;
+                    break;
                 }
             }
 
@@ -933,11 +950,26 @@ void analysis(ast_node** n, stack_frame* frame)
                     AST_INFERRED_POS(*n) = op[0];
                     SET_TYPE(inner->pointer_target);
                 }
-                case KFOR:
                 case KREAD:
-                case KBREAK:
-                case KCONTINUE:
                     SET_TYPE(VOID_TYPE);
+                case KBREAK:
+                {
+                    if (!frame->loop)
+                    {
+                        error_msg(*n, "Break statement only permitted in loop\n");
+                        exit(1);
+                    }
+                    SET_TYPE(VOID_TYPE);
+                }
+                case KCONTINUE:
+                {
+                    if (!frame->loop)
+                    {
+                        error_msg(*n, "Continue statement only permitted in loop\n");
+                        exit(1);
+                    }
+                    SET_TYPE(VOID_TYPE);
+                }
                 case KIF:
                 {
                     if (infer_type(op[0]) == VOID_TYPE)
@@ -950,6 +982,15 @@ void analysis(ast_node** n, stack_frame* frame)
                 case KDO:
                 {
                     if (infer_type(op[1]) == VOID_TYPE)
+                    {
+                        error_msg(op[1], "Expected condition, got void\n");
+                        exit(1);
+                    }
+                    SET_TYPE(VOID_TYPE);
+                }
+                case KFOR:
+                {
+                    if (op[1] && infer_type(op[1]) == VOID_TYPE)
                     {
                         error_msg(op[1], "Expected condition, got void\n");
                         exit(1);
@@ -1013,7 +1054,7 @@ void analysis(ast_node** n, stack_frame* frame)
             if (!SC_SCOPE(*n))
             {
                 stack_frame* sc_frame = malloc(sizeof(*sc_frame));
-                *sc_frame = (stack_frame) {.function = frame->function, .is_root = false, .vars = {.head = NULL, .tail = NULL}, .parent = frame};
+                *sc_frame = (stack_frame) {.function = frame->function, .loop = frame->loop, .is_root = false, .vars = {.head = NULL, .tail = NULL}, .parent = frame};
                 SC_SCOPE(*n) = sc_frame;
             }
             AST_INFERRED(*n) = VOID_TYPE;

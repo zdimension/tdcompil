@@ -47,9 +47,15 @@ typedef struct
     };
 } var_list;
 
+typedef struct
+{
+    int address;
+} loop_info;
+
 typedef struct stack_frame_s
 {
     struct func_list_s* function;
+    loop_info* loop;
     bool is_root;
     int end;
     struct
@@ -70,11 +76,6 @@ typedef struct func_list_s
     stack_frame frame;
 } func_list;
 extern func_list* funcs_head, * funcs_tail;
-
-typedef struct
-{
-    int address;
-} loop_info;
 
 typedef enum
 {

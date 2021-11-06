@@ -325,7 +325,7 @@ void push_number(int value, int size)
     instr("'/|'[,'_,'_,'_ '/|'[,'/,'_,'_ S,S,S,S @%d", label + 1);
 }
 
-void exec(ast_node* n, stack_frame* frame, loop_info* loop);
+void exec(ast_node* n, stack_frame* frame);
 
 void eval(ast_node* n, stack_frame* frame)
 {
@@ -335,7 +335,7 @@ void eval(ast_node* n, stack_frame* frame)
         abort();
     }
 
-    exec(n, frame, NULL);
+    exec(n, frame);
 }
 
 #define USELESS() do{info_msg(n, "Line has no effect\n");return;}while(0)
@@ -355,7 +355,7 @@ call_site_list* add_call_site(call_site_list** list)
 /**
  * Emits the code for the specified node.
  */
-void exec(ast_node* n, stack_frame* frame, loop_info* loop)
+void exec(ast_node* n, stack_frame* frame)
 {
     if (!n)
     {
@@ -1035,9 +1035,9 @@ void exec(ast_node* n, stack_frame* frame, loop_info* loop)
                     else
                     {
                         PROD0("; first");
-                        exec(op[0], frame, loop);
+                        exec(op[0], frame);
                         PROD0("; second");
-                        exec(op[1], frame, loop);
+                        exec(op[1], frame);
                         return;
                     }
                 case KPRINT:
@@ -1046,30 +1046,20 @@ void exec(ast_node* n, stack_frame* frame, loop_info* loop)
                     return;
                 case KBREAK:
                     PROD0("break");
-                    if (!loop)
-                    {
-                        error_msg(n, "Break statement only permitted in loop\n");
-                        exit(1);
-                    }
                     instr("FROM @%d", ++label);
-                    instr("'[,'/|'[,'_,'_ S,S,S,S @%d_break", loop->address);
+                    instr("'[,'/|'[,'_,'_ S,S,S,S @%d_break", frame->loop->address);
                     return;
                 case KCONTINUE:
                     PROD0("continue");
-                    if (!loop)
-                    {
-                        error_msg(n, "Continue statement only permitted in loop\n");
-                        exit(1);
-                    }
                     instr("FROM @%d", ++label);
-                    instr("'[,'/|'[,'_,'_ S,S,S,S @%d_continue", loop->address);
+                    instr("'[,'/|'[,'_,'_ S,S,S,S @%d_continue", frame->loop->address);
                     return;
                 case KDO:
                 {
                     PROD0("do");
                     int start = label + 1;
-                    loop_info loop_info = {.address = start};
-                    exec(op[0], frame, &loop_info);
+                    SC_SCOPE(op[0])->loop->address = start;
+                    exec(op[0], frame);
                     instr("FROM @%d_continue", start);
                     instr("'[,'/|'[,'_,'_ S,S,S,S @%d", label + 1);
                     eval(op[1], frame);
@@ -1089,9 +1079,9 @@ void exec(ast_node* n, stack_frame* frame, loop_info* loop)
                 case KFOR:
                 {
                     PROD0("for");
-                    exec(op[0], frame, NULL);
+                    exec(op[0], frame);
                     int start = ++label;
-                    loop_info loop_info = {.address = start};
+                    SC_SCOPE(op[3])->loop->address = start;
                     instr("FROM @%d", start);
                     instr("'[,'/|'[,'_,'_ S,S,S,S @%d", label + 1);
                     if (op[1])
@@ -1111,13 +1101,13 @@ void exec(ast_node* n, stack_frame* frame, loop_info* loop)
                         instr("'[,'/|'[,'_,'_ S,S,S,S @%d", is_nonzero);
                     }
                     PROD0("running 'for' code");
-                    exec(op[3], frame, &loop_info);
+                    exec(op[3], frame);
                     instr("FROM @%d_continue", start);
                     instr("'[,'/|'[,'_,'_ S,S,S,S @%d", label + 1);
                     if (op[2])
                     {
                         PROD0("evaluating 'for' increment");
-                        exec(op[2], frame, NULL);
+                        exec(op[2], frame);
                     }
 
                     instr("FROM @%d", ++label); // after is_non_zero
@@ -1152,7 +1142,7 @@ void exec(ast_node* n, stack_frame* frame, loop_info* loop)
                     instr("'[,'/|'[,'_,'_ S,S,S,S @%d", is_nonzero);
 
                     PROD0("executing positive branch");
-                    exec(op[1], frame, loop);
+                    exec(op[1], frame);
 
                     instr("FROM @%d", ++label); // after is_non_zero
                     instr("'[,'/|'[,'_,'_ S,S,S,S @%d", end);
@@ -1164,7 +1154,7 @@ void exec(ast_node* n, stack_frame* frame, loop_info* loop)
                         int zero_id = label + 1;
                         instr("'[,'/|'[,'_,'_ S,S,S,S @%d", zero_id);
 
-                        exec(op[2], frame, loop);
+                        exec(op[2], frame);
 
                         instr("FROM @%d", ++label);
                         instr("'[,'/|'[,'_,'_ S,S,S,S @%d", label + 1);
@@ -1294,9 +1284,9 @@ void exec(ast_node* n, stack_frame* frame, loop_info* loop)
                 case '{':
                 {
                     PROD0("; compound expression statement");
-                    exec(op[0], frame, loop);
+                    exec(op[0], frame);
                     PROD0("; compound expression result");
-                    exec(op[1], frame, loop);
+                    exec(op[1], frame);
                     return;
                 }
                 default:
@@ -1309,7 +1299,7 @@ void exec(ast_node* n, stack_frame* frame, loop_info* loop)
         {
             allocate_scope(SC_SCOPE(n));
             PROD0("; entering scope");
-            exec(SC_CODE(n), SC_SCOPE(n), loop);
+            exec(SC_CODE(n), SC_SCOPE(n));
             PROD0("; exiting scope");
             free_scope(SC_SCOPE(n));
             return;
@@ -1333,7 +1323,7 @@ void emit_functions()
         instr("'[,'/|'[,'_,'_ S,S,S,S @%d", label + 1);
         BLOCK("function code",
               {
-                  exec(SC_CODE(ptr->code), &ptr->frame, NULL);
+                  exec(SC_CODE(ptr->code), &ptr->frame);
               });
         instr("FROM @%d", ++label);
         instr("'[,'/|'[,'_,'_ S,S,S,S @F%dret", ptr->header.id);
