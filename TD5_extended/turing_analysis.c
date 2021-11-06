@@ -339,7 +339,7 @@ var_list* check_add_var(const char* name, stack_frame* frame, type_list const* t
         newNode->initial = NULL;
         newNode->type = type;
         if (type)
-            frame->end += type_size(type);
+            frame->size += type_size(type);
         return newNode;
     }
     return NULL;

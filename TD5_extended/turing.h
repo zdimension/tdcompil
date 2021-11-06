@@ -34,7 +34,7 @@ typedef struct
     {
         struct // var / array
         {
-            int position;
+            int position; // in cells
             struct // array
             {
                 char* initial;
@@ -57,7 +57,7 @@ typedef struct stack_frame_s
     struct func_list_s* function;
     loop_info* loop;
     bool is_root;
-    int end;
+    int size;
     struct
     {
         var_list* head, * tail;

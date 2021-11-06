@@ -59,7 +59,7 @@ instr("'[,'_,'_,'_ '[,'1,'_,'_ S,R,S,S @%d", zero);\
  */
 void allocate_scope(stack_frame* frame)
 {
-    if (!frame->end)
+    if (!frame->size)
         return;
 
     printf("# Memory map\n");
@@ -128,14 +128,14 @@ void allocate_scope(stack_frame* frame)
  */
 void free_scope(stack_frame* frame)
 {
-    if (frame->end)
+    if (frame->size)
     {
         instr("FROM @%d", ++label);
         instr("'/|'0|'1|'[,'[,'_,'_ R,R,S,S");
         instr("'/|'0|'1|'[,'/,'_,'_ R,R,S,S");
         instr("'/|'0|'1|'[,'_,'_,'_ R,S,S,S");
         instr("'_,'_,'_,'_ L,S,S,S @%d", label + 1);
-        for (int i = 0; i < frame->end - 1; i++)
+        for (int i = 0; i < frame->size - 1; i++)
         {
             instr("FROM @%d", ++label);
             instr("'/|'0|'1,'_,'_,'_ '_,'_,'_,'_ L,S,S,S @%d", ++label);
