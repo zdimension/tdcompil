@@ -929,17 +929,17 @@ void analysis(ast_node** n, stack_frame* frame)
                 {
                     if (o[0].is_num && o[1].is_num)
                     {
-                        RETURN(make_number(o[0].value && o[1].value), WORD_TYPE);
+                        RETURN(make_number(o[0].value && o[1].value), BOOL_TYPE);
                     }
-                    SET_TYPE(WORD_TYPE);
+                    SET_TYPE(BOOL_TYPE);
                 }
                 case OR:
                 {
                     if (o[0].is_num && o[1].is_num)
                     {
-                        RETURN(make_number(o[0].value || o[1].value), WORD_TYPE);
+                        RETURN(make_number(o[0].value || o[1].value), BOOL_TYPE);
                     }
-                    SET_TYPE(WORD_TYPE); //TODO
+                    SET_TYPE(BOOL_TYPE); //TODO
                 }
                 case INC:
                 case DEC:
