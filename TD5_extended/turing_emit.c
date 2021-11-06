@@ -396,24 +396,16 @@ void exec(ast_node* n, stack_frame* frame)
             PROD1S("load", VAR_NAME(n));
             if (clean_stack)
                 USELESS();
-            var_list* ptr = get_var_id(n, frame, F_DEFAULT);
-            if (ptr->type->type == T_ARRAY) // array
-            {
-                push_number(var_position(ptr), POINTER_BITS);// todo: check unused
-            }
-            else
-            {
-                nav_to_var(n, frame);
-                instr("FROM @%d", ++label);
-                instr("'/|'[,'/,'_,'_ R,R,S,S @%d", ++label);
-                instr("'/|'[,'[,'_,'_ R,R,S,S @%d", label);
-                instr("FROM @%d", label);
-                instr("'0|'1,'_,'_,'_ '0|'1,'0|'1,'_,'_ R,R,S,S");
-                instr("'/,'_,'_,'_ '/,'/,'_,'_ L,S,S,S @%d", ++label);
-                instr("FROM @%d", label);
-                instr("'/|'0|'1,'/,'_,'_ L,S,S,S");
-                instr("'[,'/,'_,'_ S,S,S,S @%d", label + 1);
-            }
+            nav_to_var(n, frame); // can only be scalar variable because an array would have been folded to a pointer
+            instr("FROM @%d", ++label);
+            instr("'/|'[,'/,'_,'_ R,R,S,S @%d", ++label);
+            instr("'/|'[,'[,'_,'_ R,R,S,S @%d", label);
+            instr("FROM @%d", label);
+            instr("'0|'1,'_,'_,'_ '0|'1,'0|'1,'_,'_ R,R,S,S");
+            instr("'/,'_,'_,'_ '/,'/,'_,'_ L,S,S,S @%d", ++label);
+            instr("FROM @%d", label);
+            instr("'/|'0|'1,'/,'_,'_ L,S,S,S");
+            instr("'[,'/,'_,'_ S,S,S,S @%d", label + 1);
             return;
         }
         case k_operator:
