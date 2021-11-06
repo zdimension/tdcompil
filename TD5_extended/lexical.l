@@ -35,9 +35,7 @@
 
 	/* ---- Numbers ---- */
 
-[0-9]+u32 			{ yylval.number.value = atol(yytext); yylval.number.size = 32; return NUMBER; }
-[0-9]+u16 			{ yylval.number.value = atol(yytext); yylval.number.size = 16; return NUMBER; }
-[0-9]+u8 			{ yylval.number.value = atol(yytext); yylval.number.size = 8; return NUMBER; }
+[0-9]+u[1-9][0-9]*	{ sscanf(yytext, "%du%d", &yylval.number.value, &yylval.number.size); return NUMBER; }
 [0-9]+ 				{ yylval.number.value = atol(yytext); yylval.number.size = 0; return NUMBER; }
 
 \'\\a\'	{ yylval.number.value = '\a'; yylval.number.size = 0; return NUMBER; }
