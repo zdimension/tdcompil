@@ -1,7 +1,6 @@
 {
-	type point = struct { u8 x, y; };
-
-	var p: point;
-	
-	p.x = 123;
+	var x = 5;
+	var y = 7;
+	var z = { var u = x + y; 2 * u };
+	print z;
 }

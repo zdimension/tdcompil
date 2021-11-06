@@ -132,8 +132,9 @@ void free_node(ast_node* p)
 
 void display_code(ast_node* node)
 {
-    int left = (node ? node->info.col : yylloc.first_column);
-    char* ptr = (node ? node->info.code : yylloc.code);
+    bool has_node = node && node->info.code;
+    int left = (has_node ? node->info.col : yylloc.first_column);
+    char* ptr = (has_node ? node->info.code : yylloc.code);
     for (; *ptr == ' ' || *ptr == '\t'; ptr++, left--)
         ;
     fprintf(stderr, "\t%s\n\t%*s^\n", ptr, left - 1, "");

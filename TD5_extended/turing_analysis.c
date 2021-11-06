@@ -459,6 +459,18 @@ void analysis(ast_node** n, stack_frame* frame)
 
             switch (OPER_OPERATOR(*n))
             {
+                case '{':
+                {
+                    stack_frame* sc_frame = malloc(sizeof(*sc_frame));
+                    *sc_frame = (stack_frame) {.function = frame->function, .loop = frame->loop, .is_root = false, .vars = {.head = NULL, .tail = NULL}, .parent = frame};
+                    ast_node** stmt = &OPER_OPERANDS(*n)[0];
+                    ast_node** expr = &OPER_OPERANDS(*n)[1];
+                    analysis(stmt, sc_frame);
+                    analysis(expr, sc_frame);
+                    *n = make_scope(*n);
+                    SC_SCOPE(*n) = sc_frame;
+                    SET_TYPE(infer_type(*expr));
+                }
                 case '.':
                 {
                     analysis(&op[0], frame);
@@ -1080,8 +1092,6 @@ void analysis(ast_node** n, stack_frame* frame)
                     }
                     SET_TYPE(VOID_TYPE);
                 }
-                case '{':
-                    SET_TYPE(infer_type(op[1]));
                 default:
                     break;
             }
@@ -1093,14 +1103,17 @@ void analysis(ast_node** n, stack_frame* frame)
         }
         case k_scope:
         {
-            if (!SC_SCOPE(*n))
+            if (!AST_INFERRED(*n))
             {
-                stack_frame* sc_frame = malloc(sizeof(*sc_frame));
-                *sc_frame = (stack_frame) {.function = frame->function, .loop = frame->loop, .is_root = false, .vars = {.head = NULL, .tail = NULL}, .parent = frame};
-                SC_SCOPE(*n) = sc_frame;
+                if (!SC_SCOPE(*n))
+                {
+                    stack_frame* sc_frame = malloc(sizeof(*sc_frame));
+                    *sc_frame = (stack_frame) {.function = frame->function, .loop = frame->loop, .is_root = false, .vars = {.head = NULL, .tail = NULL}, .parent = frame};
+                    SC_SCOPE(*n) = sc_frame;
+                }
+                AST_INFERRED(*n) = VOID_TYPE;
+                analysis(&SC_CODE(*n), SC_SCOPE(*n));
             }
-            AST_INFERRED(*n) = VOID_TYPE;
-            analysis(&SC_CODE(*n), SC_SCOPE(*n));
             return;
         }
     }
