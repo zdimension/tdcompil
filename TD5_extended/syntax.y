@@ -232,7 +232,7 @@ unary_op
 mult_expr
     : unary_expr					{ $$ = $1; }
     | mult_expr '*' unary_expr		{ $$ = make_node('*', 2, $1, $3); }
-    | mult_expr '/' unary_expr		{ $$ = make_node('*', 2, $1, $3); }
+    | mult_expr '/' unary_expr		{ $$ = make_node('/', 2, $1, $3); }
     ;
 
 add_expr
