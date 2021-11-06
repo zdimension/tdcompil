@@ -21,6 +21,7 @@
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Resources/tests.am" beforeDir="false" afterPath="$PROJECT_DIR$/Resources/tests.am" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Resources/tests.in" beforeDir="false" afterPath="$PROJECT_DIR$/Resources/tests.in" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/turing_analysis.c" beforeDir="false" afterPath="$PROJECT_DIR$/turing_analysis.c" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/turing_emit.c" beforeDir="false" afterPath="$PROJECT_DIR$/turing_emit.c" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />

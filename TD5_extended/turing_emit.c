@@ -938,7 +938,7 @@ void exec(ast_node* n, stack_frame* frame)
                     instr("'[,'_,'_,'_ '[,'0,'_,'_ S,R,S,S @%d", end);
                     instr("FROM @%d", end);
                     instr("'[,'_,'_,'_ '[,'/,'_,'_ S,S,S,S @%d", label + 1);
-                    
+
                     return;
                 }
                 case INC:

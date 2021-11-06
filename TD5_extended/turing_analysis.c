@@ -684,7 +684,7 @@ void analysis(ast_node** n, stack_frame* frame)
                                   OPER_OPERATOR(*n), type_display(left), type_display(right));
                         exit(1);
                     }
-                    result = BOOL_TYPE;
+
                     break;
                 }
                 case SHL:
@@ -883,7 +883,7 @@ void analysis(ast_node** n, stack_frame* frame)
                     {
                         RETURN(make_number(o[0].value < o[1].value), result);
                     }
-                    SET_TYPE(result);
+                    SET_TYPE(BOOL_TYPE);
                 }
                 case '>':
                 {
@@ -891,7 +891,7 @@ void analysis(ast_node** n, stack_frame* frame)
                     {
                         RETURN(make_number(o[0].value > o[1].value), result);
                     }
-                    SET_TYPE(result);
+                    SET_TYPE(BOOL_TYPE);
                 }
                 case GE:
                 {
@@ -899,7 +899,7 @@ void analysis(ast_node** n, stack_frame* frame)
                     {
                         RETURN(make_number(o[0].value >= o[1].value), result);
                     }
-                    SET_TYPE(result);
+                    SET_TYPE(BOOL_TYPE);
                 }
                 case LE:
                 {
@@ -907,7 +907,7 @@ void analysis(ast_node** n, stack_frame* frame)
                     {
                         RETURN(make_number(o[0].value <= o[1].value), result);
                     }
-                    SET_TYPE(result);
+                    SET_TYPE(BOOL_TYPE);
                 }
                 case NE:
                 {
@@ -915,7 +915,7 @@ void analysis(ast_node** n, stack_frame* frame)
                     {
                         RETURN(make_number(o[0].value != o[1].value), result);
                     }
-                    SET_TYPE(result);
+                    SET_TYPE(BOOL_TYPE);
                 }
                 case EQ:
                 {
@@ -923,7 +923,7 @@ void analysis(ast_node** n, stack_frame* frame)
                     {
                         RETURN(make_number(o[0].value == o[1].value), result);
                     }
-                    SET_TYPE(result);
+                    SET_TYPE(BOOL_TYPE);
                 }
                 case AND:
                 {

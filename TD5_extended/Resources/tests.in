@@ -1,5 +1,7 @@
 {
-	var x = 0;
-	var y = 0;
-	print x || y;
+	type point = struct { u8 x, y; };
+
+	var p: point;
+	
+	p.x = 123;
 }
