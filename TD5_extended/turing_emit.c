@@ -480,8 +480,6 @@ void exec(ast_node* n, stack_frame* frame)
                     instr("'/|'[,'/,'_,'_ R,R,S,S @%d", ++label);
                     instr("'/|'[,'[,'_,'_ R,R,S,S @%d", label);
                     instr("FROM @%d", label);
-                    instr("'0|'1,'0,'_,'_ '0|'1,'0|'1,'_,'_ R,R,S,S");
-                    instr("'0|'1,'1,'_,'_ '0|'1,'0|'1,'_,'_ R,R,S,S");
                     instr("'0|'1,'_,'_,'_ '0|'1,'0|'1,'_,'_ R,R,S,S");
                     instr("'/,'_,'_,'_ '/,'/,'_,'_ L,S,S,S @%d", ++label);
                     instr("FROM @%d", label);
