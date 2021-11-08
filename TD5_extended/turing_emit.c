@@ -1314,6 +1314,55 @@ void exec(ast_node* n, stack_frame* frame)
                     exec(op[1], frame);
                     return;
                 }
+                case KNEW:
+                {
+                    PROD0("new");
+                    if (clean_stack)
+                        return;
+
+                    instr("FROM @%d", ++label);
+                    instr("'[,'/|'[,'_,'_ S,R,S,S @%d", label + 1);
+                    for (int i = 0; i < POINTER_BITS; i++)
+                    {
+                        instr("FROM @%d", ++label);
+                        instr("'[,'_,'_,'_ '[,'0,'_,'_ S,R,S,S @%d", label + 1);
+                    }
+                    instr("FROM @%d", ++label);
+                    instr("'[,'_,'_,'_ '[,'/,'_,'_ S,L,S,S");
+                    instr("'[,'0,'_,'_ S,L,S,S");
+                    instr("'[,'/|'[,'_,'_ R,R,S,S @%d", ++label);
+
+                    int loop = label;
+                    int empty_found = ++label;
+
+                    instr("FROM @%d", loop);
+                    instr("'_,'0|'1,'_,'_ S,R,S,S @%d", empty_found);
+                    instr("'0|'1,'0,'_,'_ R,S,S,S");
+                    instr("'0|'1,'1,'_,'_ R,S,S,S");
+                    instr("'/,'0|'1,'_,'_ S,S,S,S @%d", ++label);
+                    instr("FROM @%d", label); // inc
+                    instr("'/,'0,'_,'_ '/,'1,'_,'_ R,S,S,S @%d", loop);
+                    instr("'/,'1,'_,'_ '/,'0,'_,'_ S,R,S,S @%d", ++label);
+                    instr("FROM @%d", label); // inc carry
+                    instr("'/,'0,'_,'_ '/,'1,'_,'_ S,L,S,S @%d", ++label);
+                    instr("'/,'1,'_,'_ '/,'0,'_,'_ S,R,S,S");
+                    instr("FROM @%d", label); // back left
+                    instr("'/,'0|'1,'_,'_ S,L,S,S");
+                    instr("'/,'/,'_,'_ R,R,S,S @%d", loop);
+
+                    instr("FROM @%d", empty_found);
+                    instr("'_,'0|'1,'_,'_ S,R,S,S");
+                    instr("'_,'/,'_,'_ S,R,S,S @%d", label + 1);
+                    var_list var = {0};
+                    var.header.name = "<dynamic alloc>";
+                    var.type = decode_spec(op[0], frame);
+                    allocate_var(&var);
+                    instr("FROM @%d", ++label);
+                    instr("'_,'_,'_,'_ L,L,S,S");
+                    instr("'0|'1|'/,'/,'_,'_ L,S,S,S");
+                    instr("'[,'/,'_,'_ S,S,S,S @%d", label + 1);
+                    return;
+                }
                 default:
                     error_msg(n, "Houston, we have a problem: unattended token %d\n",
                               OPER_OPERATOR(n));

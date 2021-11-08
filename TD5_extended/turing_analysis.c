@@ -509,6 +509,11 @@ void analysis(ast_node** n, stack_frame* frame)
                     type_list const* type = decode_spec(op[0], frame);
                     RETURN(make_number(type_size_bits(type)), WORD_TYPE);
                 }
+                case KNEW:
+                {
+                    type_list const* type = decode_spec(op[0], frame);
+                    SET_TYPE(make_pointer(type));
+                }
                 case KCONST:
                 {
                     var_list* var = check_add_var(VAR_NAME(op[0]), frame, NULL);

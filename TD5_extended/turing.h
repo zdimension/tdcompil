@@ -140,3 +140,5 @@ int var_position(var_list* var);
 void init_builtin_types();
 
 int type_size_bits(type_list const* type);
+
+type_list const* decode_spec(ast_node* spec, stack_frame* frame);
