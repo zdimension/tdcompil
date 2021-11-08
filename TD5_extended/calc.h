@@ -41,6 +41,7 @@ static const char* name##_NAMES[] =\
 #define KINDS(F) \
     F(k_ident) \
     F(k_number) \
+    F(k_float) \
     F(k_operator) \
     F(k_list) \
     F(k_scope)
@@ -95,6 +96,19 @@ typedef struct
 
 ast_node* make_number(int f);    // make a number node
 ast_node* make_number_sized(int f, int s);    // make a number node
+
+typedef struct
+{
+    ast_node header;              // AST header
+    double value;            // value of the number
+    int size;
+} ast_float;
+
+#define FLOAT_VALUE(p)    (((ast_float *) (p))->value)
+#define FLOAT_SIZE(p)    (((ast_float *) (p))->size)
+
+ast_node* make_float(double f);    // make a number node
+ast_node* make_float_sized(double f, int s);    // make a number node
 
 
 // ----------------------------------------------------------------------

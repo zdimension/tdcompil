@@ -9,7 +9,8 @@
 #define LABEL(n)     printf("#L%03d:\n", n);            // output a label
 
 #define PROD0(op)     printf("#\t%s\n", op)
-#define PROD1F(op, v)     printf("#\t%s\t%d\n", op, v)    // v is a float
+#define PROD1D(op, v)     printf("#\t%s\t%d\n", op, v)    // v is a float
+#define PROD1F(op, v)     printf("#\t%s\t%f\n", op, v)    // v is a float
 #define PROD1S(op, v)     printf("#\t%s\t%s\n", op, v)    // v is a string
 #define PROD1L(op, v)     printf("#\t%s\tL%03d\n", op, v) // v is a label
 
@@ -64,6 +65,7 @@ void allocate_var(var_list* ptr)
     {
         case T_SCALAR:
         case T_POINTER:
+        case T_FLOAT:
         {
             for (int i = 0; i < type_size_bits(ptr->type); i++)
             {
@@ -346,12 +348,13 @@ void pop(int n)
  */
 void push_number(int value, int size)
 {
-    value &= (1 << size) - 1;
+    long mask = (1L << size) - 1L;
+    value = (int)((long)value & mask);
     instr("FROM @%d", ++(label));
     instr("'/|'[,'[,'_,'_ S,R,S,S @%d", ++label);
     instr("'/|'[,'/,'_,'_ S,R,S,S @%d", label);
     instr("FROM @%d", label);
-    for (int i = 0; i < size; i++, value /= 2)
+    for (int i = 0; i < size; i++, value >>= 1)
     {
         instr("'/|'[,'_,'_,'_ '/|'[,'%d,'_,'_ S,R,S,S @%d", value & 1, ++label);
         instr("FROM @%d", label);
@@ -395,10 +398,19 @@ void exec(ast_node* n, stack_frame* frame)
     {
         case k_number:
         {
-            PROD1F("push", NUMBER_VALUE(n));
+            PROD1D("push", NUMBER_VALUE(n));
             if (clean_stack)
                 USELESS();
             push_number(NUMBER_VALUE(n), type_size_bits(AST_INFERRED(n)));
+            return;
+        }
+        case k_float:
+        {
+            PROD1F("push", FLOAT_VALUE(n));
+            if (clean_stack)
+                USELESS();
+            float f = FLOAT_VALUE(n);
+            push_number(*(int*)&f, type_size_bits(AST_INFERRED(n)));
             return;
         }
         case k_operator:
@@ -913,7 +925,6 @@ void exec(ast_node* n, stack_frame* frame)
                     int scroll_left = ++label;
                     int write_one = ++label;
                     int end = ++label;
-                    int end2 = ++label;
                     instr("'[,'0,'_,'_ '[,'_,'_,'_ S,L,S,S");
                     instr("'[,'1,'_,'_ '[,'_,'_,'_ S,L,S,S @%d", b_nonzero);
                     instr("'[,'/|'[,'_,'_ S,S,S,S @%d", label + 1);

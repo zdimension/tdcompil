@@ -63,6 +63,21 @@ ast_node* make_number_sized(int f, int s)
     return p;
 }
 
+ast_node* make_float(double f)
+{
+    return make_number_sized(f, 0);
+}
+
+ast_node* make_float_sized(double f, int s)
+{
+    ast_node* p = allocate_node(sizeof(ast_float));
+
+    initialize_header(p, k_float);
+    FLOAT_VALUE(p) = f;
+    FLOAT_SIZE(p) = s;
+    return p;
+}
+
 
 // ----------------------------------------------------------------------
 //		Operators stuff

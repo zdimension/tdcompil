@@ -32,6 +32,7 @@ void yyerror(const char *s);
 
 %union {
 	struct { int value; int size; } number; // number value
+	struct { float value; int size; } number_float; // number value
     char *var;                   // ident name
     int chr;
     ast_node *node;              // node pointer
@@ -39,6 +40,7 @@ void yyerror(const char *s);
 
 //                      Tokens
 %token  <number>         NUMBER
+%token <number_float> FLOAT
 %token  <var>           IDENT STRING
 %token                  KWHILE KIF KPRINT KELSE KREAD KFOR KDO KVAR KFUNC KRETURN KPROC KBREAK KCONTINUE KCONST KTYPE KTYPEOF KSIZEOF KSTRUCT KBITSOF KNEW
 %token '+' '-' '*' '/' GE LE EQ NE '>' '<' REF DEREF APL AMN AML ADV INC DEC AND OR SHL SHR
@@ -199,6 +201,7 @@ aug_assign
 
 basic_expr
 	: NUMBER																{ $$ = make_number_sized($1.value, $1.size); }
+	| FLOAT																	{ $$ = make_float_sized($1.value, $1.size); }
 	| KSIZEOF '(' type_spec ')' 											{ $$ = make_node(KSIZEOF, 1, $3); }
 	| KBITSOF '(' type_spec ')' 											{ $$ = make_node(KBITSOF, 1, $3); }
 	| KNEW '(' type_spec ')' 												{ $$ = make_node(KNEW, 1, $3); }

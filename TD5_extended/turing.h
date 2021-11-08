@@ -80,6 +80,7 @@ typedef enum
 {
     T_VOID,
     T_SCALAR,
+    T_FLOAT,
     T_ARRAY,
     T_POINTER,
     T_CONST,
@@ -93,6 +94,11 @@ typedef struct type_list_s
     union
     {
         int scalar_bits; // always 1 for now
+        struct
+        {
+            int float_mantissa_bits;
+            int float_exponent_bits;
+        };
         struct
         {
             int array_count;

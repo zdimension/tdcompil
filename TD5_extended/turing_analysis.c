@@ -51,6 +51,8 @@ bool type_same(type_list const* a, type_list const* b)
     {
         case T_SCALAR:
             return a->scalar_bits == b->scalar_bits;
+        case T_FLOAT:
+            return a->float_mantissa_bits == b->float_mantissa_bits && a->float_exponent_bits == b->float_exponent_bits;
         case T_ARRAY:
             return a->array_count == b->array_count && type_same(a->array_target, b->array_target);
         case T_POINTER:
@@ -68,6 +70,8 @@ int type_size_bits(type_list const* type)
     {
         case T_SCALAR:
             return type->scalar_bits;
+        case T_FLOAT:
+            return type->float_mantissa_bits + type->float_exponent_bits + 1;
         case T_POINTER:
             return POINTER_BITS;
         default:
@@ -83,11 +87,11 @@ int type_size_cells(type_list const* type)
     switch (type->type)
     {
         case T_SCALAR:
+        case T_FLOAT:
+        case T_POINTER:
             return 1;
         case T_ARRAY:
             return type->array_count;
-        case T_POINTER:
-            return 1;
         case T_CONST:
             return type_size_cells(type->const_target);
         case T_COMPOSITE:
@@ -122,6 +126,12 @@ const char* type_display_full(type_list const* type, bool inner, bool expand)
                 return "bool";
             char* buf = malloc(256);
             sprintf(buf, "u%d", type->scalar_bits);
+            return buf;
+        }
+        case T_FLOAT:
+        {
+            char* buf = malloc(256);
+            sprintf(buf, "f%de%d", type->float_mantissa_bits, type->float_exponent_bits);
             return buf;
         }
         case T_ARRAY:
@@ -222,6 +232,15 @@ type_list const* make_scalar_type(int size)
     type_list* res = NEW_TYPE();
     res->type = T_SCALAR;
     res->scalar_bits = size;
+    return res;
+}
+
+type_list const* make_ieee754_type(int mantissa, int exponent)
+{
+    type_list* res = NEW_TYPE();
+    res->type = T_FLOAT;
+    res->float_mantissa_bits = mantissa;
+    res->float_exponent_bits = exponent;
     return res;
 }
 
@@ -470,6 +489,18 @@ void analysis(ast_node** n, stack_frame* frame)
                 }
             }
             return;
+        }
+        case k_float:
+        {
+            int size = FLOAT_SIZE(*n);
+            if (size == 0)
+            {
+                SET_TYPE(make_ieee754_type(23, 8));
+            }
+            else
+            {
+                return;// todo
+            }
         }
         case k_ident:
         {
@@ -744,7 +775,7 @@ void analysis(ast_node** n, stack_frame* frame)
                     type_list const* left = o[0].type;
                     type_list const* right = o[1].type;
 
-                    if (!(left->type == T_SCALAR || left->type == T_POINTER))
+                    if (!(left->type == T_SCALAR || left->type == T_POINTER || left->type == T_FLOAT))
                     {
                         error_msg(*n, "Cannot perform arithmetic comparison '%c' on non-numeric types %s and %s\n",
                                   OPER_OPERATOR(*n), type_display(left), type_display(right));
@@ -761,7 +792,7 @@ void analysis(ast_node** n, stack_frame* frame)
 
                     if (left->type != T_SCALAR)
                     {
-                        error_msg(*n, "Cannot perform bitwise shift on non-numeric types %s and %s\n",
+                        error_msg(*n, "Cannot perform bitwise shift on non-integral types %s and %s\n",
                                   type_display(left), type_display(right));
                         exit(1);
                     }
@@ -803,9 +834,9 @@ void analysis(ast_node** n, stack_frame* frame)
                 case UMINUS:
                 {
                     type_list const* left = o[0].type;
-                    if (left->type != T_SCALAR)
+                    if (left->type != T_SCALAR && left->type != T_FLOAT)
                     {
-                        error_msg(*n, "Cannot perform unary minus on non-integral type %s\n", type_display(left));
+                        error_msg(*n, "Cannot perform unary minus on non-numeric type %s\n", type_display(left));
                         exit(1);
                     }
                     if (o[0].is_num)
@@ -848,6 +879,8 @@ void analysis(ast_node** n, stack_frame* frame)
                         result = right;
                     else if (left->type == T_SCALAR && right->type == T_SCALAR)
                         result = left;
+                    else if (left->type == T_FLOAT && right->type == T_FLOAT)
+                        result = left;
                     else
                     {
                         error_msg(*n, "Cannot add types %s and %s\n", type_display(left), type_display(right));
@@ -877,6 +910,8 @@ void analysis(ast_node** n, stack_frame* frame)
                         result = left;
                     else if (left->type == T_SCALAR && right->type == T_SCALAR)
                         result = left;
+                    else if (left->type == T_FLOAT && right->type == T_FLOAT)
+                        result = left;
                     else
                     {
                         error_msg(*n, "Cannot subtract types %s and %s\n", type_display(left), type_display(right));
@@ -900,7 +935,7 @@ void analysis(ast_node** n, stack_frame* frame)
                 {
                     type_list const* left = infer_type(op[0]);
                     type_list const* right = infer_type(op[1]);
-                    if (left->type != T_SCALAR || right->type != T_SCALAR)
+                    if ((left->type != T_SCALAR && left->type != T_FLOAT) || (right->type != T_SCALAR && right->type != T_FLOAT))
                     {
                         error_msg(*n, "Cannot perform multiplication on types %s and %s\n",
                                   type_display(left), type_display(right));
@@ -950,7 +985,7 @@ void analysis(ast_node** n, stack_frame* frame)
                 {
                     type_list const* left = infer_type(op[0]);
                     type_list const* right = infer_type(op[1]);
-                    if (left->type != T_SCALAR || right->type != T_SCALAR)
+                    if ((left->type != T_SCALAR && left->type != T_FLOAT) || (right->type != T_SCALAR && right->type != T_FLOAT))
                     {
                         error_msg(*n, "Cannot perform division on types %s and %s\n",
                                   type_display(left), type_display(right));
@@ -1055,7 +1090,7 @@ void analysis(ast_node** n, stack_frame* frame)
                 case DEC:
                 {
                     type_list const* left = infer_type(op[0]);
-                    if (left->type != T_SCALAR && left->type != T_POINTER)
+                    if (left->type != T_SCALAR && left->type != T_POINTER && left->type != T_FLOAT)
                     {
                         error_msg(*n, "Cannot perform arithmetic operation '%s' on non-numeric type %s\n",
                                   OPER_OPERATOR(*n) == INC ? "++" : "--",

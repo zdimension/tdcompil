@@ -21,7 +21,7 @@
 #define LABEL(n)     printf("L%03d:\n", n);            // output a label
 
 #define PROD0(op)     printf("\t%s\n", op)
-#define PROD1F(op, v)     printf("\t%s\t%g\n", op, v)    // v is a float
+#define PROD1D(op, v)     printf("\t%s\t%g\n", op, v)    // v is a float
 #define PROD1S(op, v)     printf("\t%s\t%s\n", op, v)    // v is a string
 #define PROD1L(op, v)     printf("\t%s\tL%03d\n", op, v) // v is a label
 
@@ -33,7 +33,7 @@ void eval(ast_node* n, int* label)
     switch (AST_KIND(n))
     {
         case k_number:
-            PROD1F("push", NUMBER_VALUE(n));
+            PROD1D("push", NUMBER_VALUE(n));
             return;
         case k_ident:
             PROD1S("load", VAR_NAME(n));
