@@ -1,0 +1,55 @@
+{
+	type stack = struct { value: u8; next: stack*; };
+
+	var cur, ptr: u8*, a, b, head: stack*,
+		num = 0, # is reading a number
+		n: stack*,
+		eq[] = "3 4 5 * 2 - +", # 3 + ((4 * 5) - 2) = 21 = 10101_2
+		eq_end = 0;
+
+	for (ptr = eq; ptr != &eq_end; ptr++)
+	{
+		cur = *ptr;
+		if (cur == ' ')
+		{
+			num = 0;
+		}
+		else if (cur == '+')
+		{
+		    b = (*head).value; head = (*head).next;
+		    a = (*head).value;
+			(*head).value = a + b;
+			num = 0;
+		}
+		else if (cur == '-')
+		{
+			b = (*head).value; head = (*head).next;
+            a = (*head).value;
+			(*head).value = a - b;
+			num = 0;
+		}
+		else if (cur == '*')
+		{
+			b = (*head).value; head = (*head).next;
+            a = (*head).value;
+			(*head).value = a * b;
+			num = 0;
+		}
+		else if (cur >= '0' && cur <= '9')
+		{
+			if (num)
+			{
+				(*head).value = ((*head).value * 10) + (cur - '0');
+			}
+			else
+			{
+				n = new(stack);
+                (*n).next = head;
+                head = n;
+				(*head).value = cur - '0';
+				num = 1;
+			}
+		}
+	}
+	print (*head).value;
+}

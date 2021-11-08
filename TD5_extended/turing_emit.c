@@ -870,16 +870,17 @@ void exec(ast_node* n, stack_frame* frame)
                     int a_nonzero = ++label;
                     int write_one = ++label;
                     int end = ++label;
-                    int next = label + 1;
+                    int end2 = ++label;
                     instr("'[,'0,'_,'_ '[,'_,'_,'_ S,L,S,S");
                     instr("'[,'1,'_,'_ '[,'_,'_,'_ S,L,S,S @%d", b_nonzero);
-                    instr("'[,'/|'[,'_,'_ S,R,S,S @%d", clean_stack ? next : write_zero);
+                    instr("'[,'/|'[,'_,'_ S,R,S,S @%d", clean_stack ? end2 : write_zero);
                     instr("FROM @%d", b_nonzero);
                     instr("'[,'0|'1,'_,'_ '[,'_,'_,'_ S,L,S,S");
                     instr("'[,'/|'[,'_,'_ S,S,S,S @%d", label + 1);
                     eval(op[1], frame);
                     instr("FROM @%d", ++label);
                     instr("'[,'/,'_,'_ '[,'_,'_,'_ S,L,S,S @%d", ++label);
+                    int next = label + 1;
                     instr("FROM @%d", label);
                     instr("'[,'0,'_,'_ '[,'_,'_,'_ S,L,S,S");
                     instr("'[,'1,'_,'_ '[,'_,'_,'_ S,L,S,S @%d", a_nonzero);
@@ -892,7 +893,9 @@ void exec(ast_node* n, stack_frame* frame)
                     instr("FROM @%d", write_one);
                     instr("'[,'_,'_,'_ '[,'1,'_,'_ S,R,S,S @%d", end);
                     instr("FROM @%d", end);
-                    instr("'[,'_,'_,'_ '[,'/,'_,'_ S,S,S,S @%d", next);
+                    instr("'[,'_,'_,'_ '[,'/,'_,'_ S,S,S,S @%d", label + 1);
+                    instr("FROM @%d", end2);
+                    instr("'[,'_,'_,'_ S,L,S,S @%d", label + 1);
 
                     return;
                 }
@@ -910,16 +913,17 @@ void exec(ast_node* n, stack_frame* frame)
                     int scroll_left = ++label;
                     int write_one = ++label;
                     int end = ++label;
-                    int next = label + 1;
+                    int end2 = ++label;
                     instr("'[,'0,'_,'_ '[,'_,'_,'_ S,L,S,S");
                     instr("'[,'1,'_,'_ '[,'_,'_,'_ S,L,S,S @%d", b_nonzero);
                     instr("'[,'/|'[,'_,'_ S,S,S,S @%d", label + 1);
                     eval(op[1], frame);
                     instr("FROM @%d", ++label);
                     instr("'[,'/,'_,'_ '[,'_,'_,'_ S,L,S,S @%d", check_a);
+                    int next = label + 1;
                     instr("FROM @%d", b_nonzero);
                     instr("'[,'0|'1,'_,'_ '[,'_,'_,'_ S,L,S,S");
-                    instr("'[,'/|'[,'_,'_ S,R,S,S @%d", write_one);
+                    instr("'[,'/|'[,'_,'_ S,R,S,S @%d", clean_stack ? next : write_one);
                     instr("FROM @%d", scroll_left);
                     instr("'[,'0|'1,'_,'_ '[,'_,'_,'_ S,L,S,S");
                     instr("'[,'/|'[,'_,'_ S,R,S,S @%d", clean_stack ? next : write_one);

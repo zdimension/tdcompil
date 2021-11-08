@@ -1,4 +1,5 @@
 {
 	var x = 5;
-	var y = 16 * x;
+	var y = 6;
+	x || y;
 }
