@@ -92,6 +92,7 @@
 "struct" { return KSTRUCT; }
 "bitsof" { return KBITSOF; }
 "new" { return KNEW; }
+"assert" { return KASSERT; }
 
 	/* ---- Idents ---- */
 [a-zA-Z_][a-zA-Z0-9_]*			{ yylval.var = strdup(yytext); return IDENT; }

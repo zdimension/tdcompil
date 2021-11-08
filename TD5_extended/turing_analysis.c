@@ -501,6 +501,25 @@ void analysis(ast_node** n, stack_frame* frame)
 
             switch (OPER_OPERATOR(*n))
             {
+                case KASSERT:
+                {
+                    analysis(&op[0], frame);
+                    if (AST_KIND(op[0]) == k_number)
+                    {
+                        if (NUMBER_VALUE(op[0]) != 0)
+                            SET_TYPE(VOID_TYPE);
+                        else
+                        {
+                            error_msg(*n, "Assertion failed\n");
+                            exit(1);
+                        }
+                    }
+                    else
+                    {
+                        error_msg(*n, "Assertion condition must numeric and resolvable at compile time\n");
+                        exit(1);
+                    }
+                }
                 case '.':
                 {
                     analysis(&op[0], frame);

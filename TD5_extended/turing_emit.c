@@ -1252,6 +1252,9 @@ void exec(ast_node* n, stack_frame* frame)
                 case KTYPE:
                     PROD0("type");
                     return;
+                case KASSERT:
+                    PROD0("assert");
+                    return;
                 case KRETURN:
                 {
                     PROD0("return");
