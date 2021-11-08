@@ -418,6 +418,12 @@ call_site_list* add_call_site(call_site_list** list)
     return newNode;
 }
 
+ast_node* simplify(ast_node* n, stack_frame* frame)
+{
+    analysis(&n, frame);
+    return n;
+}
+
 /**
  * Static analysis + type checking + constant folding
  */
@@ -459,6 +465,8 @@ void analysis(ast_node** n, stack_frame* frame)
         }
         case k_ident:
         {
+            if (AST_INFERRED(*n))
+                return;
             var_list* ptr = get_var_id(*n, frame, F_NULLABLE);
             if (ptr)
             {
@@ -494,10 +502,11 @@ void analysis(ast_node** n, stack_frame* frame)
                         exit(1);
                     }
                     var_list* member = FIND_SYM(var_list, ltype->composite_members.head, op[1]);
-                    RETURN_LVALUE(make_node('+', 2,
-                                      set_inferred_type(get_position(op[0]),make_pointer(member->type)),
-                                      make_number(member->position))
-                            );
+                    ast_node* lhs_ptr = get_position(op[0]);
+                    set_inferred_type(lhs_ptr, make_pointer(member->type)); // convert to pointer to member
+                    ast_node* ret = make_node('+', 2, lhs_ptr, make_number(member->position));
+                    analysis(&ret, frame);
+                    RETURN_LVALUE(ret);
                 }
                 case KSIZEOF:
                 {
@@ -1049,6 +1058,8 @@ void analysis(ast_node** n, stack_frame* frame)
                 }
                 case DEREF:
                 {
+                    if (AST_INFERRED(*n))
+                        return;
                     type_list const* inner = infer_type(op[0]);
                     if (!inner)
                         break;

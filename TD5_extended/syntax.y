@@ -96,7 +96,7 @@ expr_or_inline_decl
 
 expr_discard_or_inline_decl_opt
 	: 								{ $$ = NULL; }
-	| expr							{ $$ = $1; }
+	| expr_discard					{ $$ = $1; }
     | KVAR var_decl_list			{ $$ = $2; }
 	;
 
