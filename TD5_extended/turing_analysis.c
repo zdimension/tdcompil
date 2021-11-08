@@ -438,6 +438,10 @@ void analysis(ast_node** n, stack_frame* frame)
     if (!*n)
         return;
 
+    yylloc.first_line = (*n)->info.line;
+    yylloc.first_column = (*n)->info.col;
+    yylloc.code = (*n)->info.code;
+
     /* if (AST_INFERRED_POS(*n) != *n)
          analysis(&AST_INFERRED_POS(*n), frame);*/
 
