@@ -1,0 +1,23 @@
+{
+	type linked_list = struct { value: u8; next: linked_list*; };
+
+	var i;
+	var cur: linked_list*, next: linked_list*;
+	var x: linked_list;
+	x.value = 1;
+
+	cur = &x;
+	for (i = 0; i < 10; i++)
+	{
+		next = new(linked_list);
+		(*next).value = (*cur).value * 2;
+		(*cur).next = next;
+		cur = next;
+	}
+
+	cur = &x;
+	for (cur = &x; cur; cur = (*cur).next)
+    {
+        print (*cur).value;
+    }
+}

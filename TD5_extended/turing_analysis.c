@@ -418,10 +418,14 @@ call_site_list* add_call_site(call_site_list** list)
     return newNode;
 }
 
-ast_node* simplify(ast_node* n, stack_frame* frame)
+bool is_power_of_2(int x)
 {
-    analysis(&n, frame);
-    return n;
+    return x && !(x & (x - 1));
+}
+
+int highest_set_bit(int x) // uses ctz
+{
+    return __builtin_ctz(x);
 }
 
 /**
@@ -911,6 +915,12 @@ void analysis(ast_node** n, stack_frame* frame)
                         {
                             RETURN(make_number(0), left);
                         }
+                        else if (is_power_of_2(o[0].value))
+                        {
+                            *n = make_node(SHL, 2, op[1], make_number(highest_set_bit(o[0].value)));
+                            analysis(n, frame);
+                            return;
+                        }
                     }
                     else if (o[1].is_num)
                     {
@@ -921,6 +931,12 @@ void analysis(ast_node** n, stack_frame* frame)
                         else if (o[1].value == 0)
                         {
                             RETURN(make_number(0), left);
+                        }
+                        else if (is_power_of_2(o[1].value))
+                        {
+                            *n = make_node(SHL, 2, op[0], make_number(highest_set_bit(o[1].value)));
+                            analysis(n, frame);
+                            return;
                         }
                     }
                     SET_TYPE(left);
@@ -944,13 +960,25 @@ void analysis(ast_node** n, stack_frame* frame)
                     {
                         RETURN(make_number(o[0].value / o[1].value), left);
                     }
-                    else if (o[0].is_num && o[1].value == 0)
+                    else if (o[0].is_num)
                     {
-                        RETURN(make_number(0), left);
+                        if (o[0].value == 0)
+                        {
+                            RETURN(make_number(0), left);
+                        }
                     }
-                    else if (o[1].is_num && o[1].value == 1)
+                    else if (o[1].is_num)
                     {
-                        RETURN(op[0], left);
+                        if (o[1].value == 1)
+                        {
+                            RETURN(op[0], left);
+                        }
+                        else if (is_power_of_2(o[1].value))
+                        {
+                            *n = make_node(SHR, 2, op[0], make_number(highest_set_bit(o[1].value)));
+                            analysis(n, frame);
+                            return;
+                        }
                     }
                     SET_TYPE(left);
                 }
