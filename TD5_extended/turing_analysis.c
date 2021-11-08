@@ -481,7 +481,8 @@ void analysis(ast_node** n, stack_frame* frame)
                 if (ptr->type->type == T_ARRAY) // referencing an array directly is equivalent to &array[0]
                 {
                     ast_node* ret = set_inferred_type(make_number(var_position(ptr)), decay_array_ptr(ptr->type));
-                    RETURN_LVALUE(ret);
+                    *n = ret;
+                    return;
                 }
                 RETURN_LVALUE(set_inferred_type(make_number(var_position(ptr)), make_pointer(ptr->type)));
             }
