@@ -1,6 +1,6 @@
 {
 	type coord = u16;
-	type point = struct { x: coord; y: coord; };
+	type point<T> = struct { x: coord; y: coord; };
 
 	assert sizeof(point) == 2;
 }
