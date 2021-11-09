@@ -5,8 +5,6 @@
 #include <assert.h>
 
 #define NEW_TYPE() (calloc(1, sizeof(type_list)))
-#define WORD_TYPE (type_list const*)types_head
-#define BOOL_TYPE (type_list const*)types_head->header.next
 
 /**
  * Adds an item to a linked list
@@ -34,7 +32,7 @@ linked_list_header* add_symbol(linked_list_header** head, linked_list_header** t
 }
 
 
-type_list* check_add_type(const char* name);
+type_list* check_add_type(const char* name, stack_frame* frame);
 
 /**
  * @returns Whether the two type instances refer to the same type
@@ -243,7 +241,7 @@ type_list const* decode_spec(ast_node* spec, stack_frame* frame)
                 return make_scalar_type(size);
             }
         }
-        return FIND_SYM(type_list, types_head, spec);
+        return get_type(spec, frame);
     }
     else
     {
@@ -330,16 +328,16 @@ type_list const* decode_spec(ast_node* spec, stack_frame* frame)
 /**
  * @return A new type instance with the specified name, or NULL if a type with the same name already exists
  */
-type_list* check_add_type(const char* name)
+type_list* check_add_type(const char* name, stack_frame* frame)
 {
-    for (type_list* ptr = types_head; ptr; ptr = (type_list*) ptr->header.next)
+    for (type_list* ptr = frame->types.head; ptr; ptr = (type_list*) ptr->header.next)
     {
         if (!strcmp(ptr->header.name, name))
         {
             return NULL;
         }
     }
-    type_list* newNode = ADD_SYM(type_list, &types_head, &types_tail);
+    type_list* newNode = ADD_SYM(type_list, &frame->types.head, &frame->types.tail);
     newNode->header.name = name;
     return newNode;
 }
@@ -568,7 +566,7 @@ void analysis(ast_node** n, stack_frame* frame)
                 }
                 case KTYPE:
                 {
-                    type_list* type = check_add_type(VAR_NAME(op[0]));
+                    type_list* type = check_add_type(VAR_NAME(op[0]), frame);
                     if (!type)
                     {
                         error_msg(*n, "Cannot redeclare type '%s'\n", VAR_NAME(op[0]));
@@ -1250,13 +1248,15 @@ void init_builtin_types()
 {
     VOID_TYPE = NEW_TYPE();
 
-    type_list* word_type = ADD_SYM(type_list, &types_head, &types_tail);
+    type_list* word_type = ADD_SYM(type_list, &global_frame.types.head, &global_frame.types.tail);
     word_type->header.name = "u8";
     word_type->type = T_SCALAR;
     word_type->scalar_bits = 8;
+    WORD_TYPE = word_type;
 
-    type_list* bool_type = ADD_SYM(type_list, &types_head, &types_tail);
+    type_list* bool_type = ADD_SYM(type_list, &global_frame.types.head, &global_frame.types.tail);
     bool_type->header.name = "bool";
     bool_type->type = T_SCALAR;
     bool_type->scalar_bits = 1;
+    BOOL_TYPE = bool_type;
 }

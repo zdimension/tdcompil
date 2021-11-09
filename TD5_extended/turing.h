@@ -61,6 +61,10 @@ typedef struct stack_frame_s
     {
         var_list* head, * tail;
     } vars;
+    struct
+    {
+        struct type_list_s* head, * tail;
+    } types;
     struct stack_frame_s* parent;
 } stack_frame;
 extern stack_frame global_frame;
@@ -108,8 +112,10 @@ typedef struct type_list_s
         linked_list* generic_params;
     };
 } type_list;
-extern type_list* types_head, * types_tail;
+//extern type_list* types_head, * types_tail;
 extern type_list const* VOID_TYPE;
+extern type_list const* WORD_TYPE;
+extern type_list const* BOOL_TYPE;
 
 extern int label;
 
@@ -130,6 +136,8 @@ const char* type_display_full(type_list const* type, bool inner, bool expand);
 void analysis(ast_node** n, stack_frame* frame);
 
 var_list* get_var_id(ast_node* node, stack_frame* frame, find_flags flags);
+
+type_list* get_type(ast_node* node, stack_frame* frame);
 
 #define FIND_SYM(type, list, name) ((type*)find_symbol(&((list)->header), name))
 

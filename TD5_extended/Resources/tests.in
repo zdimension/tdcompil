@@ -1,6 +1,8 @@
 {
-	type coord = u16;
-	type point<T> = struct { x: coord; y: coord; };
+	type linked_list = u8;
 
-	assert sizeof(point) == 2;
+
+	{
+		var next: linked_list;
+	}
 }
