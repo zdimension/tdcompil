@@ -1206,7 +1206,6 @@ void analysis(ast_node** n, stack_frame* frame)
                         {
                             *n = op[1]; // THEN
                         }
-                        analysis(n, frame);
                         return;
                     }
                     SET_TYPE(VOID_TYPE);
@@ -1218,6 +1217,11 @@ void analysis(ast_node** n, stack_frame* frame)
                         error_msg(op[1], "Expected condition, got void\n");
                         exit(1);
                     }
+                    if (o[1].is_num && o[1].value == 0)
+                    {
+                        *n = op[0];
+                        return;
+                    }
                     SET_TYPE(VOID_TYPE);
                 }
                 case KFOR:
@@ -1226,6 +1230,11 @@ void analysis(ast_node** n, stack_frame* frame)
                     {
                         error_msg(op[1], "Expected condition, got void\n");
                         exit(1);
+                    }
+                    if (o[1].is_num && o[1].value == 0)
+                    {
+                        *n = op[0];
+                        return;
                     }
                     SET_TYPE(VOID_TYPE);
                 }
