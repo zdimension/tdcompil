@@ -52,7 +52,7 @@ void yyerror(const char *s);
 
 //                      Non terminal types
 %type   <node>		stmt expr stmt_list var expr_opt basic_expr postfix_expr unary_expr mult_expr add_expr rel_expr eq_expr assign_expr shift_expr
-%type	<node> 		l_and_expr l_or_expr stmt_list_opt expr_discard expr_discard_opt scalar_var_init
+%type	<node> 		l_and_expr l_or_expr stmt_list_opt expr_discard expr_discard_opt scalar_var_init type_arg_list
 %type 	<node>		param_list param_list_ne arg_list arg_list_ne var_decl var_decl_list type_spec_opt type_spec type_decl type_decl_list type_params type_param_list
 %type	<node>		struct_field struct_field_list var_typed stmt_braced expr_discard_or_inline_decl_opt expr_or_inline_decl
 %type   <chr>		aug_assign unary_op
@@ -128,7 +128,7 @@ type_params
 
 type_param_list
 	: var							{ $$ = make_list($1); }
-	| var ',' param_list_ne			{ $$ = prepend_list($3, $1); }
+	| var ',' type_param_list		{ $$ = prepend_list($3, $1); }
 	;
 
 type_spec_opt
@@ -138,11 +138,17 @@ type_spec_opt
 
 type_spec
 	: var								{ $$ = $1; }
+	| var '<' type_arg_list '>'			{ $$ = make_node(KNEW, 2, $1, $3); }
 	| type_spec '*'						{ $$ = make_node('*', 1, $1); }
 	| type_spec KCONST					{ $$ = make_node(KCONST, 1, $1); }
 	| type_spec '[' expr ']'			{ $$ = make_node('[', 2, $1, $3); }
 	| KTYPEOF '(' expr ')'				{ $$ = make_node(KTYPEOF, 1, $3); }
 	| KSTRUCT '{' struct_field_list '}'	{ $$ = make_node(KSTRUCT, 1, $3); }
+	;
+
+type_arg_list
+	: type_spec								{ $$ = make_list($1); }
+	| type_spec ',' type_arg_list			{ $$ = prepend_list($3, $1); }
 	;
 
 var_typed
@@ -154,8 +160,8 @@ struct_field
 	;
 
 struct_field_list
-	: struct_field						{ $$ = $1; }
-	| struct_field_list struct_field	{ $$ = make_node(';', 2, $1, $2); }
+	: struct_field						{ $$ = make_list($1); }
+	| struct_field struct_field_list 	{ $$ = prepend_list($2, $1); }
 	;
 
 var_decl_list

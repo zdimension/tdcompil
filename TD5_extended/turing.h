@@ -88,7 +88,8 @@ typedef enum
     T_POINTER,
     T_CONST,
     T_COMPOSITE,
-    T_GENERIC
+    T_GENERIC,
+    T_GENERIC_VARIABLE
 } type_type;
 
 typedef struct type_list_s
@@ -109,7 +110,11 @@ typedef struct type_list_s
         {
             var_list* head, * tail;
         } composite_members;
-        linked_list* generic_params;
+        struct
+        {
+            linked_list* params;
+            ast_node* spec;
+        } generic;
     };
 } type_list;
 //extern type_list* types_head, * types_tail;

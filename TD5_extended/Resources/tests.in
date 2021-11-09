@@ -1,8 +1,7 @@
 {
-	type linked_list = u8;
-
-
-	{
-		var next: linked_list;
-	}
+	type coord = u16;
+	type point<T> = struct { x: T; y: T; };
+	type triangle<T> = struct { p1: point<T>; p2: point<T>; p3: point<T>; p4: point<T>; };
+	var x: triangle<coord>;
+	type t = typeof(x);
 }

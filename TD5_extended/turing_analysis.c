@@ -68,8 +68,16 @@ int type_size_bits(type_list const* type)
             return type->scalar_bits;
         case T_POINTER:
             return POINTER_BITS;
+        case T_GENERIC:
+        {
+            error_msg(NULL, "Generic type '%s' must be instanciated\n", type_display(type));
+            exit(1);
+        }
         default:
-            assert(false);
+        {
+            error_msg(NULL, "Cannot calculate size of type '%s'\n", type_display(type));
+            exit(1);
+        }
     }
 }
 
@@ -96,6 +104,16 @@ int type_size_cells(type_list const* type)
                 sum += type_size_cells(ptr->type);
             }
             return sum;
+        }
+        case T_GENERIC:
+        {
+            error_msg(NULL, "Generic type '%s' must be instanciated\n", type_display(type));
+            exit(1);
+        }
+        default:
+        {
+            error_msg(NULL, "Cannot calculate size of type '%s'\n", type_display(type));
+            exit(1);
         }
     }
 }
@@ -148,11 +166,15 @@ const char* type_display_full(type_list const* type, bool inner, bool expand)
             int p = sprintf(buf, "struct { ");
             for (var_list* ptr = type->composite_members.head; ptr; ptr = (var_list*) ptr->header.next)
             {
-                p += sprintf(buf + p, "%s: %s; ", ptr->header.name, type_display_full(ptr->type, false, true));
+                p += sprintf(buf + p, "%s: %s; ", ptr->header.name, type_display_full(ptr->type, inner, true));
             }
             strcat(buf + p, "}");
             return buf;
         }
+        case T_GENERIC:
+            return "<generic type>";
+        default:
+            return "<unknown>";
     }
 }
 
@@ -270,50 +292,60 @@ type_list const* decode_spec(ast_node* spec, stack_frame* frame)
             case KTYPEOF:
                 analysis(&op[0], frame);
                 return infer_type(op[0]);
+            case KNEW:
+            {
+                type_list* generic = get_type(op[0], frame);
+                stack_frame* sc_frame = malloc(sizeof(*sc_frame));
+                *sc_frame = (stack_frame) {.function = frame->function, .loop = frame->loop, .is_root = false, .parent = frame};
+                linked_list* param, *arg;
+                for (param = generic->generic.params,
+                        arg = ((ast_linked_list*)op[1])->list; param && arg; param = param->next, arg = arg->next)
+                {
+                    type_list* argt = check_add_type(VAR_NAME(param->value), sc_frame);
+                    linked_list_header h = argt->header;
+                    *argt = *decode_spec(arg->value, frame);
+                    argt->header = h;
+                }
+                if (param || arg)
+                {
+                    error_msg(spec, "Invalid number of arguments in instanciation of generic type\n");
+                    exit(1);
+                }
+                return decode_spec(generic->generic.spec, sc_frame);
+            }
             case KSTRUCT:
             {
                 type_list* ret = NEW_TYPE();
                 ret->type = T_COMPOSITE;
-                ast_node* first = op[0], * next = NULL;
-                while (first)
+                for (linked_list* list = ((ast_linked_list*)op[0])->list; list; list = list->next)
                 {
-                    if (OPER_OPERATOR(first) == ':')
+                    ast_node* field = list->value;
+                    const char* name = VAR_NAME(OPER_OPERANDS(field)[0]);
+                    type_list const* type = decode_spec(OPER_OPERANDS(field)[1], frame);
+
+                    int pos = 0;
+                    for (var_list* ptr = ret->composite_members.head; ptr; ptr = (var_list*) ptr->header.next)
                     {
-                        const char* name = VAR_NAME(OPER_OPERANDS(first)[0]);
-                        type_list const* type = decode_spec(OPER_OPERANDS(first)[1], frame);
-
-                        int pos = 0;
-                        for (var_list* ptr = ret->composite_members.head; ptr; ptr = (var_list*) ptr->header.next)
+                        if (!strcmp(ptr->header.name, name))
                         {
-                            if (!strcmp(ptr->header.name, name))
-                            {
-                                error_msg(first, "Duplicate member '%s'\n", name);
-                                exit(1);
-                            }
-
+                            error_msg(field, "Duplicate member '%s'\n", name);
+                            exit(1);
                         }
 
-                        if (ret->composite_members.tail)
-                        {
-                            pos = ret->composite_members.tail->position +
-                                  type_size_cells(ret->composite_members.tail->type);
-                        }
-
-                        var_list* new = ADD_SYM(var_list, &ret->composite_members.head, &ret->composite_members.tail);
-                        new->header.name = name;
-                        new->header.owner = NULL;
-                        new->position = pos;
-                        new->initial = NULL;
-                        new->type = type;
-
-                        first = next;
-                        next = NULL;
                     }
-                    else
+
+                    if (ret->composite_members.tail)
                     {
-                        next = OPER_OPERANDS(first)[1];
-                        first = OPER_OPERANDS(first)[0];
+                        pos = ret->composite_members.tail->position +
+                              type_size_cells(ret->composite_members.tail->type);
                     }
+
+                    var_list* new = ADD_SYM(var_list, &ret->composite_members.head, &ret->composite_members.tail);
+                    new->header.name = name;
+                    new->header.owner = NULL;
+                    new->position = pos;
+                    new->initial = NULL;
+                    new->type = type;
                 }
                 return ret;
             }
@@ -573,10 +605,29 @@ void analysis(ast_node** n, stack_frame* frame)
                         exit(1);
                     }
                     ast_node* spec = op[1];
-                    type_list const* nt = decode_spec(spec, frame);
-                    linked_list_header h = type->header;
-                    *type = *nt;
-                    type->header = h;
+                    ast_node* args = op[2];
+                    stack_frame* new_frame = frame;
+                    if (args) // type is generic
+                    {
+                        type->type = T_GENERIC;
+                        type->generic.params = ((ast_linked_list*)args)->list;
+                        type->generic.spec = spec;
+                        /*stack_frame* sc_frame = malloc(sizeof(*sc_frame));
+                        *sc_frame = (stack_frame) {.function = frame->function, .loop = frame->loop, .is_root = false, .parent = frame};
+                        for (linked_list* arg = ((ast_linked_list*)args)->list; arg; arg = arg->next)
+                        {
+                            type_list* argt = check_add_type(VAR_NAME(arg->value), frame);
+                            argt->type = T_GENERIC_VARIABLE;
+                        }
+                        new_frame = sc_frame;*/
+                    }
+                    else
+                    {
+                        linked_list_header h = type->header;
+                        *type = *decode_spec(spec, new_frame);
+                        type->header = h;
+                    }
+                    printf("# %-10s  %-10s\n", VAR_NAME(op[0]), type_display_full(type, true, true));
                     SET_TYPE(VOID_TYPE);
                 }
                 case KVAR:
