@@ -769,9 +769,7 @@ void analysis(ast_node** n, stack_frame* frame)
                 analysis(&op[i], frame);
                 if ((o[i].is_num = AST_KIND(op[i]) == k_number))
                     o[i].value = NUMBER_VALUE(op[i]);
-                if (!AST_INFERRED(op[i]))
-                    return;
-                o[i].type = decay_array_ptr(AST_INFERRED(op[i]));
+                o[i].type = decay_array_ptr(infer_type(op[i]));
             }
 
             type_list const* result;
@@ -1059,7 +1057,7 @@ void analysis(ast_node** n, stack_frame* frame)
                 {
                     if (o[0].is_num && o[1].is_num)
                     {
-                        RETURN(make_number(o[0].value < o[1].value), result);
+                        RETURN(make_number(o[0].value < o[1].value), BOOL_TYPE);
                     }
                     SET_TYPE(BOOL_TYPE);
                 }
@@ -1067,7 +1065,7 @@ void analysis(ast_node** n, stack_frame* frame)
                 {
                     if (o[0].is_num && o[1].is_num)
                     {
-                        RETURN(make_number(o[0].value > o[1].value), result);
+                        RETURN(make_number(o[0].value > o[1].value), BOOL_TYPE);
                     }
                     SET_TYPE(BOOL_TYPE);
                 }
@@ -1075,7 +1073,7 @@ void analysis(ast_node** n, stack_frame* frame)
                 {
                     if (o[0].is_num && o[1].is_num)
                     {
-                        RETURN(make_number(o[0].value >= o[1].value), result);
+                        RETURN(make_number(o[0].value >= o[1].value), BOOL_TYPE);
                     }
                     SET_TYPE(BOOL_TYPE);
                 }
@@ -1083,7 +1081,7 @@ void analysis(ast_node** n, stack_frame* frame)
                 {
                     if (o[0].is_num && o[1].is_num)
                     {
-                        RETURN(make_number(o[0].value <= o[1].value), result);
+                        RETURN(make_number(o[0].value <= o[1].value), BOOL_TYPE);
                     }
                     SET_TYPE(BOOL_TYPE);
                 }
@@ -1091,7 +1089,7 @@ void analysis(ast_node** n, stack_frame* frame)
                 {
                     if (o[0].is_num && o[1].is_num)
                     {
-                        RETURN(make_number(o[0].value != o[1].value), result);
+                        RETURN(make_number(o[0].value != o[1].value), BOOL_TYPE);
                     }
                     SET_TYPE(BOOL_TYPE);
                 }
@@ -1099,7 +1097,7 @@ void analysis(ast_node** n, stack_frame* frame)
                 {
                     if (o[0].is_num && o[1].is_num)
                     {
-                        RETURN(make_number(o[0].value == o[1].value), result);
+                        RETURN(make_number(o[0].value == o[1].value), BOOL_TYPE);
                     }
                     SET_TYPE(BOOL_TYPE);
                 }
@@ -1197,6 +1195,19 @@ void analysis(ast_node** n, stack_frame* frame)
                     {
                         error_msg(op[0], "Expected condition, got void\n");
                         exit(1);
+                    }
+                    if (o[0].is_num)
+                    {
+                        if (o[0].value == 0)
+                        {
+                            *n = op[2]; // ELSE
+                        }
+                        else
+                        {
+                            *n = op[1]; // THEN
+                        }
+                        analysis(n, frame);
+                        return;
                     }
                     SET_TYPE(VOID_TYPE);
                 }
