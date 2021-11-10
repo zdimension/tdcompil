@@ -1,7 +1,7 @@
 {
-	var cur, ptr,
+	var cur, ptr: u8*, a, b,
 		num = 0, # is reading a number
-		sp, stack[10],
+		sp: u8*, stack[10],
 		eq[] = "3 4 5 * 2 - +", # 3 + ((4 * 5) - 2) = 21 = 10101_2
 		eq_end = 0;
 
