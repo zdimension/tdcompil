@@ -1067,6 +1067,7 @@ void exec(ast_node* n, stack_frame* frame)
                     instr("'[,'/|'[,'_,'_ S,S,S,S @%d", start);
                     instr("FROM @%d_break", start);
                     instr("'[,'/|'[,'_,'_ S,S,S,S @%d", label + 1);
+                    return;
                 }
                 case KDO:
                 {

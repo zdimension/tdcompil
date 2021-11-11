@@ -394,11 +394,14 @@ void check_assignment(ast_node* op0, ast_node* op1)
     }
 }
 
+
 /**
  * @return A new variable with the specified name, or NULL if a variable with the same name already exists
  */
 var_list* check_add_var(const char* name, stack_frame* frame, type_list const* type)
 {
+    assert(name);
+
     bool found = false;
     int i = 0;
     if (frame->vars.head)
@@ -710,6 +713,44 @@ void analysis(ast_node** n, stack_frame* frame)
                                       decode_spec(OPER_OPERANDS(ptr->value)[1], frame));
                     }
                     analysis(&newNode->code, &newNode->frame);
+                    if (OPER_OPERATOR(*n) == KFUNC)
+                    {
+                        ast_node** code = &newNode->code;
+                        stack_frame* c_frame = NULL;
+                        while (AST_KIND(*code) == k_scope)
+                        {
+                            c_frame = SC_SCOPE(*code);
+                            code = &SC_CODE(*code);
+                        }
+                        if (AST_KIND(*code) == k_operator && OPER_OPERATOR(*code) == ';' && OPER_ARITY(*code) == 2)
+                        {
+                            ast_node* second = OPER_OPERANDS(*code)[1];
+                            if (AST_KIND(second) == k_operator && OPER_OPERATOR(second) == KRETURN) // if last statement is return
+                            {
+                                ast_node* returned = OPER_OPERANDS(second)[0];
+                                if (AST_KIND(returned) == k_operator && OPER_OPERATOR(returned) == '(') // which is a function call
+                                {
+                                    ast_node* function = OPER_OPERANDS(returned)[0];
+                                    if (AST_KIND(function) == k_ident && !strcmp(VAR_NAME(function), newNode->header.name)) // of the function itself
+                                    {
+                                        // tail recursive call
+                                        ast_node* list = make_list(OPER_OPERANDS(newNode->arglist->value)[0]);
+                                        for (linked_list* ptr = newNode->arglist->next, *target = ((ast_linked_list*)list)->list; ptr; ptr = ptr->next, target = target->next)
+                                        {
+                                            target->next = malloc(sizeof(linked_list));
+                                            target->next->value = OPER_OPERANDS(ptr->value)[0];
+                                            target->next->next = NULL;
+                                        }
+                                        ast_node* assignment = make_node(TUPLEASSIGN, 2, list,
+                                                                         OPER_OPERANDS(returned)[1]);
+                                        analysis(&assignment, c_frame);
+                                        *code = make_node(KLOOP, 1, make_node(';', 2, OPER_OPERANDS(*code)[0], assignment));
+                                    }
+                                }
+                            }
+                        }
+
+                    }
                     SET_TYPE(VOID_TYPE);
                 }
                 case ';':

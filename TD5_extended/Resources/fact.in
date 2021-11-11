@@ -1,10 +1,10 @@
 # Calcul de la factorielle de 12
 {
-  n = 12;
-  prod = 1;
-  while (n > 1) {
+  var n = 12u32;
+  var prod = 1u32;
+  while (n > 1u32) {
       prod = prod * n;
-      n = n - 1;
+      n = n - 1u32;
   }
 
   # Valeur attendue: 479001600
