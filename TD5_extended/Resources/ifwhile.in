@@ -1,5 +1,5 @@
 {
-  n = 10;
+  var n = 10;
 
   # Tests de while
   while (n > 0)   { print(n); n = n-1; }

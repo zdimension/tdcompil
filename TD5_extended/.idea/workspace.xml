@@ -19,12 +19,22 @@
   <component name="ChangeListManager">
     <list default="true" id="a6805983-d57b-442f-a29f-dcb10bd9ca72" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Resources/calc_rpn.am" beforeDir="false" afterPath="$PROJECT_DIR$/Resources/calc_rpn.am" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Resources/calc_rpn_dyn.am" beforeDir="false" afterPath="$PROJECT_DIR$/Resources/calc_rpn_dyn.am" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Resources/fact.am" beforeDir="false" afterPath="$PROJECT_DIR$/Resources/fact.am" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Resources/fact.in" beforeDir="false" afterPath="$PROJECT_DIR$/Resources/fact.in" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Resources/fibo_iter.am" beforeDir="false" afterPath="$PROJECT_DIR$/Resources/fibo_iter.am" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Resources/fibo_ptrs.am" beforeDir="false" afterPath="$PROJECT_DIR$/Resources/fibo_ptrs.am" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Resources/fibo_rec.am" beforeDir="false" afterPath="$PROJECT_DIR$/Resources/fibo_rec.am" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Resources/fibo_rec.in" beforeDir="false" afterPath="$PROJECT_DIR$/Resources/fibo_rec.in" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Resources/func.am" beforeDir="false" afterPath="$PROJECT_DIR$/Resources/func.am" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Resources/func.in" beforeDir="false" afterPath="$PROJECT_DIR$/Resources/func.in" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Resources/ifwhile.in" beforeDir="false" afterPath="$PROJECT_DIR$/Resources/ifwhile.in" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Resources/puiss.am" beforeDir="false" afterPath="$PROJECT_DIR$/Resources/puiss.am" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Resources/puiss.in" beforeDir="false" afterPath="$PROJECT_DIR$/Resources/puiss.in" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Resources/read.in" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Resources/sqrt16.am" beforeDir="false" afterPath="$PROJECT_DIR$/Resources/sqrt16.am" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Resources/tests.am" beforeDir="false" afterPath="$PROJECT_DIR$/Resources/tests.am" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Resources/tests.in" beforeDir="false" afterPath="$PROJECT_DIR$/Resources/tests.in" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/turing_analysis.c" beforeDir="false" afterPath="$PROJECT_DIR$/turing_analysis.c" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/turing_emit.c" beforeDir="false" afterPath="$PROJECT_DIR$/turing_emit.c" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -155,7 +165,7 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
           <url>file://$PROJECT_DIR$/turing_analysis.c</url>
-          <line>736</line>
+          <line>740</line>
           <option name="timeStamp" value="121" />
         </line-breakpoint>
       </breakpoints>

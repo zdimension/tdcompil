@@ -1,6 +1,0 @@
-# Test basique de la primitive read
-{
-  read a;
-  read b;
-  print a + b;
-}

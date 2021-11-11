@@ -1,12 +1,12 @@
 # Calcul de a ^ b
 
 {
-  a   = 22;
-  b   = 7;
-  res = 1; 
-  while ( b != 0 ) {
+  var a   = 22u32;
+  var b   = 7u32;
+  var res = 1u32;
+  while ( b ) {
      res = res * a;
-     b   = b - 1;
+     b   = b - 1u32;
   }
 
   # Valeur attendue 22**7 = 2494357888
