@@ -42,7 +42,7 @@ void yyerror(const char *s);
 %token  <var>           IDENT STRING
 %token                  KWHILE KIF KPRINT KELSE KREAD KFOR KDO KVAR KFUNC KRETURN KPROC KBREAK KCONTINUE KCONST KTYPE KTYPEOF KSIZEOF KSTRUCT KBITSOF KNEW KASSERT KLOOP
 %token '+' '-' '*' '/' GE LE EQ NE '>' '<' REF DEREF APL AMN AML ADV INC DEC AND OR SHL SHR
-%token UMINUS VDECL SCOPE
+%token UMINUS VDECL SCOPE TUPLEASSIGN
 //                       Precedence rules
 %left '+'
 
@@ -52,7 +52,7 @@ void yyerror(const char *s);
 
 //                      Non terminal types
 %type   <node>		stmt expr stmt_list var expr_opt basic_expr postfix_expr unary_expr mult_expr add_expr rel_expr eq_expr assign_expr shift_expr
-%type	<node> 		l_and_expr l_or_expr stmt_list_opt expr_discard expr_discard_opt scalar_var_init type_arg_list
+%type	<node> 		l_and_expr l_or_expr stmt_list_opt expr_discard expr_discard_opt scalar_var_init type_arg_list tuple_assign_left tuple_assign_right
 %type 	<node>		param_list param_list_ne arg_list arg_list_ne var_decl var_decl_list type_spec_opt type_spec type_decl type_decl_list type_params type_param_list
 %type	<node>		struct_field struct_field_list var_typed stmt_braced expr_discard_or_inline_decl_opt expr_or_inline_decl
 %type   <chr>		aug_assign unary_op
@@ -73,6 +73,7 @@ stmt
     | expr_discard ';'																		{ $$ = $1; }
     | KVAR var_decl_list ';'																{ $$ = $2; }
     | KTYPE type_decl_list ';'																{ $$ = $2; }
+    | '(' tuple_assign_left ')' '=' '(' tuple_assign_right ')' ';'							{ $$ = make_node(TUPLEASSIGN, 2, $2, $6); }
     | KCONST var '=' expr ';'																{ $$ = make_node(KCONST, 2, $2, $4); }
     | KPRINT expr ';'                  														{ $$ = make_node(KPRINT, 1, $2); }
     | KREAD expr ';'                  														{ $$ = make_node(KREAD, 1, $2); }
@@ -90,6 +91,14 @@ stmt
     | KFUNC var '(' param_list ')' type_spec_opt stmt_braced								{ $$ = make_node(KFUNC, 4, $2, $4, $7, $6); }
     | stmt_braced		                													{ $$ = $1; }
     ;
+
+tuple_assign_left
+	: var ',' var					{ $$ = prepend_list(make_list($3), $1); }
+	| var ',' tuple_assign_left		{ $$ = prepend_list($3, $1); }
+
+tuple_assign_right
+	: expr ',' expr					{ $$ = prepend_list(make_list($3), $1); }
+	| expr ',' tuple_assign_right	{ $$ = prepend_list($3, $1); }
 
 expr_or_inline_decl
 	: expr							{ $$ = $1; }

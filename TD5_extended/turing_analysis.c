@@ -374,6 +374,25 @@ type_list* check_add_type(const char* name, stack_frame* frame)
     return newNode;
 }
 
+void check_assignment(ast_node* op0, ast_node* op1)
+{
+    type_list const* left = infer_type(op0);
+    type_list const* right = infer_type(op1);
+    if (left->type == T_SCALAR && right->type == T_SCALAR && left->scalar_bits >= right->scalar_bits)
+    {
+        // ok, can upcast scalar to bigger scalar without loss
+    }
+    else
+    {
+        if (!type_same(left, right))
+        {
+            error_msg(op1, "Cannot assign rvalue of type '%s' to lvalue of type '%s'\n",
+                      type_display(right),
+                      type_display(left));
+            exit(1);
+        }
+    }
+}
 
 /**
  * @return A new variable with the specified name, or NULL if a variable with the same name already exists
@@ -1149,27 +1168,32 @@ void analysis(ast_node** n, stack_frame* frame)
                 }
                 case '=':
                 {
-                    type_list const* left = infer_type(op[0]);
-                    type_list const* right = infer_type(op[1]);
-                    if (left->type == T_SCALAR && right->type == T_SCALAR && left->scalar_bits >= right->scalar_bits)
-                    {
-                        // ok, can upcast scalar to bigger scalar without loss
-                    }
-                    else
-                    {
-                        if (!type_same(left, right))
-                        {
-                            error_msg(op[1], "Cannot assign rvalue of type '%s' to lvalue of type '%s'\n",
-                                      type_display(right),
-                                      type_display(left));
-                            exit(1);
-                        }
-                    }
+                    check_assignment(op[0], op[1]);
                     if (AST_KIND(op[1]) == k_ident && !strcmp(VAR_NAME(op[0]), VAR_NAME(op[1])))
                     {
                         info_msg(*n, "Assignment has no effect\n");
                     }
-                    SET_TYPE(left);
+                    SET_TYPE(infer_type(op[0]));
+                }
+                case TUPLEASSIGN:
+                {
+                    linked_list* left = ((ast_linked_list*)op[0])->list;
+                    linked_list* right = ((ast_linked_list*)op[1])->list;
+
+                    for (; left && right; left = left->next, right = right->next)
+                    {
+                        analysis(&left->value, frame);
+                        analysis(&right->value, frame);
+                        check_assignment(left->value, right->value);
+                    }
+
+                    if (left || right)
+                    {
+                        error_msg(*n, "Tuple assignment must have the same number of elements\n");
+                        exit(1);
+                    }
+
+                    SET_TYPE(VOID_TYPE);
                 }
                 case DEREF:
                 {

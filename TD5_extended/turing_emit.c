@@ -1177,6 +1177,67 @@ void exec(ast_node* n, stack_frame* frame)
                     instr("'[,'/|'[,'_,'_ S,S,S,S @%d", label + 1);
                     return;
                 }
+                case TUPLEASSIGN:
+                {
+                    PROD0("tuple assign");
+                    linked_list* left = ((ast_linked_list*)op[0])->list;
+                    linked_list* right = ((ast_linked_list*)op[1])->list;
+
+                    PROD0("evaluating right-hand values");
+                    int size = 0;
+                    for (; right; right = right->next)
+                    {
+                        eval(right->value, frame);
+                        size += type_size_cells(right->value->inferred_type);
+                    }
+
+                    PROD0("navigating to left of stack head");
+                    instr("FROM @%d", ++label);
+                    instr("'[,'/,'_,'_ S,L,S,S @%d", label + 1);
+                    for (int i = 1; i < size; i++)
+                    {
+                        instr("FROM @%d", ++label);
+                        instr("'[,'0|'1,'_,'_ S,L,S,S");
+                        instr("'[,'/|'[,'_,'_ S,L,S,S @%d", label + 1);
+                    }
+                    instr("FROM @%d", ++label);
+                    instr("'[,'0|'1,'_,'_ S,L,S,S");
+                    instr("'[,'/|'[,'_,'_ S,S,S,S @%d", label + 1);
+
+                    PROD0("assigning values");
+                    for (; left; left = left->next)
+                    {
+                        nav_to_var(left->value, frame);
+                        instr("FROM @%d", ++label);
+                        instr("'/|'[,'/,'_,'_ R,R,S,S @%d", label + 1);
+                        instr("'/|'[,'[,'_,'_ R,R,S,S @%d", label + 1);
+                        int csize = type_size_cells(left->value->inferred_type);
+                        for (int i = 1; i < csize; i++)
+                        {
+                            instr("FROM @%d", ++label);
+                            instr("'0|'1,'_,'_,'_ S,R,S,S");
+                            instr("'0|'1,'0,'_,'_ '0,'_,'_,'_ R,R,S,S");
+                            instr("'0|'1,'1,'_,'_ '1,'_,'_,'_ R,R,S,S");
+                            instr("'0|'1,'/,'_,'_ '0,'/,'_,'_ R,S,S,S");
+                            instr("'/,'/,'_,'_ '/,'_,'_,'_ R,R,S,S @%d", label + 1);
+                        }
+                        instr("FROM @%d", ++label);
+                        instr("'0|'1,'_,'_,'_ S,R,S,S");
+                        instr("'0|'1,'0,'_,'_ '0,'_,'_,'_ R,R,S,S");
+                        instr("'0|'1,'1,'_,'_ '1,'_,'_,'_ R,R,S,S");
+                        instr("'0|'1,'/,'_,'_ '0,'/,'_,'_ R,S,S,S");
+                        instr("'/,'/,'_,'_ '/,'_,'_,'_ L,L,S,S @%d", ++label);
+                        instr("FROM @%d", label);
+                        instr("'/|'0|'1|'[,'_,'_,'_ L,L,S,S");
+                        instr("'/|'0|'1|'[,'/,'_,'_ S,S,S,S @%d", label + 1);
+                        instr("'/|'0|'1|'[,'[,'_,'_ S,S,S,S @%d", ++label);
+                        instr("FROM @%d", label);
+                        instr("'/|'0|'1,'[,'_,'_ L,S,S,S");
+                        instr("'/|'0|'1,'/,'_,'_ L,S,S,S");
+                        instr("'[,'/|'[,'_,'_ S,S,S,S @%d", label + 1);
+                    }
+                    return;
+                }
                 case '=':
                 {
                     PROD0("store");
