@@ -1057,6 +1057,17 @@ void exec(ast_node* n, stack_frame* frame)
                     instr("FROM @%d", ++label);
                     instr("'[,'/|'[,'_,'_ S,S,S,S @%d_continue", frame->loop->address);
                     return;
+                case KLOOP:
+                {
+                    PROD0("loop");
+                    int start = label + 1;
+                    SC_SCOPE(op[0])->loop->address = start;
+                    exec(op[0], frame);
+                    instr("FROM @%d", ++label);
+                    instr("'[,'/|'[,'_,'_ S,S,S,S @%d", start);
+                    instr("FROM @%d_break", start);
+                    instr("'[,'/|'[,'_,'_ S,S,S,S @%d", label + 1);
+                }
                 case KDO:
                 {
                     PROD0("do");

@@ -743,6 +743,18 @@ void analysis(ast_node** n, stack_frame* frame)
                     *sc_frame = (stack_frame) {.function = frame->function, .loop = malloc(
                             sizeof(loop_info)), .is_root = false, .vars = {.head = NULL, .tail = NULL}, .parent = frame};
                     SC_SCOPE(op[0]) = sc_frame;
+                    analysis(&op[0], sc_frame);
+                    analysis(&op[1], sc_frame);
+                    break;
+                }
+                case KLOOP:
+                {
+                    op[0] = make_scope(op[0]);
+                    stack_frame* sc_frame = malloc(sizeof(*sc_frame));
+                    *sc_frame = (stack_frame) {.function = frame->function, .loop = malloc(
+                            sizeof(loop_info)), .is_root = false, .vars = {.head = NULL, .tail = NULL}, .parent = frame};
+                    SC_SCOPE(op[0]) = sc_frame;
+                    analysis(&op[0], sc_frame);
                     break;
                 }
                 case KFOR:
@@ -752,6 +764,10 @@ void analysis(ast_node** n, stack_frame* frame)
                     *sc_frame = (stack_frame) {.function = frame->function, .loop = malloc(
                             sizeof(loop_info)), .is_root = false, .vars = {.head = NULL, .tail = NULL}, .parent = frame};
                     SC_SCOPE(op[3]) = sc_frame;
+                    analysis(&op[0], sc_frame);
+                    analysis(&op[1], sc_frame);
+                    analysis(&op[2], sc_frame);
+                    analysis(&op[3], sc_frame);
                     break;
                 }
             }
@@ -1236,6 +1252,10 @@ void analysis(ast_node** n, stack_frame* frame)
                         *n = op[0];
                         return;
                     }
+                    SET_TYPE(VOID_TYPE);
+                }
+                case KLOOP:
+                {
                     SET_TYPE(VOID_TYPE);
                 }
                 case KPRINT:
