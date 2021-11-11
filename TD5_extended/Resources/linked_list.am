@@ -2,12 +2,12 @@
 # linked_list  struct { value: u8; next: linked_list*; }
 # Types
 # NAME        VALUE
-NEW "generated" 4		# line 1489
-START @INIT		# line 1490
-END @END "END"		# line 1491
-END @DEFAULT "default option"		# line 1492
-FROM @INIT		# line 1494
-'_,'_,'_,'_ '[,'[,'_,'_ S,S,S,S @1		# line 1495
+NEW "generated" 4		# line 1501
+START @INIT		# line 1502
+END @END "END"		# line 1503
+END @DEFAULT "default option"		# line 1504
+FROM @INIT		# line 1506
+'_,'_,'_,'_ '[,'[,'_,'_ S,S,S,S @1		# line 1507
 #	------ BEGIN: program
 # KIND = 4 (k_scope)		# line 390
 # Memory map
@@ -432,45 +432,45 @@ FROM @129		# line 1113
 #	evaluating right-hand value
 # KIND = 2 (k_operator)		# line 390
 #	new
-FROM @130		# line 1403
-'[,'/|'[,'_,'_ S,R,S,S @131		# line 1404
-FROM @131		# line 1407
-'[,'_,'_,'_ '[,'0,'_,'_ S,R,S,S @132		# line 1408
-FROM @132		# line 1407
-'[,'_,'_,'_ '[,'0,'_,'_ S,R,S,S @133		# line 1408
-FROM @133		# line 1407
-'[,'_,'_,'_ '[,'0,'_,'_ S,R,S,S @134		# line 1408
-FROM @134		# line 1407
-'[,'_,'_,'_ '[,'0,'_,'_ S,R,S,S @135		# line 1408
-FROM @135		# line 1407
-'[,'_,'_,'_ '[,'0,'_,'_ S,R,S,S @136		# line 1408
-FROM @136		# line 1407
-'[,'_,'_,'_ '[,'0,'_,'_ S,R,S,S @137		# line 1408
-FROM @137		# line 1407
-'[,'_,'_,'_ '[,'0,'_,'_ S,R,S,S @138		# line 1408
-FROM @138		# line 1407
-'[,'_,'_,'_ '[,'0,'_,'_ S,R,S,S @139		# line 1408
-FROM @139		# line 1410
-'[,'_,'_,'_ '[,'/,'_,'_ S,L,S,S		# line 1411
-'[,'0,'_,'_ S,L,S,S		# line 1412
-'[,'/|'[,'_,'_ R,R,S,S @140		# line 1413
-FROM @140		# line 1418
-'_,'0|'1,'_,'_ S,R,S,S @141		# line 1419
-'0|'1,'0,'_,'_ R,S,S,S		# line 1420
-'0|'1,'1,'_,'_ R,S,S,S		# line 1421
-'/,'0|'1,'_,'_ S,S,S,S @142		# line 1422
-FROM @142		# line 1423
-'/,'0,'_,'_ '/,'1,'_,'_ R,S,S,S @140		# line 1424
-'/,'1,'_,'_ '/,'0,'_,'_ S,R,S,S @143		# line 1425
-FROM @143		# line 1426
-'/,'0,'_,'_ '/,'1,'_,'_ S,L,S,S @144		# line 1427
-'/,'1,'_,'_ '/,'0,'_,'_ S,R,S,S		# line 1428
-FROM @144		# line 1429
-'/,'0|'1,'_,'_ S,L,S,S		# line 1430
-'/,'/|'[,'_,'_ R,R,S,S @140		# line 1431
-FROM @141		# line 1433
-'_,'0|'1,'_,'_ S,R,S,S		# line 1434
-'_,'/,'_,'_ S,R,S,S @145		# line 1435
+FROM @130		# line 1415
+'[,'/|'[,'_,'_ S,R,S,S @131		# line 1416
+FROM @131		# line 1419
+'[,'_,'_,'_ '[,'0,'_,'_ S,R,S,S @132		# line 1420
+FROM @132		# line 1419
+'[,'_,'_,'_ '[,'0,'_,'_ S,R,S,S @133		# line 1420
+FROM @133		# line 1419
+'[,'_,'_,'_ '[,'0,'_,'_ S,R,S,S @134		# line 1420
+FROM @134		# line 1419
+'[,'_,'_,'_ '[,'0,'_,'_ S,R,S,S @135		# line 1420
+FROM @135		# line 1419
+'[,'_,'_,'_ '[,'0,'_,'_ S,R,S,S @136		# line 1420
+FROM @136		# line 1419
+'[,'_,'_,'_ '[,'0,'_,'_ S,R,S,S @137		# line 1420
+FROM @137		# line 1419
+'[,'_,'_,'_ '[,'0,'_,'_ S,R,S,S @138		# line 1420
+FROM @138		# line 1419
+'[,'_,'_,'_ '[,'0,'_,'_ S,R,S,S @139		# line 1420
+FROM @139		# line 1422
+'[,'_,'_,'_ '[,'/,'_,'_ S,L,S,S		# line 1423
+'[,'0,'_,'_ S,L,S,S		# line 1424
+'[,'/|'[,'_,'_ R,R,S,S @140		# line 1425
+FROM @140		# line 1430
+'_,'0|'1,'_,'_ S,R,S,S @141		# line 1431
+'0|'1,'0,'_,'_ R,S,S,S		# line 1432
+'0|'1,'1,'_,'_ R,S,S,S		# line 1433
+'/,'0|'1,'_,'_ S,S,S,S @142		# line 1434
+FROM @142		# line 1435
+'/,'0,'_,'_ '/,'1,'_,'_ R,S,S,S @140		# line 1436
+'/,'1,'_,'_ '/,'0,'_,'_ S,R,S,S @143		# line 1437
+FROM @143		# line 1438
+'/,'0,'_,'_ '/,'1,'_,'_ S,L,S,S @144		# line 1439
+'/,'1,'_,'_ '/,'0,'_,'_ S,R,S,S		# line 1440
+FROM @144		# line 1441
+'/,'0|'1,'_,'_ S,L,S,S		# line 1442
+'/,'/|'[,'_,'_ R,R,S,S @140		# line 1443
+FROM @141		# line 1445
+'_,'0|'1,'_,'_ S,R,S,S		# line 1446
+'_,'/,'_,'_ S,R,S,S @145		# line 1447
 # allocate variable <dynamic alloc> (position 0, size 2)		# line 61
 # allocate variable value (position 0, size 1)		# line 61
 FROM @145		# line 70
@@ -510,10 +510,10 @@ FROM @161		# line 70
 '_,'_,'_,'_ '0,'_,'_,'_ R,S,S,S @162		# line 71
 FROM @162		# line 73
 '_,'_,'_,'_ '/,'_,'_,'_ R,S,S,S @163		# line 74
-FROM @163		# line 1440
-'_,'_,'_,'_ L,L,S,S		# line 1441
-'0|'1|'/,'/,'_,'_ L,S,S,S		# line 1442
-'[,'/,'_,'_ S,S,S,S @164		# line 1443
+FROM @163		# line 1452
+'_,'_,'_,'_ L,L,S,S		# line 1453
+'0|'1|'/,'/,'_,'_ L,S,S,S		# line 1454
+'[,'/,'_,'_ S,S,S,S @164		# line 1455
 FROM @164		# line 1248
 '0|'1|'/,'/,'_,'_ L,S,S,S		# line 1249
 '[,'/,'_,'_ S,S,S,S @165		# line 1250
@@ -1444,6 +1444,6 @@ FROM @397		# line 174
 '/|'0|'1,'_,'_,'_ L,S,S,S		# line 175
 '[,'_,'_,'_ S,L,S,S @398		# line 176
 #	------ END: program
-FROM @398		# line 1503
-'[,'/,'_,'_ S,S,S,S @END		# line 1504
-'[,'[,'_,'_ S,S,S,S @END		# line 1505
+FROM @398		# line 1515
+'[,'/,'_,'_ S,S,S,S @END		# line 1516
+'[,'[,'_,'_ S,S,S,S @END		# line 1517

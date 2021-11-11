@@ -86,7 +86,6 @@ typedef enum
     T_SCALAR,
     T_ARRAY,
     T_POINTER,
-    T_CONST,
     T_COMPOSITE,
     T_GENERIC,
     T_GENERIC_VARIABLE
@@ -96,6 +95,7 @@ typedef struct type_list_s
 {
     linked_list_header header;
     type_type type;
+    bool is_const;
     union
     {
         int scalar_bits; // always 1 for now
@@ -105,7 +105,6 @@ typedef struct type_list_s
             struct type_list_s const* array_target;
         };
         struct type_list_s const* pointer_target;
-        struct type_list_s const* const_target;
         struct
         {
             var_list* head, * tail;

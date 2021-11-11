@@ -1,12 +1,12 @@
 # Optimizations enabled
 # Types
 # NAME        VALUE
-NEW "generated" 4		# line 1489
-START @INIT		# line 1490
-END @END "END"		# line 1491
-END @DEFAULT "default option"		# line 1492
-FROM @INIT		# line 1494
-'_,'_,'_,'_ '[,'[,'_,'_ S,S,S,S @1		# line 1495
+NEW "generated" 4		# line 1501
+START @INIT		# line 1502
+END @END "END"		# line 1503
+END @DEFAULT "default option"		# line 1504
+FROM @INIT		# line 1506
+'_,'_,'_,'_ '[,'[,'_,'_ S,S,S,S @1		# line 1507
 #	------ BEGIN: program
 # KIND = 4 (k_scope)		# line 390
 #	; entering scope
@@ -43,37 +43,38 @@ FROM @9		# line 357
 FROM @10		# line 357
 '/|'[,'_,'_,'_ '/|'[,'/,'_,'_ S,S,S,S @11		# line 359
 #	go to left of args on stack
-FROM @11		# line 1353
-'[,'/,'_,'_ S,L,S,S @13		# line 1354
-'[,'[,'_,'_ S,S,S,S @12		# line 1355
-FROM @13		# line 1362
-'[,'0|'1,'_,'_ S,L,S,S		# line 1363
-'[,'/|'[,'_,'_ S,S,S,S @12		# line 1364
+FROM @11		# line 1357
+'[,'/,'_,'_ S,L,S,S @13		# line 1358
+'[,'[,'_,'_ S,S,S,S @12		# line 1359
+FROM @13		# line 1366
+'[,'0|'1,'_,'_ S,L,S,S		# line 1367
+'[,'/|'[,'_,'_ S,S,S,S @12		# line 1368
 #	go to right of heap
-FROM @12		# line 1367
-'/|'0|'1|'[,'/,'_,'_ R,S,S,S		# line 1368
-'/|'0|'1|'[,'[,'_,'_ R,S,S,S		# line 1369
-'_,'/|'[,'_,'_ '[,'/|'[,'_,'_ R,S,S,S @F0C0		# line 1371
+FROM @12		# line 1375
+'/|'0|'1|'[,'/,'_,'_ R,S,S,S		# line 1376
+'/|'0|'1|'[,'[,'_,'_ R,S,S,S		# line 1377
+'_,'/|'[,'_,'_ '[,'/|'[,'_,'_ R,S,S,S @F0C0		# line 1379
 #	start copying args from stack to heap
-FROM @14		# line 1374
-'_,'/|'[,'_,'_ '[,'/|'[,'_,'_ R,R,S,S @15		# line 1375
-FROM @15		# line 1376
-'_,'0|'1,'_,'_ '0|'1,'_,'_,'_ R,R,S,S		# line 1377
-'_,'/,'_,'_ '/,'_,'_,'_ R,R,S,S		# line 1378
-'_,'_,'_,'_ L,L,S,S @16		# line 1379
-FROM @16		# line 1380
-'/|'0|'1,'_,'_,'_ L,L,S,S		# line 1381
-'/|'0|'1,'/,'_,'_ L,S,S,S		# line 1382
-'/|'0|'1,'[,'_,'_ L,S,S,S		# line 1383
-'[,'/|'[,'_,'_ S,S,S,S @F0		# line 1384
+FROM @14		# line 1384
+'_,'/|'[,'_,'_ '[,'/|'[,'_,'_ R,R,S,S @15		# line 1385
+FROM @15		# line 1386
+'_,'0|'1,'_,'_ '0|'1,'_,'_,'_ R,R,S,S		# line 1387
+'_,'/,'_,'_ '/,'_,'_,'_ R,R,S,S		# line 1388
+'_,'_,'_,'_ L,L,S,S @16		# line 1389
+FROM @16		# line 1391
+'/|'0|'1,'_,'_,'_ L,L,S,S		# line 1392
+'/|'0|'1,'/,'_,'_ L,S,S,S		# line 1393
+'/|'0|'1,'[,'_,'_ L,S,S,S		# line 1394
+'[,'/|'[,'_,'_ S,S,S,S @F0		# line 1395
+'_,'/|'[,'_,'_ '[,'/|'[,'_,'_ S,S,S,S @F0		# line 1396
 #	; exiting scope
 #	------ END: program
-FROM @17		# line 1503
-'[,'/,'_,'_ S,S,S,S @END		# line 1504
-'[,'[,'_,'_ S,S,S,S @END		# line 1505
-# function sq (F0)		# line 1475
-FROM @F0		# line 1476
-'[,'/|'[,'_,'_ S,S,S,S @18		# line 1477
+FROM @17		# line 1515
+'[,'/,'_,'_ S,S,S,S @END		# line 1516
+'[,'[,'_,'_ S,S,S,S @END		# line 1517
+# function sq (F0)		# line 1487
+FROM @F0		# line 1488
+'[,'/|'[,'_,'_ S,S,S,S @18		# line 1489
 #	------ BEGIN: function code
 # KIND = 4 (k_scope)		# line 390
 #	; entering scope
@@ -146,8 +147,8 @@ FROM @31		# line 1335
 '[,'/|'[,'_,'_ S,S,S,S @F0ret		# line 1336
 #	; exiting scope
 #	------ END: function code
-FROM @32		# line 1482
-'[,'/|'[,'_,'_ S,S,S,S @F0ret		# line 1483
+FROM @32		# line 1494
+'[,'/|'[,'_,'_ S,S,S,S @F0ret		# line 1495
 #	------ BEGIN: call site ID writing
 FROM @F0C0		# line 191
 '_,'/|'[,'_,'_ '1,'/|'[,'_,'_ R,S,S,S @14		# line 199

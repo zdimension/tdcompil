@@ -56,7 +56,7 @@ instr("'[,'_,'_,'_ '[,'/,'_,'_ S,S,S,S @%d", label + 1); \
 
 void allocate_var(var_list* ptr)
 {
-    if (ptr->type->type == T_CONST)
+    if (ptr->type->is_const)
         return;
     instr("# allocate variable %s (position %d, size %d)", ptr->header.name, ptr->position,
           type_size_cells(ptr->type));
@@ -126,7 +126,7 @@ void allocate_scope(stack_frame* frame)
     printf("# POSITION  SIZE  NAME        TYPE\n");
     for (var_list* ptr = frame->vars.head; ptr; ptr = (var_list*) ptr->header.next)
     {
-        if (ptr->type->type == T_CONST)
+        if (ptr->type->is_const)
             continue;
         printf("# %8d  %4d  %-10s  %-10s\n", ptr->position, type_size_cells(ptr->type), ptr->header.name,
                type_display(ptr->type));

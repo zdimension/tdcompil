@@ -34,11 +34,14 @@ linked_list_header* add_symbol(linked_list_header** head, linked_list_header** t
 
 type_list* check_add_type(const char* name, stack_frame* frame);
 
-type_list const* remove_const(type_list const* type)
+bool is_scalar(type_list const* type)
 {
-    if (type->type == T_CONST)
-        return remove_const(type->const_target);
-    return type;
+    return type->type == T_SCALAR;
+}
+
+bool is_pointer(type_list const* type)
+{
+    return type->type == T_POINTER;
 }
 
 /**
@@ -46,45 +49,88 @@ type_list const* remove_const(type_list const* type)
  */
 bool is_numeric(type_list const* type)
 {
-    type = remove_const(type);
-    return type->type == T_SCALAR || type->type == T_POINTER;
+    return is_scalar(type) || is_pointer(type);
 }
 
 /**
  * @returns Whether the two type instances refer to the same type
  */
-bool type_same(type_list const* a, type_list const* b)
+bool type_assignable(type_list const* given, type_list const* wanted)
 {
-    a = remove_const(a);
-    b = remove_const(b);
-
-    if (a == b)
+    if (given == wanted)
         return true;
 
-    if (a->type != b->type)
+    if (given->type != wanted->type)
         return false;
 
-    switch (a->type)
+    switch (given->type)
     {
         case T_SCALAR:
-            return a->scalar_bits == b->scalar_bits;
+            return given->scalar_bits == wanted->scalar_bits;
         case T_ARRAY:
-            return a->array_count == b->array_count && type_same(a->array_target, b->array_target);
+            return given->array_count == wanted->array_count && type_assignable(given->array_target, wanted->array_target);
         case T_POINTER:
-            return type_same(a->pointer_target, b->pointer_target);
-        case T_CONST:
-            return type_same(a->const_target, b->const_target);
+            return type_assignable(given->pointer_target, wanted->pointer_target) && !(given->pointer_target->is_const && !wanted->pointer_target->is_const);
         case T_COMPOSITE:
             return false;
     }
 }
 
+type_list const* make_scalar_type(int size)
+{
+    type_list* res = NEW_TYPE();
+    res->type = T_SCALAR;
+    res->scalar_bits = size;
+    return res;
+}
+
+bool type_compatible(type_list const** given, type_list const* wanted)
+{
+    if (type_assignable(*given, wanted))
+        return true;
+
+    if (is_scalar(*given) && is_scalar(wanted))
+    {
+        if ((*given)->scalar_bits == 0)
+        {
+            *given = make_scalar_type(wanted->scalar_bits);
+            return true;
+        }
+    }
+
+    return false;
+}
+
+bool type_compatible_symmetric(type_list const** a, type_list const** b)
+{
+    if (type_assignable(*a, *b))
+        return true;
+
+    if (is_scalar(*a) && (*a)->scalar_bits == 0 && is_numeric(*b))
+    {
+        *a = make_scalar_type(type_size_bits(*b));
+        return true;
+    }
+
+    if (is_scalar(*b) && (*b)->scalar_bits == 0 && is_numeric(*a))
+    {
+        *b = make_scalar_type(type_size_bits(*a));
+        return true;
+    }
+
+    return false;
+}
+
 int type_size_bits(type_list const* type)
 {
-    type = remove_const(type);
     switch (type->type)
     {
         case T_SCALAR:
+            if (type->scalar_bits == 0)
+            {
+                error_msg(NULL, "Number literal type missing\n");
+                exit(1);
+            }
             return type->scalar_bits;
         case T_POINTER:
             return POINTER_BITS;
@@ -109,13 +155,16 @@ int type_size_cells(type_list const* type)
     switch (type->type)
     {
         case T_SCALAR:
+            if (type->scalar_bits == 0)
+            {
+                error_msg(NULL, "Number literal type missing\n");
+                exit(1);
+            }
             return 1;
         case T_ARRAY:
             return type->array_count;
         case T_POINTER:
             return 1;
-        case T_CONST:
-            return type_size_cells(type->const_target);
         case T_COMPOSITE:
         {
             int sum = 0;
@@ -138,12 +187,7 @@ int type_size_cells(type_list const* type)
     }
 }
 
-/**
- * @param inner If true, and the type has a name, return that name
- * @param expand If true, will expand composite types, otherwise will display "<anonymous type>"
- * @return A human-readable textual representation of the specified type
- */
-const char* type_display_full(type_list const* type, bool inner, bool expand)
+const char* type_display_full_inner(type_list const* type, bool inner, bool expand)
 {
     if (!inner && type->header.name)
         return type->header.name;
@@ -154,6 +198,8 @@ const char* type_display_full(type_list const* type, bool inner, bool expand)
             return "void";
         case T_SCALAR:
         {
+            if (type->scalar_bits == 0)
+                return "<number literal>";
             if (type->scalar_bits == 1)
                 return "bool";
             char* buf = malloc(256);
@@ -170,12 +216,6 @@ const char* type_display_full(type_list const* type, bool inner, bool expand)
         {
             char* buf = malloc(256);
             sprintf(buf, "%s*", type_display(type->pointer_target));
-            return buf;
-        }
-        case T_CONST:
-        {
-            char* buf = malloc(256);
-            sprintf(buf, "%s const", type_display(type->const_target));
             return buf;
         }
         case T_COMPOSITE:
@@ -196,6 +236,23 @@ const char* type_display_full(type_list const* type, bool inner, bool expand)
         default:
             return "<unknown>";
     }
+}
+
+/**
+ * @param inner If true, and the type has a name, return that name
+ * @param expand If true, will expand composite types, otherwise will display "<anonymous type>"
+ * @return A human-readable textual representation of the specified type
+ */
+const char* type_display_full(type_list const* type, bool inner, bool expand)
+{
+    const char* res = type_display_full_inner(type, inner, expand);
+    if (type->is_const)
+    {
+        char* buf = malloc(1024);
+        sprintf(buf, "%s const", res);
+        return buf;
+    }
+    return res;
 }
 
 /**
@@ -262,12 +319,24 @@ type_list const* decay_array_ptr(type_list const* t)
     return make_pointer(t->array_target);
 }
 
-type_list const* make_scalar_type(int size)
+type_list const* scalar_auto_type(ast_node* n)
 {
-    type_list* res = NEW_TYPE();
-    res->type = T_SCALAR;
-    res->scalar_bits = size;
-    return res;
+    unsigned int value1 = (unsigned int) NUMBER_VALUE(n);
+    if (value1 >= 65536)
+        return make_scalar_type(32);
+    else if (value1 >= 256)
+        return make_scalar_type(16);
+    else
+        return WORD_TYPE;
+}
+
+type_list const* scalar_infer_auto(ast_node* n)
+{
+    if (infer_type(n)->type == T_SCALAR && infer_type(n)->scalar_bits == 0)
+    {
+        return AST_INFERRED(n) = scalar_auto_type(n);
+    }
+    return AST_INFERRED(n);
 }
 
 /**
@@ -302,8 +371,8 @@ type_list const* decode_spec(ast_node* spec, stack_frame* frame)
             case KCONST:
             {
                 type_list* ret = NEW_TYPE();
-                ret->type = T_CONST;
-                ret->const_target = decode_spec(op[0], frame);
+                *ret = *decode_spec(op[0], frame);
+                ret->is_const = true;
                 return ret;
             }
             case '[':
@@ -315,16 +384,19 @@ type_list const* decode_spec(ast_node* spec, stack_frame* frame)
                 return ret;
             }
             case KTYPEOF:
+            {
                 analysis(&op[0], frame);
+                scalar_infer_auto(op[0]);
                 return infer_type(op[0]);
+            }
             case KNEW:
             {
                 type_list* generic = get_type(op[0], frame);
                 stack_frame* sc_frame = malloc(sizeof(*sc_frame));
                 *sc_frame = (stack_frame) {.function = frame->function, .loop = frame->loop, .is_root = false, .parent = frame};
-                linked_list* param, *arg;
+                linked_list* param, * arg;
                 for (param = generic->generic.params,
-                        arg = ((ast_linked_list*)op[1])->list; param && arg; param = param->next, arg = arg->next)
+                             arg = ((ast_linked_list*) op[1])->list; param && arg; param = param->next, arg = arg->next)
                 {
                     type_list* argt = check_add_type(VAR_NAME(param->value), sc_frame);
                     linked_list_header h = argt->header;
@@ -342,7 +414,7 @@ type_list const* decode_spec(ast_node* spec, stack_frame* frame)
             {
                 type_list* ret = NEW_TYPE();
                 ret->type = T_COMPOSITE;
-                for (linked_list* list = ((ast_linked_list*)op[0])->list; list; list = list->next)
+                for (linked_list* list = ((ast_linked_list*) op[0])->list; list; list = list->next)
                 {
                     ast_node* field = list->value;
                     const char* name = VAR_NAME(OPER_OPERANDS(field)[0]);
@@ -403,13 +475,13 @@ void check_assignment(ast_node* op0, ast_node* op1)
 {
     type_list const* left = infer_type(op0);
     type_list const* right = infer_type(op1);
-    if (left->type == T_SCALAR && right->type == T_SCALAR && left->scalar_bits >= right->scalar_bits)
+    if (!type_compatible(&AST_INFERRED(op1), left))
     {
-        // ok, can upcast scalar to bigger scalar without loss
-    }
-    else
-    {
-        if (!type_same(left, right))
+        if (left->type == T_SCALAR && right->type == T_SCALAR && left->scalar_bits >= right->scalar_bits)
+        {
+            // ok, can upcast scalar to bigger scalar without loss
+        }
+        else
         {
             error_msg(op1, "Cannot assign rvalue of type '%s' to lvalue of type '%s'\n",
                       type_display(right),
@@ -438,7 +510,7 @@ var_list* check_add_var(const char* name, stack_frame* frame, type_list const* t
                 found = true;
                 break;
             }
-            if (ptr->type->type != T_CONST) // constants are not stored in memory
+            if (!ptr->type->is_const) // constants are not stored in memory
                 i += type_size_cells(ptr->type);
         }
     }
@@ -505,6 +577,9 @@ int highest_set_bit(int x) // uses ctz
     return __builtin_ctz(x);
 }
 
+#define TLEFT AST_INFERRED(op[0])
+#define TRIGHT AST_INFERRED(op[1])
+
 /**
  * Static analysis + type checking + constant folding
  */
@@ -515,11 +590,11 @@ void analysis(ast_node** n, stack_frame* frame)
     if (!*n)
         return;
 
-  /*  if (AST_INFERRED(*n))
-    {
-        return;
-        info_msg(*n, "Type already inferred\n");
-    }*/
+    /*  if (AST_INFERRED(*n))
+      {
+          return;
+          info_msg(*n, "Type already inferred\n");
+      }*/
 
     yylloc.first_line = (*n)->info.line;
     yylloc.first_column = (*n)->info.col;
@@ -538,13 +613,7 @@ void analysis(ast_node** n, stack_frame* frame)
             int size = NUMBER_SIZE(*n);
             if (size == 0)
             {
-                unsigned int value1 = (unsigned int) NUMBER_VALUE(*n);
-                if (value1 >= 65536)
-                    SET_TYPE(make_scalar_type(32));
-                else if (value1 >= 256)
-                    SET_TYPE(make_scalar_type(16));
-                else
-                    SET_TYPE(WORD_TYPE);
+                SET_TYPE(make_scalar_type(0));
             }
             else
             {
@@ -565,14 +634,14 @@ void analysis(ast_node** n, stack_frame* frame)
                     *n = ret;
                     return;
                 }
-                if (ptr->type->type == T_CONST && is_numeric(ptr->type->const_target))
+                if (ptr->type->is_const && is_numeric(ptr->type))
                 {
                     RETURN(make_number(ptr->value), ptr->type);
                 }
                 RETURN_LVALUE(set_inferred_type(make_number(var_position(ptr)), make_pointer(ptr->type)));
             }
             ptr = get_var_id(*n, frame, F_RECURSE);
-            if (ptr->type->type == T_CONST && is_numeric(ptr->type->const_target)) // allow resolving constants for parent frames
+            if (ptr->type->is_const && is_numeric(ptr->type)) // allow resolving constants for parent frames
             {
                 RETURN(make_number(ptr->value), ptr->type);
             }
@@ -644,8 +713,8 @@ void analysis(ast_node** n, stack_frame* frame)
                         exit(1);
                     }
                     type_list* type = NEW_TYPE();
-                    type->type = T_CONST;
-                    type->const_target = WORD_TYPE;
+                    *type = *WORD_TYPE;
+                    type->is_const = true;
                     var->type = type;
                     var->value = static_eval(&op[1], frame);
                     SET_TYPE(VOID_TYPE);
@@ -664,7 +733,7 @@ void analysis(ast_node** n, stack_frame* frame)
                     if (args) // type is generic
                     {
                         type->type = T_GENERIC;
-                        type->generic.params = ((ast_linked_list*)args)->list;
+                        type->generic.params = ((ast_linked_list*) args)->list;
                         type->generic.spec = spec;
                         /*stack_frame* sc_frame = malloc(sizeof(*sc_frame));
                         *sc_frame = (stack_frame) {.function = frame->function, .loop = frame->loop, .is_root = false, .parent = frame};
@@ -757,17 +826,20 @@ void analysis(ast_node** n, stack_frame* frame)
                         if (AST_KIND(*code) == k_operator && OPER_OPERATOR(*code) == ';' && OPER_ARITY(*code) == 2)
                         {
                             ast_node* second = OPER_OPERANDS(*code)[1];
-                            if (AST_KIND(second) == k_operator && OPER_OPERATOR(second) == KRETURN) // if last statement is return
+                            if (AST_KIND(second) == k_operator &&
+                                OPER_OPERATOR(second) == KRETURN) // if last statement is return
                             {
                                 ast_node* returned = OPER_OPERANDS(second)[0];
-                                if (AST_KIND(returned) == k_operator && OPER_OPERATOR(returned) == '(') // which is a function call
+                                if (AST_KIND(returned) == k_operator &&
+                                    OPER_OPERATOR(returned) == '(') // which is a function call
                                 {
                                     ast_node* function = OPER_OPERANDS(returned)[0];
-                                    if (AST_KIND(function) == k_ident && !strcmp(VAR_NAME(function), newNode->header.name)) // of the function itself
+                                    if (AST_KIND(function) == k_ident &&
+                                        !strcmp(VAR_NAME(function), newNode->header.name)) // of the function itself
                                     {
                                         // tail recursive call
                                         ast_node* list = make_list(OPER_OPERANDS(newNode->arglist->value)[0]);
-                                        for (linked_list* ptr = newNode->arglist->next, *target = ((ast_linked_list*)list)->list; ptr; ptr = ptr->next, target = target->next)
+                                        for (linked_list* ptr = newNode->arglist->next, * target = ((ast_linked_list*) list)->list; ptr; ptr = ptr->next, target = target->next)
                                         {
                                             target->next = malloc(sizeof(linked_list));
                                             target->next->value = OPER_OPERANDS(ptr->value)[0];
@@ -776,7 +848,8 @@ void analysis(ast_node** n, stack_frame* frame)
                                         ast_node* assignment = make_node(TUPLEASSIGN, 2, list,
                                                                          OPER_OPERANDS(returned)[1]);
                                         analysis(&assignment, c_frame);
-                                        *code = make_node(KLOOP, 1, make_node(';', 2, OPER_OPERANDS(*code)[0], assignment));
+                                        *code = make_node(KLOOP, 1,
+                                                          make_node(';', 2, OPER_OPERANDS(*code)[0], assignment));
                                     }
                                 }
                             }
@@ -809,7 +882,7 @@ void analysis(ast_node** n, stack_frame* frame)
                              list = list->next, flist = flist->next, fargs = (var_list*) fargs->header.next, i++)
                         {
                             analysis(&list->value, frame);
-                            if (!type_same(infer_type(list->value), fargs->type))
+                            if (!type_compatible(&AST_INFERRED(list->value), fargs->type))
                             {
                                 error_msg(list->value,
                                           "Type mismatch for argument %d in call to '%s'; expected %s, got %s\n",
@@ -868,7 +941,6 @@ void analysis(ast_node** n, stack_frame* frame)
             {
                 bool is_num;
                 int value;
-                type_list const* type;
             } * o = malloc(arity * sizeof(*o));
             for (int i = 0; i < arity; i++)
             {
@@ -877,7 +949,6 @@ void analysis(ast_node** n, stack_frame* frame)
                 analysis(&op[i], frame);
                 if ((o[i].is_num = AST_KIND(op[i]) == k_number))
                     o[i].value = NUMBER_VALUE(op[i]);
-                o[i].type = decay_array_ptr(infer_type(op[i]));
             }
 
             type_list const* result;
@@ -886,7 +957,7 @@ void analysis(ast_node** n, stack_frame* frame)
             {
                 case '{':
                 {
-                    SET_TYPE(o[1].type);
+                    SET_TYPE(TRIGHT);
                 }
 
                 case '<':
@@ -896,19 +967,17 @@ void analysis(ast_node** n, stack_frame* frame)
                 case NE:
                 case EQ:
                 {
-                    type_list const* left = remove_const(o[0].type);
-                    type_list const* right = remove_const(o[1].type);
-                    if (!type_same(left, right))
+                    if (!type_compatible_symmetric(&TLEFT, &TRIGHT))
                     {
                         error_msg(*n, "Cannot perform arithmetic comparison '%c' on different types %s and %s",
-                                  OPER_OPERATOR(*n), type_display(left), type_display(right));
+                                  OPER_OPERATOR(*n), type_display(TLEFT), type_display(TRIGHT));
                         exit(1);
                     }
 
-                    if (!is_numeric(left))
+                    if (!is_numeric(TLEFT))
                     {
                         error_msg(*n, "Cannot perform arithmetic comparison '%c' on non-numeric types %s and %s\n",
-                                  OPER_OPERATOR(*n), type_display(left), type_display(right));
+                                  OPER_OPERATOR(*n), type_display(TLEFT), type_display(TRIGHT));
                         exit(1);
                     }
 
@@ -917,16 +986,19 @@ void analysis(ast_node** n, stack_frame* frame)
                 case SHL:
                 case SHR:
                 {
-                    type_list const* left = remove_const(o[0].type);
-                    type_list const* right = remove_const(o[1].type);
-
-                    if (left->type != T_SCALAR)
+                    if (!is_scalar(TLEFT))
                     {
                         error_msg(*n, "Cannot perform bitwise shift on non-numeric types %s and %s\n",
-                                  type_display(left), type_display(right));
+                                  type_display(TLEFT), type_display(TRIGHT));
                         exit(1);
                     }
-                    result = left;
+                    scalar_infer_auto(op[1]);
+                    if (o[0].is_num && o[0].value == 0 || o[1].is_num && o[1].value >= type_size_bits(TLEFT))
+                    {
+                        ALWAYS_ZERO();
+                        RETURN(make_number(0), TLEFT);
+                    }
+                    result = TLEFT;
                     break;
                 }
             }
@@ -935,59 +1007,47 @@ void analysis(ast_node** n, stack_frame* frame)
             {
                 case SHL:
                 {
-                    type_list const* left = o[0].type;
-                    if (o[0].is_num && o[0].value == 0 || o[1].is_num && o[1].value >= left->scalar_bits)
-                    {
-                        ALWAYS_ZERO();
-                        RETURN(make_number(0), left);
-                    }
                     if (o[0].is_num && o[1].is_num)
                     {
-                        RETURN(make_number(o[0].value << o[1].value), left);
+                        RETURN(make_number(o[0].value << o[1].value), TLEFT);
                     }
-                    SET_TYPE(left);
+                    SET_TYPE(TLEFT);
                 }
                 case SHR:
                 {
-                    type_list const* left = o[0].type;
-                    if (o[0].is_num && o[0].value == 0 || o[1].is_num && o[1].value >= left->scalar_bits)
-                    {
-                        ALWAYS_ZERO();
-                        RETURN(make_number(0), left);
-                    }
+
                     if (o[0].is_num && o[1].is_num)
                     {
-                        RETURN(make_number(o[0].value >> o[1].value), left);
+                        RETURN(make_number(o[0].value >> o[1].value), TLEFT);
                     }
-                    SET_TYPE(left);
+                    SET_TYPE(TLEFT);
                 }
                 case UMINUS:
                 {
-                    type_list const* left = o[0].type;
-                    if (left->type != T_SCALAR)
+                    if (!is_scalar(TLEFT))
                     {
-                        error_msg(*n, "Cannot perform unary minus on non-integral type %s\n", type_display(left));
+                        error_msg(*n, "Cannot perform unary minus on non-integral type %s\n", type_display(TLEFT));
                         exit(1);
                     }
                     if (o[0].is_num)
                     {
-                        RETURN(make_number(-o[0].value), left);
+                        RETURN(make_number(-o[0].value), TLEFT);
                     }
-                    SET_TYPE(left);
+                    SET_TYPE(TLEFT);
                 }
                 case '~':
                 {
-                    type_list const* left = o[0].type;
-                    if (left->type != T_SCALAR)
+                    if (!is_scalar(TLEFT))
                     {
-                        error_msg(*n, "Cannot perform binary complement on non-integral type %s\n", type_display(left));
+                        error_msg(*n, "Cannot perform binary complement on non-integral type %s\n",
+                                  type_display(TLEFT));
                         exit(1);
                     }
                     if (o[0].is_num)
                     {
-                        RETURN(make_number(~o[0].value), left);
+                        RETURN(make_number(~o[0].value), TLEFT);
                     }
-                    SET_TYPE(left);
+                    SET_TYPE(TLEFT);
                 }
                 case REF:
                 {
@@ -996,22 +1056,21 @@ void analysis(ast_node** n, stack_frame* frame)
                 }
                 case '+':
                 {
-                    type_list const* left = remove_const(o[0].type);
-                    type_list const* right = remove_const(o[1].type);
-                    if (left->type == T_POINTER && right->type == T_POINTER)
+                    type_compatible_symmetric(&TLEFT, &TRIGHT);
+                    if (TLEFT->type == T_POINTER && TRIGHT->type == T_POINTER)
                     {
                         error_msg(*n, "Cannot add two pointers\n");
                         exit(1);
                     }
-                    if (left->type == T_POINTER && right->type == T_SCALAR)
-                        result = left;
-                    else if (left->type == T_SCALAR && right->type == T_POINTER)
-                        result = right;
-                    else if (left->type == T_SCALAR && right->type == T_SCALAR)
-                        result = left;
+                    if (TLEFT->type == T_POINTER && TRIGHT->type == T_SCALAR)
+                        result = TLEFT;
+                    else if (TLEFT->type == T_SCALAR && TRIGHT->type == T_POINTER)
+                        result = TRIGHT;
+                    else if (TLEFT->type == T_SCALAR && TRIGHT->type == T_SCALAR)
+                        result = TLEFT;
                     else
                     {
-                        error_msg(*n, "Cannot add types %s and %s\n", type_display(left), type_display(right));
+                        error_msg(*n, "Cannot add types %s and %s\n", type_display(TLEFT), type_display(TRIGHT));
                         exit(1);
                     }
                     if (o[0].is_num && o[1].is_num)
@@ -1030,17 +1089,16 @@ void analysis(ast_node** n, stack_frame* frame)
                 }
                 case '-':
                 {
-                    type_list const* left = remove_const(o[0].type);
-                    type_list const* right = remove_const(o[1].type);
-                    if (left->type == T_POINTER && right->type == T_POINTER)
+                    type_compatible_symmetric(&TLEFT, &TRIGHT);
+                    if (TLEFT->type == T_POINTER && TRIGHT->type == T_POINTER)
                         result = WORD_TYPE;
-                    else if (left->type == T_POINTER && right->type == T_SCALAR)
-                        result = left;
-                    else if (left->type == T_SCALAR && right->type == T_SCALAR)
-                        result = left;
+                    else if (TLEFT->type == T_POINTER && TRIGHT->type == T_SCALAR)
+                        result = TLEFT;
+                    else if (TLEFT->type == T_SCALAR && TRIGHT->type == T_SCALAR)
+                        result = TLEFT;
                     else
                     {
-                        error_msg(*n, "Cannot subtract types %s and %s\n", type_display(left), type_display(right));
+                        error_msg(*n, "Cannot subtract types %s and %s\n", type_display(TLEFT), type_display(TRIGHT));
                         exit(1);
                     }
                     if (o[0].is_num && o[1].is_num)
@@ -1059,27 +1117,26 @@ void analysis(ast_node** n, stack_frame* frame)
                 }
                 case '*':
                 {
-                    type_list const* left = infer_type(op[0]);
-                    type_list const* right = infer_type(op[1]);
-                    if (left->type != T_SCALAR || right->type != T_SCALAR)
+                    type_compatible_symmetric(&TLEFT, &TRIGHT);
+                    if (TLEFT->type != T_SCALAR || TRIGHT->type != T_SCALAR)
                     {
                         error_msg(*n, "Cannot perform multiplication on types %s and %s\n",
-                                  type_display(left), type_display(right));
+                                  type_display(TLEFT), type_display(TRIGHT));
                         exit(1);
                     }
                     if (o[0].is_num && o[1].is_num)
                     {
-                        RETURN(make_number(o[0].value * o[1].value), left);
+                        RETURN(make_number(o[0].value * o[1].value), TLEFT);
                     }
                     else if (o[0].is_num)
                     {
                         if (o[0].value == 1)
                         {
-                            RETURN(op[1], left);
+                            RETURN(op[1], TLEFT);
                         }
                         else if (o[0].value == 0)
                         {
-                            RETURN(make_number(0), left);
+                            RETURN(make_number(0), TLEFT);
                         }
                         else if (is_power_of_2(o[0].value))
                         {
@@ -1092,11 +1149,11 @@ void analysis(ast_node** n, stack_frame* frame)
                     {
                         if (o[1].value == 1)
                         {
-                            RETURN(op[0], left);
+                            RETURN(op[0], TLEFT);
                         }
                         else if (o[1].value == 0)
                         {
-                            RETURN(make_number(0), left);
+                            RETURN(make_number(0), TLEFT);
                         }
                         else if (is_power_of_2(o[1].value))
                         {
@@ -1105,16 +1162,15 @@ void analysis(ast_node** n, stack_frame* frame)
                             return;
                         }
                     }
-                    SET_TYPE(left);
+                    SET_TYPE(TLEFT);
                 }
                 case '/':
                 {
-                    type_list const* left = infer_type(op[0]);
-                    type_list const* right = infer_type(op[1]);
-                    if (left->type != T_SCALAR || right->type != T_SCALAR)
+                    type_compatible_symmetric(&TLEFT, &TRIGHT);
+                    if (TLEFT->type != T_SCALAR || TRIGHT->type != T_SCALAR)
                     {
                         error_msg(*n, "Cannot perform division on types %s and %s\n",
-                                  type_display(left), type_display(right));
+                                  type_display(TLEFT), type_display(TRIGHT));
                         exit(1);
                     }
                     if (o[1].is_num && o[1].value == 0)
@@ -1124,20 +1180,20 @@ void analysis(ast_node** n, stack_frame* frame)
                     }
                     if (o[0].is_num && o[1].is_num)
                     {
-                        RETURN(make_number(o[0].value / o[1].value), left);
+                        RETURN(make_number(o[0].value / o[1].value), TLEFT);
                     }
                     else if (o[0].is_num)
                     {
                         if (o[0].value == 0)
                         {
-                            RETURN(make_number(0), left);
+                            RETURN(make_number(0), TLEFT);
                         }
                     }
                     else if (o[1].is_num)
                     {
                         if (o[1].value == 1)
                         {
-                            RETURN(op[0], left);
+                            RETURN(op[0], TLEFT);
                         }
                         else if (is_power_of_2(o[1].value))
                         {
@@ -1146,7 +1202,7 @@ void analysis(ast_node** n, stack_frame* frame)
                             return;
                         }
                     }
-                    SET_TYPE(left);
+                    SET_TYPE(TLEFT);
                 }
                 case '<':
                 {
@@ -1237,8 +1293,8 @@ void analysis(ast_node** n, stack_frame* frame)
                 }
                 case TUPLEASSIGN:
                 {
-                    linked_list* left = ((ast_linked_list*)op[0])->list;
-                    linked_list* right = ((ast_linked_list*)op[1])->list;
+                    linked_list* left = ((ast_linked_list*) op[0])->list;
+                    linked_list* right = ((ast_linked_list*) op[1])->list;
 
                     for (; left && right; left = left->next, right = right->next)
                     {
@@ -1259,15 +1315,14 @@ void analysis(ast_node** n, stack_frame* frame)
                 {
                     if (AST_INFERRED(*n))
                         return;
-                    type_list const* inner = remove_const(o[0].type);
-                    if (!inner)
+                    if (!TLEFT)
                         break;
-                    if (inner->type != T_POINTER)
+                    if (!is_pointer(TLEFT))
                     {
                         info_msg(*n, "Dereferencing a non-pointer value\n");
                         break;
                     }
-                    SET_TYPE(inner->pointer_target);
+                    SET_TYPE(TLEFT->pointer_target);
                 }
                 case KREAD:
                     SET_TYPE(VOID_TYPE);
@@ -1291,7 +1346,7 @@ void analysis(ast_node** n, stack_frame* frame)
                 }
                 case KIF:
                 {
-                    if (o[0].type == VOID_TYPE)
+                    if (TLEFT == VOID_TYPE)
                     {
                         error_msg(op[0], "Expected condition, got void\n");
                         exit(1);
@@ -1312,7 +1367,7 @@ void analysis(ast_node** n, stack_frame* frame)
                 }
                 case KDO:
                 {
-                    if (o[1].type == VOID_TYPE)
+                    if (TRIGHT == VOID_TYPE)
                     {
                         error_msg(op[1], "Expected condition, got void\n");
                         exit(1);
@@ -1326,7 +1381,7 @@ void analysis(ast_node** n, stack_frame* frame)
                 }
                 case KFOR:
                 {
-                    if (op[1] && infer_type(op[1]) == VOID_TYPE)
+                    if (op[1] && TRIGHT == VOID_TYPE)
                     {
                         error_msg(op[1], "Expected condition, got void\n");
                         exit(1);
@@ -1344,7 +1399,8 @@ void analysis(ast_node** n, stack_frame* frame)
                 }
                 case KPRINT:
                 {
-                    if (infer_type(op[0]) == VOID_TYPE)
+                    scalar_infer_auto(op[0]);
+                    if (TLEFT == VOID_TYPE)
                     {
                         error_msg(op[0], "Expected value, got void\n");
                         exit(1);
@@ -1374,10 +1430,10 @@ void analysis(ast_node** n, stack_frame* frame)
                             exit(1);
                         }
 
-                        if (!type_same(remove_const(o[0].type), frame->function->return_type))
+                        if (!type_compatible(&AST_INFERRED(op[0]), frame->function->return_type))
                         {
                             error_msg(op[0], "Return type mismatch; expected %s got %s\n",
-                                      type_display(frame->function->return_type), type_display(o[0].type));
+                                      type_display(frame->function->return_type), type_display(TLEFT));
                             exit(1);
                         }
                     }

@@ -34,7 +34,7 @@ int frame_start(stack_frame* frame)
  */
 int var_position(var_list* var)
 {
-    if (var->type->type == T_CONST)
+    if (var->type->is_const)
     {
         error_msg(NULL, "Cannot take address of constant variable\n");
         exit(1);

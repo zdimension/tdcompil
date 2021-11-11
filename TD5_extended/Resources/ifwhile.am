@@ -1,12 +1,12 @@
 # Optimizations enabled
 # Types
 # NAME        VALUE
-NEW "generated" 4		# line 1489
-START @INIT		# line 1490
-END @END "END"		# line 1491
-END @DEFAULT "default option"		# line 1492
-FROM @INIT		# line 1494
-'_,'_,'_,'_ '[,'[,'_,'_ S,S,S,S @1		# line 1495
+NEW "generated" 4		# line 1501
+START @INIT		# line 1502
+END @END "END"		# line 1503
+END @DEFAULT "default option"		# line 1504
+FROM @INIT		# line 1506
+'_,'_,'_,'_ '[,'[,'_,'_ S,S,S,S @1		# line 1507
 #	------ BEGIN: program
 # KIND = 4 (k_scope)		# line 390
 # Memory map
@@ -601,6 +601,6 @@ FROM @171		# line 174
 '/|'0|'1,'_,'_,'_ L,S,S,S		# line 175
 '[,'_,'_,'_ S,L,S,S @172		# line 176
 #	------ END: program
-FROM @172		# line 1503
-'[,'/,'_,'_ S,S,S,S @END		# line 1504
-'[,'[,'_,'_ S,S,S,S @END		# line 1505
+FROM @172		# line 1515
+'[,'/,'_,'_ S,S,S,S @END		# line 1516
+'[,'[,'_,'_ S,S,S,S @END		# line 1517
