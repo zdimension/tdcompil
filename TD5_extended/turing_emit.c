@@ -346,7 +346,7 @@ void pop(int n)
  */
 void push_number(int value, int size)
 {
-    value &= (1 << size) - 1;
+    value &= (1L << size) - 1;
     instr("FROM @%d", ++(label));
     instr("'/|'[,'[,'_,'_ S,R,S,S @%d", ++label);
     instr("'/|'[,'/,'_,'_ S,R,S,S @%d", label);

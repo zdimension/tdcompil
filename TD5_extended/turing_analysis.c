@@ -495,7 +495,7 @@ void analysis(ast_node** n, stack_frame* frame)
                 }
                 else
                 {
-                    NUMBER_VALUE(*n) &= (1 << size) - 1;
+                    NUMBER_VALUE(*n) &= (1L << size) - 1;
                     SET_TYPE(make_scalar_type(size));
                 }
             }
