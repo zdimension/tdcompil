@@ -9,6 +9,7 @@
  */
 
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "calc.h"
 #include "syntax.h"
@@ -52,24 +53,57 @@ int eval(ast_node* n, int* label)
     switch (AST_KIND(n))
     {
         case k_number:
-            return BOXF("%g", NUMBER_VALUE(n), "tomato");
+            return BOXF("%d", NUMBER_VALUE(n), "tomato");
         case k_ident:
             return BOXF("%s", VAR_NAME(n), "peru");
+        case k_scope:
+            return link(KEYWORD("scope"), eval(SC_CODE(n), label));
+        case k_list:
+        {
+            return -1;
+        }
         case k_operator:
         {
             ast_node** op = OPER_OPERANDS(n);
             int arity = OPER_ARITY(n);
 
             int o = OPER_OPERATOR(n);
+
             int op0 = arity > 0 ? eval(op[0], label) : -1;
             int op1 = arity > 1 ? eval(op[1], label) : -1;
             int op2 = arity > 2 ? eval(op[2], label) : -1;
+            int op3 = arity > 3 ? eval(op[3], label) : -1;
             const char* ops2[] = {">=", "<=", "==", "!="};
             switch (o)
             {
                 /* Expressions */
                 case UMINUS:
                     return link(KEYWORD("[-]"), op0);
+                case KRETURN:
+                    return link(KEYWORD("return"), op0);
+                case KTYPEOF:
+                    return link(KEYWORD("typeof"), op0);
+                case '(':
+                {
+                    int func = KEYWORD("func");
+                    linkl(func, op0, "name");
+                    int block = KEYWORD("args");
+                    linkl(func, block, "args");
+                    for (linked_list* ptr = ((ast_linked_list*)op[1])->list; ptr; ptr = ptr->next)
+                    {
+                        link(block, eval(ptr->value, label));
+                    }
+                    return func;
+                }
+                case KFUNC:
+                {
+                    int block = KEYWORD("func");
+                    linkl(block, op0, "name");
+                    //linkl(block, op1, "params");
+                    linkl(block, op3, "type");
+                    linkl(block, op2, "code");
+                    return block;
+                }
                 case INC:
                     return link(KEYWORD(arity == 1 ? "pre++" : "post++"), op0);
                 case DEC:
@@ -80,8 +114,8 @@ int eval(ast_node* n, int* label)
                     return arity == 1
                            ? link(KEYWORD("[&]"), op0)
                            : link2(KEYWORD("[&]"), op0, op1);
-                case KDIM:
-                    return link2(KEYWORD("dim"), op0, op1);
+                case KVAR:
+                    return link2(KEYWORD("var"), op0, op1);
                 case GE:
                 case LE:
                 case EQ:
@@ -116,13 +150,15 @@ int eval(ast_node* n, int* label)
                 case KREAD:
                     return link(KEYWORD("read"), op0);
                 default:
-                    error_msg("Houston, we have a problem: unattended token %d\n",
+                    error_msg(n, "Houston, we have a problem: unattended token %d\n",
                               OPER_OPERATOR(n));
-                    return -1;
+                    exit(1);
             }
         }
         default:
-            return -1;
+            error_msg(n, "Houston, we have a problem: unattended kind %d\n",
+                      AST_KIND(n));
+            exit(1);
     }
 }
 
