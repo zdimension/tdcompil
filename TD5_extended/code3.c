@@ -85,7 +85,7 @@ int eval(ast_node* n, int* label)
                     return link(KEYWORD("typeof"), op0);
                 case '(':
                 {
-                    int func = KEYWORD("func");
+                    int func = KEYWORD("call");
                     linkl(func, op0, "name");
                     int block = KEYWORD("args");
                     linkl(func, block, "args");
