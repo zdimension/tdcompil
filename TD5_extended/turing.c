@@ -34,6 +34,11 @@ int frame_start(stack_frame* frame)
  */
 int var_position(var_list* var)
 {
+    if (var->type->type == T_CONST)
+    {
+        error_msg(NULL, "Cannot take address of constant variable\n");
+        exit(1);
+    }
     return frame_start((stack_frame*) var->header.owner) + var->position;
 }
 

@@ -1340,48 +1340,60 @@ void exec(ast_node* n, stack_frame* frame)
                 {
                     PROD0("call");
                     func_list* fct = FIND_SYM(func_list, funcs_head, op[0]);
-                    linked_list* args = ((ast_linked_list*) op[1])->list;
-                    int argcount = 0;
-                    int argcells = 0;
-                    for (linked_list* arg = args; arg; argcount++, argcells += type_size_cells(arg->value->inferred_type), arg = arg->next)
+                    linked_list* args = AST_LIST_HEAD(op[1]);
+                    int right_heap;
+                    if (args)
                     {
-                        eval(arg->value, frame);
-                    }
-                    int start_left = ++label;
-                    int right_heap = ++label;
-                    PROD0("go to left of args on stack");
-                    instr("FROM @%d", start_left);
-                    instr("'[,'/,'_,'_ S,L,S,S @%d", ++label);
-                    instr("'[,'[,'_,'_ S,S,S,S @%d", right_heap);
-                    for (int i = 1; i < argcells; i++)
-                    {
+                        int argcount = 0;
+                        int argcells = 0;
+                        for (linked_list* arg = args; arg; argcount++, argcells += type_size_cells(
+                                arg->value->inferred_type), arg = arg->next)
+                        {
+                            eval(arg->value, frame);
+                        }
+                        int start_left = ++label;
+                        right_heap = ++label;
+                        PROD0("go to left of args on stack");
+                        instr("FROM @%d", start_left);
+                        instr("'[,'/,'_,'_ S,L,S,S @%d", ++label);
+                        instr("'[,'[,'_,'_ S,S,S,S @%d", right_heap);
+                        for (int i = 1; i < argcells; i++)
+                        {
+                            instr("FROM @%d", label);
+                            instr("'[,'0|'1,'_,'_ S,L,S,S");
+                            instr("'[,'/,'_,'_ S,L,S,S @%d", ++label);
+                        }
                         instr("FROM @%d", label);
                         instr("'[,'0|'1,'_,'_ S,L,S,S");
-                        instr("'[,'/,'_,'_ S,L,S,S @%d", ++label);
+                        instr("'[,'/|'[,'_,'_ S,S,S,S @%d", right_heap);
                     }
-                    instr("FROM @%d", label);
-                    instr("'[,'0|'1,'_,'_ S,L,S,S");
-                    instr("'[,'/|'[,'_,'_ S,S,S,S @%d", right_heap);
-
+                    else
+                    {
+                        right_heap = ++label;
+                    }
                     PROD0("go to right of heap");
                     instr("FROM @%d", right_heap);
                     instr("'/|'0|'1|'[,'/,'_,'_ R,S,S,S");
                     instr("'/|'0|'1|'[,'[,'_,'_ R,S,S,S");
                     call_site_list* call = n->data;
                     instr("'_,'/|'[,'_,'_ '[,'/|'[,'_,'_ R,S,S,S @F%dC%d", fct->header.id, call->id);
-                    call->argalloc_address = ++label;
-                    PROD0("start copying args from stack to heap");
-                    instr("FROM @%d", label);
-                    instr("'_,'/|'[,'_,'_ '[,'/|'[,'_,'_ R,R,S,S @%d", ++label);
-                    instr("FROM @%d", label);
-                    instr("'_,'0|'1,'_,'_ '0|'1,'_,'_,'_ R,R,S,S");
-                    instr("'_,'/,'_,'_ '/,'_,'_,'_ R,R,S,S");
-                    instr("'_,'_,'_,'_ L,L,S,S @%d", ++label);
-                    instr("FROM @%d", label);
+                    call->argalloc_address = label + 1;
+                    if (args)
+                    {
+                        PROD0("start copying args from stack to heap");
+                        instr("FROM @%d", ++label);
+                        instr("'_,'/|'[,'_,'_ '[,'/|'[,'_,'_ R,R,S,S @%d", ++label);
+                        instr("FROM @%d", label);
+                        instr("'_,'0|'1,'_,'_ '0|'1,'_,'_,'_ R,R,S,S");
+                        instr("'_,'/,'_,'_ '/,'_,'_,'_ R,R,S,S");
+                        instr("'_,'_,'_,'_ L,L,S,S @%d", label + 1);
+                    }
+                    instr("FROM @%d", ++label);
                     instr("'/|'0|'1,'_,'_,'_ L,L,S,S");
                     instr("'/|'0|'1,'/,'_,'_ L,S,S,S");
                     instr("'/|'0|'1,'[,'_,'_ L,S,S,S");
                     instr("'[,'/|'[,'_,'_ S,S,S,S @F%d", fct->header.id);
+                    instr("'_,'/|'[,'_,'_ '[,'/|'[,'_,'_ S,S,S,S @F%d", fct->header.id);
                     call->return_address = label + 1;
 
                     return;
