@@ -49,6 +49,7 @@ typedef struct
 typedef struct
 {
     int address;
+    ast_node* node;
 } loop_info;
 
 typedef struct stack_frame_s

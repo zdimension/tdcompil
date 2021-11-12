@@ -1049,6 +1049,10 @@ void exec(ast_node* n, stack_frame* frame)
                     return;
                 case KBREAK:
                     PROD0("break");
+                    if (arity == 1 && !frame->loop->node->clean_stack)
+                    {
+                        eval(op[0], frame);
+                    }
                     instr("FROM @%d", ++label);
                     instr("'[,'/|'[,'_,'_ S,S,S,S @%d_break", frame->loop->address);
                     return;

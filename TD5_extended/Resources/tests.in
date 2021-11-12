@@ -1,11 +1,11 @@
 {
-	const x = 10;
+	var counter = 0;
 
-	func fn()
+	loop
 	{
-		const y = x + 8;
-		return y;
-	}
+		counter++;
 
-	print fn();
+		if (counter == 10)
+			break counter;
+	};
 }

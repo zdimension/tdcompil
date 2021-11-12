@@ -80,13 +80,13 @@ stmt
     | KRETURN expr_opt ';'                  												{ $$ = make_node(KRETURN, 1, $2); }
     | KASSERT expr ';'                  													{ $$ = make_node(KASSERT, 1, $2); }
     | KBREAK ';'																			{ $$ = make_node(KBREAK, 0); }
+    | KBREAK expr ';'																		{ $$ = make_node(KBREAK, 1, $2); }
     | KCONTINUE ';'																			{ $$ = make_node(KCONTINUE, 0); }
     | KWHILE '(' expr ')' stmt         														{ $$ = make_node(KFOR, 4, NULL, $3, NULL, $5); }
     | KIF '(' expr_or_inline_decl ')' stmt    %prec THEN    								{ $$ = make_scope(make_node(KIF, 3, $3, $5, NULL)); }
     | KIF '(' expr_or_inline_decl ')' stmt KELSE stmt      									{ $$ = make_scope(make_node(KIF, 3, $3, $5, $7)); }
     | KFOR '(' expr_discard_or_inline_decl_opt ';' expr_opt ';' expr_discard_opt ')' stmt 	{ $$ = make_scope(make_node(KFOR, 4, $3, $5, $7, $9)); }
     | KDO stmt KWHILE '(' expr ')' ';' 														{ $$ = make_node(KDO, 2, $2, $5); }
-    | KLOOP stmt ';' 																		{ $$ = make_node(KLOOP, 1, $2); }
     | KPROC var '(' param_list ')' stmt_braced												{ $$ = make_node(KPROC, 3, $2, $4, $6); }
     | KFUNC var '(' param_list ')' type_spec_opt stmt_braced								{ $$ = make_node(KFUNC, 4, $2, $4, $7, $6); }
     | stmt_braced		                													{ $$ = $1; }
@@ -234,6 +234,7 @@ basic_expr
 	| '(' expr ')'															{ $$ = $2; }
 	| '{' stmt_list expr '}'												{ $$ = make_scope(make_node('{', 2, $2, $3)); }
     | KIF '(' expr_or_inline_decl ')' '{' expr '}' KELSE '{' expr '}'      	{ $$ = make_scope(make_node(KIF, 3, $3, $6, $10)); }
+    | KLOOP '{' stmt_list '}'												{ $$ = make_node(KLOOP, 1, $3); }
 	;
 
 postfix_expr

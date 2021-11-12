@@ -339,6 +339,14 @@ type_list const* scalar_infer_auto(ast_node* n)
     return AST_INFERRED(n);
 }
 
+loop_info* new_loop_info(ast_node* node)
+{
+    loop_info* res = malloc(sizeof(*res));
+    res->address = 0;
+    res->node = node;
+    return res;
+}
+
 /**
  * @return A type instance corresponding to the specified type specification node
  * @throws exit If the node is invalid
@@ -580,6 +588,15 @@ int highest_set_bit(int x) // uses ctz
 #define TLEFT AST_INFERRED(op[0])
 #define TRIGHT AST_INFERRED(op[1])
 
+void expect_non_void(ast_node* n)
+{
+    if (infer_type(n) == VOID_TYPE)
+    {
+        error_msg(n, "Expected value, got void\n");
+        exit(1);
+    }
+}
+
 /**
  * Static analysis + type checking + constant folding
  */
@@ -656,6 +673,8 @@ void analysis(ast_node** n, stack_frame* frame)
             {
                 case KASSERT:
                 {
+                    if (AST_INFERRED(*n))
+                        return;
                     analysis(&op[0], frame);
                     if (AST_KIND(op[0]) == k_number)
                     {
@@ -675,6 +694,8 @@ void analysis(ast_node** n, stack_frame* frame)
                 }
                 case '.':
                 {
+                    if (AST_INFERRED(*n))
+                        return;
                     analysis(&op[0], frame);
                     type_list const* ltype = infer_type(op[0]);
                     if (ltype->type != T_COMPOSITE)
@@ -691,21 +712,29 @@ void analysis(ast_node** n, stack_frame* frame)
                 }
                 case KSIZEOF:
                 {
+                    if (AST_INFERRED(*n))
+                        return;
                     type_list const* type = decode_spec(op[0], frame);
                     RETURN(make_number(type_size_cells(type)), WORD_TYPE);
                 }
                 case KBITSOF:
                 {
+                    if (AST_INFERRED(*n))
+                        return;
                     type_list const* type = decode_spec(op[0], frame);
                     RETURN(make_number(type_size_bits(type)), WORD_TYPE);
                 }
                 case KNEW:
                 {
+                    if (AST_INFERRED(*n))
+                        return;
                     type_list const* type = decode_spec(op[0], frame);
                     SET_TYPE(make_pointer(type));
                 }
                 case KCONST:
                 {
+                    if (AST_INFERRED(*n))
+                        return;
                     var_list* var = check_add_var(VAR_NAME(op[0]), frame, NULL);
                     if (!var)
                     {
@@ -721,6 +750,8 @@ void analysis(ast_node** n, stack_frame* frame)
                 }
                 case KTYPE:
                 {
+                    if (AST_INFERRED(*n))
+                        return;
                     type_list* type = check_add_type(VAR_NAME(op[0]), frame);
                     if (!type)
                     {
@@ -735,14 +766,6 @@ void analysis(ast_node** n, stack_frame* frame)
                         type->type = T_GENERIC;
                         type->generic.params = ((ast_linked_list*) args)->list;
                         type->generic.spec = spec;
-                        /*stack_frame* sc_frame = malloc(sizeof(*sc_frame));
-                        *sc_frame = (stack_frame) {.function = frame->function, .loop = frame->loop, .is_root = false, .parent = frame};
-                        for (linked_list* arg = ((ast_linked_list*)args)->list; arg; arg = arg->next)
-                        {
-                            type_list* argt = check_add_type(VAR_NAME(arg->value), frame);
-                            argt->type = T_GENERIC_VARIABLE;
-                        }
-                        new_frame = sc_frame;*/
                     }
                     else
                     {
@@ -755,6 +778,8 @@ void analysis(ast_node** n, stack_frame* frame)
                 }
                 case KVAR:
                 {
+                    if (AST_INFERRED(*n))
+                        return;
                     switch (OPER_ARITY(*n))
                     {
                         case 2:
@@ -792,6 +817,8 @@ void analysis(ast_node** n, stack_frame* frame)
                 case KFUNC:
                 case KPROC:
                 {
+                    if (AST_INFERRED(*n))
+                        return;
                     func_list* newNode = ADD_SYM(func_list, &funcs_head, &funcs_tail);
                     newNode->header.name = VAR_NAME(op[0]);
                     newNode->header.owner = NULL;
@@ -860,6 +887,8 @@ void analysis(ast_node** n, stack_frame* frame)
                 }
                 case ';':
                 {
+                    if (AST_INFERRED(*n))
+                        return;
                     if (arity)
                     {
                         analysis(&op[0], frame);
@@ -870,6 +899,8 @@ void analysis(ast_node** n, stack_frame* frame)
                 }
                 case '(':
                 {
+                    if (AST_INFERRED(*n))
+                        return;
                     if (!AST_DATA(*n))
                     {
                         func_list* func = FIND_SYM(func_list, funcs_head, op[0]);
@@ -903,10 +934,11 @@ void analysis(ast_node** n, stack_frame* frame)
                 }
                 case KDO:
                 {
+                    if (AST_INFERRED(*n))
+                        return;
                     op[0] = make_scope(op[0]);
                     stack_frame* sc_frame = malloc(sizeof(*sc_frame));
-                    *sc_frame = (stack_frame) {.function = frame->function, .loop = malloc(
-                            sizeof(loop_info)), .is_root = false, .vars = {.head = NULL, .tail = NULL}, .parent = frame};
+                    *sc_frame = (stack_frame) {.function = frame->function, .loop = new_loop_info(*n), .is_root = false, .vars = {.head = NULL, .tail = NULL}, .parent = frame};
                     SC_SCOPE(op[0]) = sc_frame;
                     analysis(&op[0], sc_frame);
                     analysis(&op[1], sc_frame);
@@ -914,20 +946,22 @@ void analysis(ast_node** n, stack_frame* frame)
                 }
                 case KLOOP:
                 {
+                    if (AST_INFERRED(*n))
+                        return;
                     op[0] = make_scope(op[0]);
                     stack_frame* sc_frame = malloc(sizeof(*sc_frame));
-                    *sc_frame = (stack_frame) {.function = frame->function, .loop = malloc(
-                            sizeof(loop_info)), .is_root = false, .vars = {.head = NULL, .tail = NULL}, .parent = frame};
+                    *sc_frame = (stack_frame) {.function = frame->function, .loop = new_loop_info(*n), .is_root = false, .vars = {.head = NULL, .tail = NULL}, .parent = frame};
                     SC_SCOPE(op[0]) = sc_frame;
                     analysis(&op[0], sc_frame);
                     break;
                 }
                 case KFOR:
                 {
+                    if (AST_INFERRED(*n))
+                        return;
                     op[3] = make_scope(op[3]);
                     stack_frame* sc_frame = malloc(sizeof(*sc_frame));
-                    *sc_frame = (stack_frame) {.function = frame->function, .loop = malloc(
-                            sizeof(loop_info)), .is_root = false, .vars = {.head = NULL, .tail = NULL}, .parent = frame};
+                    *sc_frame = (stack_frame) {.function = frame->function, .loop = new_loop_info(*n), .is_root = false, .vars = {.head = NULL, .tail = NULL}, .parent = frame};
                     SC_SCOPE(op[3]) = sc_frame;
                     analysis(&op[0], sc_frame);
                     analysis(&op[1], sc_frame);
@@ -1284,6 +1318,7 @@ void analysis(ast_node** n, stack_frame* frame)
                 }
                 case '=':
                 {
+                    expect_non_void(op[1]);
                     check_assignment(op[0], op[1]);
                     if (AST_KIND(op[1]) == k_ident && !strcmp(VAR_NAME(op[0]), VAR_NAME(op[1])))
                     {
@@ -1300,6 +1335,7 @@ void analysis(ast_node** n, stack_frame* frame)
                     {
                         analysis(&left->value, frame);
                         analysis(&right->value, frame);
+                        expect_non_void(right->value);
                         check_assignment(left->value, right->value);
                     }
 
@@ -1317,6 +1353,7 @@ void analysis(ast_node** n, stack_frame* frame)
                         return;
                     if (!TLEFT)
                         break;
+                    expect_non_void(op[0]);
                     if (!is_pointer(TLEFT))
                     {
                         info_msg(*n, "Dereferencing a non-pointer value\n");
@@ -1333,6 +1370,23 @@ void analysis(ast_node** n, stack_frame* frame)
                         error_msg(*n, "Break statement only permitted in loop\n");
                         exit(1);
                     }
+                    if (arity == 1)
+                    {
+                        expect_non_void(op[0]);
+                        if (AST_INFERRED(frame->loop->node))
+                        {
+                            if (!type_compatible(&TLEFT, AST_INFERRED(frame->loop->node)))
+                            {
+                                error_msg(op[0], "Loop return type mismatch; expected %s got %s\n",
+                                          type_display(AST_INFERRED(frame->loop->node)), type_display(TLEFT));
+                                exit(1);
+                            }
+                        }
+                        else
+                        {
+                            AST_INFERRED(frame->loop->node) = TLEFT;
+                        }
+                    }
                     SET_TYPE(VOID_TYPE);
                 }
                 case KCONTINUE:
@@ -1346,11 +1400,7 @@ void analysis(ast_node** n, stack_frame* frame)
                 }
                 case KIF:
                 {
-                    if (TLEFT == VOID_TYPE)
-                    {
-                        error_msg(op[0], "Expected condition, got void\n");
-                        exit(1);
-                    }
+                    expect_non_void(op[0]);
                     if (o[0].is_num)
                     {
                         if (o[0].value == 0)
@@ -1367,11 +1417,7 @@ void analysis(ast_node** n, stack_frame* frame)
                 }
                 case KDO:
                 {
-                    if (TRIGHT == VOID_TYPE)
-                    {
-                        error_msg(op[1], "Expected condition, got void\n");
-                        exit(1);
-                    }
+                    expect_non_void(op[1]);
                     if (o[1].is_num && o[1].value == 0)
                     {
                         *n = op[0];
@@ -1381,11 +1427,7 @@ void analysis(ast_node** n, stack_frame* frame)
                 }
                 case KFOR:
                 {
-                    if (op[1] && TRIGHT == VOID_TYPE)
-                    {
-                        error_msg(op[1], "Expected condition, got void\n");
-                        exit(1);
-                    }
+                    expect_non_void(op[1]);
                     if (o[1].is_num && o[1].value == 0)
                     {
                         *n = op[0];
@@ -1395,16 +1437,14 @@ void analysis(ast_node** n, stack_frame* frame)
                 }
                 case KLOOP:
                 {
-                    SET_TYPE(VOID_TYPE);
+                    if (!AST_INFERRED(*n))
+                        SET_TYPE(VOID_TYPE);
+                    return;
                 }
                 case KPRINT:
                 {
                     scalar_infer_auto(op[0]);
-                    if (TLEFT == VOID_TYPE)
-                    {
-                        error_msg(op[0], "Expected value, got void\n");
-                        exit(1);
-                    }
+                    expect_non_void(op[0]);
                     SET_TYPE(VOID_TYPE);
                 }
                 case KRETURN:
@@ -1430,7 +1470,7 @@ void analysis(ast_node** n, stack_frame* frame)
                             exit(1);
                         }
 
-                        if (!type_compatible(&AST_INFERRED(op[0]), frame->function->return_type))
+                        if (!type_compatible(&TLEFT, frame->function->return_type))
                         {
                             error_msg(op[0], "Return type mismatch; expected %s got %s\n",
                                       type_display(frame->function->return_type), type_display(TLEFT));
