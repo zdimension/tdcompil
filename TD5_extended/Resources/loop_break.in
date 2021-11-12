@@ -1,11 +1,13 @@
 {
 	var counter = 0;
 
-	loop
+	var x = loop
 	{
 		counter++;
 
 		if (counter == 10)
-			break counter;
+			break counter * 2;
 	};
+
+	print x; # 20
 }
