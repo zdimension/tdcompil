@@ -138,7 +138,7 @@ int type_size_cells(type_list const* type);
 
 const char* type_display_full(type_list const* type, bool inner, bool expand);
 
-void analysis(ast_node** n, stack_frame* frame);
+void analysis(ast_node** n, stack_frame* frame, bool force);
 
 var_list* get_var_id(ast_node* node, stack_frame* frame, find_flags flags);
 

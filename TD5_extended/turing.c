@@ -153,7 +153,7 @@ void produce_code(ast_node* n)
 
     init_builtin_types();
 
-    analysis(&n, &global_frame);
+    analysis(&n, &global_frame, false);
 
     {
         printf("# Types\n");

@@ -68,9 +68,11 @@ bool type_assignable(type_list const* given, type_list const* wanted)
         case T_SCALAR:
             return given->scalar_bits == wanted->scalar_bits;
         case T_ARRAY:
-            return given->array_count == wanted->array_count && type_assignable(given->array_target, wanted->array_target);
+            return given->array_count == wanted->array_count &&
+                   type_assignable(given->array_target, wanted->array_target);
         case T_POINTER:
-            return type_assignable(given->pointer_target, wanted->pointer_target) && !(given->pointer_target->is_const && !wanted->pointer_target->is_const);
+            return type_assignable(given->pointer_target, wanted->pointer_target) &&
+                   !(given->pointer_target->is_const && !wanted->pointer_target->is_const);
         case T_COMPOSITE:
             return false;
     }
@@ -271,7 +273,7 @@ int static_eval(ast_node** n, stack_frame* frame)
 {
     if (!AST_INFERRED(*n))
     {
-        analysis(n, frame);
+        analysis(n, frame, false);
     }
 
     if (AST_KIND(*n) != k_number)
@@ -393,7 +395,7 @@ type_list const* decode_spec(ast_node* spec, stack_frame* frame)
             }
             case KTYPEOF:
             {
-                analysis(&op[0], frame);
+                analysis(&op[0], frame, false);
                 scalar_infer_auto(op[0]);
                 return infer_type(op[0]);
             }
@@ -542,7 +544,7 @@ var_list* check_add_var(const char* name, stack_frame* frame, type_list const* t
 #define RETURN(x, type) do{*n = x; AST_INFERRED(*n) = type; return;}while(0)
 #define RETURN_VAL(x) do{*n = x; return;}while(0)
 #define SET_TYPE(type) do {AST_INFERRED(*n) = type; return;}while(0)
-#define RETURN_LVALUE(x) do {*n = make_node(DEREF, 1, x); analysis(n, frame); return;}while(0)
+#define RETURN_LVALUE(x) do {*n = make_node(DEREF, 1, x); analysis(n, frame, true); return;}while(0)
 
 ast_node* set_inferred_type(ast_node* n, type_list const* type)
 {
@@ -600,25 +602,21 @@ void expect_non_void(ast_node* n)
 /**
  * Static analysis + type checking + constant folding
  */
-void analysis(ast_node** n, stack_frame* frame)
+void analysis(ast_node** n, stack_frame* frame, bool force)
 {
     assert(frame);
 
     if (!*n)
         return;
 
-    /*  if (AST_INFERRED(*n))
-      {
-          return;
-          info_msg(*n, "Type already inferred\n");
-      }*/
+    if (!force && AST_INFERRED(*n))
+    {
+        return;
+    }
 
     yylloc.first_line = (*n)->info.line;
     yylloc.first_column = (*n)->info.col;
     yylloc.code = (*n)->info.code;
-
-    /* if (AST_INFERRED_POS(*n) != *n)
-         analysis(&AST_INFERRED_POS(*n), frame);*/
 
     switch (AST_KIND(*n))
     {
@@ -675,7 +673,7 @@ void analysis(ast_node** n, stack_frame* frame)
                 {
                     if (AST_INFERRED(*n))
                         return;
-                    analysis(&op[0], frame);
+                    analysis(&op[0], frame, false);
                     if (AST_KIND(op[0]) == k_number)
                     {
                         if (NUMBER_VALUE(op[0]) != 0)
@@ -696,7 +694,7 @@ void analysis(ast_node** n, stack_frame* frame)
                 {
                     if (AST_INFERRED(*n))
                         return;
-                    analysis(&op[0], frame);
+                    analysis(&op[0], frame, false);
                     type_list const* ltype = infer_type(op[0]);
                     if (ltype->type != T_COMPOSITE)
                     {
@@ -707,7 +705,7 @@ void analysis(ast_node** n, stack_frame* frame)
                     ast_node* lhs_ptr = get_position(op[0]);
                     set_inferred_type(lhs_ptr, make_pointer(member->type)); // convert to pointer to member
                     ast_node* ret = make_node('+', 2, lhs_ptr, make_number(member->position));
-                    analysis(&ret, frame);
+                    analysis(&ret, frame, false);
                     RETURN_LVALUE(ret);
                 }
                 case KSIZEOF:
@@ -840,7 +838,7 @@ void analysis(ast_node** n, stack_frame* frame)
                         check_add_var(VAR_NAME(OPER_OPERANDS(ptr->value)[0]), &newNode->frame,
                                       decode_spec(OPER_OPERANDS(ptr->value)[1], frame));
                     }
-                    analysis(&newNode->code, &newNode->frame);
+                    analysis(&newNode->code, &newNode->frame, false);
                     if (OPER_OPERATOR(*n) == KFUNC)
                     {
                         ast_node** code = &newNode->code;
@@ -874,7 +872,7 @@ void analysis(ast_node** n, stack_frame* frame)
                                         }
                                         ast_node* assignment = make_node(TUPLEASSIGN, 2, list,
                                                                          OPER_OPERANDS(returned)[1]);
-                                        analysis(&assignment, c_frame);
+                                        analysis(&assignment, c_frame, false);
                                         *code = make_node(KLOOP, 1,
                                                           make_node(';', 2, OPER_OPERANDS(*code)[0], assignment));
                                     }
@@ -891,8 +889,8 @@ void analysis(ast_node** n, stack_frame* frame)
                         return;
                     if (arity)
                     {
-                        analysis(&op[0], frame);
-                        analysis(&op[1], frame);
+                        analysis(&op[0], frame, false);
+                        analysis(&op[1], frame, false);
                         SET_TYPE(infer_type(op[1]));
                     }
                     SET_TYPE(VOID_TYPE);
@@ -912,7 +910,7 @@ void analysis(ast_node** n, stack_frame* frame)
                              list && flist;
                              list = list->next, flist = flist->next, fargs = (var_list*) fargs->header.next, i++)
                         {
-                            analysis(&list->value, frame);
+                            analysis(&list->value, frame, false);
                             if (!type_compatible(&AST_INFERRED(list->value), fargs->type))
                             {
                                 error_msg(list->value,
@@ -938,10 +936,11 @@ void analysis(ast_node** n, stack_frame* frame)
                         return;
                     op[0] = make_scope(op[0]);
                     stack_frame* sc_frame = malloc(sizeof(*sc_frame));
-                    *sc_frame = (stack_frame) {.function = frame->function, .loop = new_loop_info(*n), .is_root = false, .vars = {.head = NULL, .tail = NULL}, .parent = frame};
+                    *sc_frame = (stack_frame) {.function = frame->function, .loop = new_loop_info(
+                            *n), .is_root = false, .vars = {.head = NULL, .tail = NULL}, .parent = frame};
                     SC_SCOPE(op[0]) = sc_frame;
-                    analysis(&op[0], sc_frame);
-                    analysis(&op[1], sc_frame);
+                    analysis(&op[0], sc_frame, false);
+                    analysis(&op[1], sc_frame, false);
                     break;
                 }
                 case KLOOP:
@@ -950,9 +949,10 @@ void analysis(ast_node** n, stack_frame* frame)
                         return;
                     op[0] = make_scope(op[0]);
                     stack_frame* sc_frame = malloc(sizeof(*sc_frame));
-                    *sc_frame = (stack_frame) {.function = frame->function, .loop = new_loop_info(*n), .is_root = false, .vars = {.head = NULL, .tail = NULL}, .parent = frame};
+                    *sc_frame = (stack_frame) {.function = frame->function, .loop = new_loop_info(
+                            *n), .is_root = false, .vars = {.head = NULL, .tail = NULL}, .parent = frame};
                     SC_SCOPE(op[0]) = sc_frame;
-                    analysis(&op[0], sc_frame);
+                    analysis(&op[0], sc_frame, false);
                     break;
                 }
                 case KFOR:
@@ -961,12 +961,13 @@ void analysis(ast_node** n, stack_frame* frame)
                         return;
                     op[3] = make_scope(op[3]);
                     stack_frame* sc_frame = malloc(sizeof(*sc_frame));
-                    *sc_frame = (stack_frame) {.function = frame->function, .loop = new_loop_info(*n), .is_root = false, .vars = {.head = NULL, .tail = NULL}, .parent = frame};
+                    *sc_frame = (stack_frame) {.function = frame->function, .loop = new_loop_info(
+                            *n), .is_root = false, .vars = {.head = NULL, .tail = NULL}, .parent = frame};
                     SC_SCOPE(op[3]) = sc_frame;
-                    analysis(&op[0], sc_frame);
-                    analysis(&op[1], sc_frame);
-                    analysis(&op[2], sc_frame);
-                    analysis(&op[3], sc_frame);
+                    analysis(&op[0], sc_frame, false);
+                    analysis(&op[1], sc_frame, false);
+                    analysis(&op[2], sc_frame, false);
+                    analysis(&op[3], sc_frame, false);
                     break;
                 }
             }
@@ -980,7 +981,7 @@ void analysis(ast_node** n, stack_frame* frame)
             {
                 if (!op[i])
                     continue;
-                analysis(&op[i], frame);
+                analysis(&op[i], frame, false);
                 if ((o[i].is_num = AST_KIND(op[i]) == k_number))
                     o[i].value = NUMBER_VALUE(op[i]);
             }
@@ -1175,7 +1176,7 @@ void analysis(ast_node** n, stack_frame* frame)
                         else if (is_power_of_2(o[0].value))
                         {
                             *n = make_node(SHL, 2, op[1], make_number(highest_set_bit(o[0].value)));
-                            analysis(n, frame);
+                            analysis(n, frame, false);
                             return;
                         }
                     }
@@ -1192,7 +1193,7 @@ void analysis(ast_node** n, stack_frame* frame)
                         else if (is_power_of_2(o[1].value))
                         {
                             *n = make_node(SHL, 2, op[0], make_number(highest_set_bit(o[1].value)));
-                            analysis(n, frame);
+                            analysis(n, frame, false);
                             return;
                         }
                     }
@@ -1232,7 +1233,7 @@ void analysis(ast_node** n, stack_frame* frame)
                         else if (is_power_of_2(o[1].value))
                         {
                             *n = make_node(SHR, 2, op[0], make_number(highest_set_bit(o[1].value)));
-                            analysis(n, frame);
+                            analysis(n, frame, false);
                             return;
                         }
                     }
@@ -1333,8 +1334,8 @@ void analysis(ast_node** n, stack_frame* frame)
 
                     for (; left && right; left = left->next, right = right->next)
                     {
-                        analysis(&left->value, frame);
-                        analysis(&right->value, frame);
+                        analysis(&left->value, frame, false);
+                        analysis(&right->value, frame, false);
                         expect_non_void(right->value);
                         check_assignment(left->value, right->value);
                     }
@@ -1498,7 +1499,7 @@ void analysis(ast_node** n, stack_frame* frame)
                     *sc_frame = (stack_frame) {.function = frame->function, .loop = frame->loop, .is_root = false, .vars = {.head = NULL, .tail = NULL}, .parent = frame};
                     SC_SCOPE(*n) = sc_frame;
                 }
-                analysis(&SC_CODE(*n), SC_SCOPE(*n));
+                analysis(&SC_CODE(*n), SC_SCOPE(*n), false);
                 AST_INFERRED(*n) = infer_type(SC_CODE(*n));
             }
             return;
