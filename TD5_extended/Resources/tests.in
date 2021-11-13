@@ -1,16 +1,28 @@
 {
-	func fact(n: u32): u32
+	func isqrt(x: u16): u16
 	{
-		func fact_rec(n: u32, acc: u32): u32
-		{
-			if (n == 0)
-			{
-				return acc;
-			}
+		var rem: u16, root: u16;
 
-			return fact_rec(n - 1, acc * n);
+		for (var i = 0; i < 8; i++)
+		{
+			root = root << 1;
+			rem = (rem << 2) + (x >> 14);
+			x = x << 2;
+			root++;
+			if (root <= rem)
+			{
+				rem -= root;
+				root++;
+			}
+			else
+			{
+				root--;
+			}
 		}
-		return fact_rec(n, 1);
+
+		return root >> 1;
 	}
-	print fact(12);
+
+
+	print isqrt(32768);
 }

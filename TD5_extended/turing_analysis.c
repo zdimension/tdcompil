@@ -964,7 +964,7 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
                     *sc_frame = (stack_frame) {.function = frame->function, .loop = new_loop_info(
                             *n), .is_root = false, .vars = {.head = NULL, .tail = NULL}, .parent = frame};
                     SC_SCOPE(op[3]) = sc_frame;
-                    analysis(&op[0], sc_frame, false);
+                    analysis(&op[0], frame, false);
                     analysis(&op[1], sc_frame, false);
                     analysis(&op[2], sc_frame, false);
                     analysis(&op[3], sc_frame, false);
