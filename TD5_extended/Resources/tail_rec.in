@@ -3,14 +3,14 @@
 	{
 		func fact_rec(n: u32, acc: u32): u32
 		{
-			if (n == 0u32)
+			if (n == 0)
 			{
 				return acc;
 			}
-			var x = 5;
-			return fact_rec(n - 1u32, acc * n);
+
+			return fact_rec(n - 1, acc * n);
 		}
-		return fact_rec(n, 1u32);
+		return fact_rec(n, 1);
 	}
-	print fact(12u32);
+	print fact(12);
 }
