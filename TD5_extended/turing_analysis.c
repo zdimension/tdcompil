@@ -622,9 +622,6 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
     {
         case k_number:
         {
-            // preserve inferred type
-            if (AST_INFERRED(*n))
-                return;
             int size = NUMBER_SIZE(*n);
             if (size == 0)
             {
@@ -638,8 +635,6 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
         }
         case k_ident:
         {
-            if (AST_INFERRED(*n))
-                return;
             var_list* ptr = get_var_id(*n, frame, F_NULLABLE);
             if (ptr)
             {
@@ -671,8 +666,6 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
             {
                 case KASSERT:
                 {
-                    if (AST_INFERRED(*n))
-                        return;
                     analysis(&op[0], frame, false);
                     if (AST_KIND(op[0]) == k_number)
                     {
@@ -692,8 +685,6 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
                 }
                 case '.':
                 {
-                    if (AST_INFERRED(*n))
-                        return;
                     analysis(&op[0], frame, false);
                     type_list const* ltype = infer_type(op[0]);
                     if (ltype->type != T_COMPOSITE)
@@ -710,29 +701,21 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
                 }
                 case KSIZEOF:
                 {
-                    if (AST_INFERRED(*n))
-                        return;
                     type_list const* type = decode_spec(op[0], frame);
                     RETURN(make_number(type_size_cells(type)), WORD_TYPE);
                 }
                 case KBITSOF:
                 {
-                    if (AST_INFERRED(*n))
-                        return;
                     type_list const* type = decode_spec(op[0], frame);
                     RETURN(make_number(type_size_bits(type)), WORD_TYPE);
                 }
                 case KNEW:
                 {
-                    if (AST_INFERRED(*n))
-                        return;
                     type_list const* type = decode_spec(op[0], frame);
                     SET_TYPE(make_pointer(type));
                 }
                 case KCONST:
                 {
-                    if (AST_INFERRED(*n))
-                        return;
                     var_list* var = check_add_var(VAR_NAME(op[0]), frame, NULL);
                     if (!var)
                     {
@@ -748,8 +731,6 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
                 }
                 case KTYPE:
                 {
-                    if (AST_INFERRED(*n))
-                        return;
                     type_list* type = check_add_type(VAR_NAME(op[0]), frame);
                     if (!type)
                     {
@@ -776,8 +757,6 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
                 }
                 case KVAR:
                 {
-                    if (AST_INFERRED(*n))
-                        return;
                     switch (OPER_ARITY(*n))
                     {
                         case 2:
@@ -815,8 +794,6 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
                 case KFUNC:
                 case KPROC:
                 {
-                    if (AST_INFERRED(*n))
-                        return;
                     func_list* newNode = ADD_SYM(func_list, &funcs_head, &funcs_tail);
                     newNode->header.name = VAR_NAME(op[0]);
                     newNode->header.owner = NULL;
@@ -885,8 +862,6 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
                 }
                 case ';':
                 {
-                    if (AST_INFERRED(*n))
-                        return;
                     if (arity)
                     {
                         analysis(&op[0], frame, false);
@@ -897,8 +872,6 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
                 }
                 case '(':
                 {
-                    if (AST_INFERRED(*n))
-                        return;
                     if (!AST_DATA(*n))
                     {
                         func_list* func = FIND_SYM(func_list, funcs_head, op[0]);
@@ -932,8 +905,6 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
                 }
                 case KDO:
                 {
-                    if (AST_INFERRED(*n))
-                        return;
                     op[0] = make_scope(op[0]);
                     stack_frame* sc_frame = malloc(sizeof(*sc_frame));
                     *sc_frame = (stack_frame) {.function = frame->function, .loop = new_loop_info(
@@ -945,8 +916,6 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
                 }
                 case KLOOP:
                 {
-                    if (AST_INFERRED(*n))
-                        return;
                     op[0] = make_scope(op[0]);
                     stack_frame* sc_frame = malloc(sizeof(*sc_frame));
                     *sc_frame = (stack_frame) {.function = frame->function, .loop = new_loop_info(
@@ -957,8 +926,6 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
                 }
                 case KFOR:
                 {
-                    if (AST_INFERRED(*n))
-                        return;
                     op[3] = make_scope(op[3]);
                     stack_frame* sc_frame = malloc(sizeof(*sc_frame));
                     *sc_frame = (stack_frame) {.function = frame->function, .loop = new_loop_info(
@@ -1350,8 +1317,6 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
                 }
                 case DEREF:
                 {
-                    if (AST_INFERRED(*n))
-                        return;
                     if (!TLEFT)
                         break;
                     expect_non_void(op[0]);
@@ -1491,18 +1456,14 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
         }
         case k_scope:
         {
-            if (!AST_INFERRED(*n))
+            if (!SC_SCOPE(*n))
             {
-                if (!SC_SCOPE(*n))
-                {
-                    stack_frame* sc_frame = malloc(sizeof(*sc_frame));
-                    *sc_frame = (stack_frame) {.function = frame->function, .loop = frame->loop, .is_root = false, .vars = {.head = NULL, .tail = NULL}, .parent = frame};
-                    SC_SCOPE(*n) = sc_frame;
-                }
-                analysis(&SC_CODE(*n), SC_SCOPE(*n), false);
-                AST_INFERRED(*n) = infer_type(SC_CODE(*n));
+                stack_frame* sc_frame = malloc(sizeof(*sc_frame));
+                *sc_frame = (stack_frame) {.function = frame->function, .loop = frame->loop, .is_root = false, .vars = {.head = NULL, .tail = NULL}, .parent = frame};
+                SC_SCOPE(*n) = sc_frame;
             }
-            return;
+            analysis(&SC_CODE(*n), SC_SCOPE(*n), false);
+            SET_TYPE(infer_type(SC_CODE(*n)));
         }
     }
 
