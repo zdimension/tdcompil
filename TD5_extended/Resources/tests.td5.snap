@@ -1,0 +1,149 @@
+>{
+#^ source.rust punctuation.section.scope.begin.rust
+>	func isqrt(x: u16): u16
+#^^^^^^ source.rust
+#      ^^^^^ source.rust entity.name.function.rust.call
+#           ^ source.rust
+#            ^ source.rust
+#             ^ source.rust
+#              ^ source.rust
+#               ^^^ source.rust storage.type.rust
+#                  ^ source.rust
+#                   ^ source.rust
+#                    ^ source.rust
+#                     ^^^ source.rust storage.type.rust
+>	{
+#^ source.rust
+# ^ source.rust punctuation.section.scope.begin.rust
+>		var rem: u16, root: u16;
+#^^^^^^^^^ source.rust
+#         ^ source.rust
+#          ^ source.rust
+#           ^^^ source.rust storage.type.rust
+#              ^ source.rust
+#               ^^^^^ source.rust
+#                    ^ source.rust
+#                     ^ source.rust
+#                      ^^^ source.rust storage.type.rust
+#                         ^ source.rust
+>
+>		for (var i = 0; i < 8; i++)
+#^^ source.rust
+#  ^^^ source.rust keyword.control.rust
+#     ^^^^^^^^ source.rust
+#             ^ source.rust
+#              ^ source.rust
+#               ^ source.rust constant.numeric.integer.decimal.rust
+#                ^^^^ source.rust
+#                    ^ source.rust keyword.operator.rust
+#                     ^ source.rust
+#                      ^ source.rust constant.numeric.integer.decimal.rust
+#                       ^^^ source.rust
+#                          ^ source.rust keyword.operator.rust
+#                           ^ source.rust keyword.operator.rust
+#                            ^^ source.rust
+>		{
+#^^ source.rust
+#  ^ source.rust punctuation.section.scope.begin.rust
+>			root = root << 1;
+#^^^^^^^^ source.rust
+#        ^ source.rust keyword.operator.rust
+#         ^^^^^^ source.rust
+#               ^ source.rust keyword.operator.rust
+#                ^ source.rust keyword.operator.rust
+#                 ^ source.rust
+#                  ^ source.rust constant.numeric.integer.decimal.rust
+#                   ^^ source.rust
+>			rem = (rem << 2) + (x >> 14);
+#^^^^^^^ source.rust
+#       ^ source.rust keyword.operator.rust
+#        ^^^^^^ source.rust
+#              ^ source.rust keyword.operator.rust
+#               ^ source.rust keyword.operator.rust
+#                ^ source.rust
+#                 ^ source.rust constant.numeric.integer.decimal.rust
+#                  ^^ source.rust
+#                    ^ source.rust keyword.operator.rust
+#                     ^^^^ source.rust
+#                         ^ source.rust keyword.operator.rust
+#                          ^ source.rust keyword.operator.rust
+#                           ^ source.rust
+#                            ^^ source.rust constant.numeric.integer.decimal.rust
+#                              ^^^ source.rust
+>			x = x << 2;
+#^^^^^ source.rust
+#     ^ source.rust keyword.operator.rust
+#      ^^^ source.rust
+#         ^ source.rust keyword.operator.rust
+#          ^ source.rust keyword.operator.rust
+#           ^ source.rust
+#            ^ source.rust constant.numeric.integer.decimal.rust
+#             ^^ source.rust
+>			root++;
+#^^^^^^^ source.rust
+#       ^ source.rust keyword.operator.rust
+#        ^ source.rust keyword.operator.rust
+#         ^^ source.rust
+>			if (root <= rem)
+#^^^ source.rust
+#   ^^ source.rust keyword.control.rust
+#     ^^^^^^^ source.rust
+#            ^ source.rust keyword.operator.rust
+#             ^ source.rust keyword.operator.rust
+#              ^^^^^^ source.rust
+>			{
+#^^^ source.rust
+#   ^ source.rust punctuation.section.scope.begin.rust
+>				rem -= root;
+#^^^^^^^^ source.rust
+#        ^ source.rust keyword.operator.rust
+#         ^ source.rust keyword.operator.rust
+#          ^^^^^^^ source.rust
+>				root++;
+#^^^^^^^^ source.rust
+#        ^ source.rust keyword.operator.rust
+#         ^ source.rust keyword.operator.rust
+#          ^^ source.rust
+>			}
+#^^^ source.rust
+#   ^ source.rust punctuation.section.scope.end.rust
+>			else
+#^^^ source.rust
+#   ^^^^ source.rust keyword.control.rust
+>			{
+#^^^ source.rust
+#   ^ source.rust punctuation.section.scope.begin.rust
+>				root--;
+#^^^^^^^^ source.rust
+#        ^ source.rust keyword.operator.rust
+#         ^ source.rust keyword.operator.rust
+#          ^^ source.rust
+>			}
+#^^^ source.rust
+#   ^ source.rust punctuation.section.scope.end.rust
+>		}
+#^^ source.rust
+#  ^ source.rust punctuation.section.scope.end.rust
+>
+>		return root >> 1;
+#^^ source.rust
+#  ^^^^^^ source.rust keyword.control.rust
+#        ^^^^^^ source.rust
+#              ^ source.rust keyword.operator.rust
+#               ^ source.rust keyword.operator.rust
+#                ^ source.rust
+#                 ^ source.rust constant.numeric.integer.decimal.rust
+#                  ^^ source.rust
+>	}
+#^ source.rust
+# ^ source.rust punctuation.section.scope.end.rust
+>
+>
+>	print isqrt(32768);
+#^^^^^^^ source.rust
+#       ^^^^^ source.rust entity.name.function.rust.call
+#            ^ source.rust
+#             ^^^^^ source.rust constant.numeric.integer.decimal.rust
+#                  ^^^ source.rust
+>}
+#^ source.rust punctuation.section.scope.end.rust

@@ -1,0 +1,31 @@
+{
+    "name": "td5_textmate",
+    "displayName": "TD5_extended",
+    "description": "TD5_extended.",
+    "author": "Tom Niget",
+    "version": "1.0.0",
+    "keywords": [
+      "syntax",
+      "highlighting"
+    ],
+    "categories": [
+        "Programming Languages"
+    ],
+    "license": "MIT",
+    "engines": {
+        "vscode": "^1.50.0"
+    },
+    "contributes": {
+        "languages": [{
+            "id": "td5",
+            "aliases": ["TD5_extended"],
+            "extensions": [".td5"],
+            "configuration": "./language-configuration.json"
+        }],
+        "grammars": [{
+            "language": "td5",
+            "scopeName": "source.td5",
+            "path": "./syntaxes/td5.tmLanguage.json"
+        }]
+    }
+}

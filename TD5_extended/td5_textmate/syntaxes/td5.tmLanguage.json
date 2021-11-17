@@ -1,0 +1,134 @@
+{
+    "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+    "name": "TD5_extended",
+	"scopeName": "source.td5",
+    "fileTypes": [".td5"],
+    "patterns": [
+        {
+            "include": "#types"
+        },
+        {
+            "include": "#storage_types"
+        },
+        {
+            "include": "#line_comment"
+        },
+        {
+            "match": "(\\{)",
+            "name": "punctuation.section.scope.begin.td5"
+        },
+        {
+            "match": "(\\})",
+            "name": "punctuation.section.scope.end.td5"
+        },
+        {
+            "include": "#string_like_literals"
+        },
+        {
+            "match": "\\b[0-9]+(u[1-9][0-9]*)?\\b",
+            "name": "constant.numeric.integer.decimal.td5"
+        },
+        {
+            "name": "storage.modifier.const.td5",
+            "match": "\\bconst\\b"
+        },
+        {
+            "name": "constant.language.boolean.td5",
+            "match": "\\b(true|false)\\b"
+        },
+        {
+            "name": "keyword.control.td5",
+            "match": "\\b(break|continue|do|else|if|for|loop|return|while)\\b"
+        },
+        {
+            "name": "keyword.other.decl.td5",
+            "match": "\\b(var|type|const)\\b"
+        },
+        {
+            "name": "keyword.other.special.td5",
+            "match": "\\b(print|read|struct|new)\\b"
+        },
+        {
+            "name": "keyword.operator.td5",
+            "match": "(\\+|-|/|\\*|=|&|\\||~|>|<|)"
+        },
+        {
+            "begin": "\\b(func|proc)\\s+([a-zA-Z_][a-zA-Z0-9_]*)",
+            "beginCaptures": {
+                "1": {
+                    "name": "keyword.other.func.td5"
+                },
+                "2": {
+                    "name": "entity.name.function.td5"
+                }
+            },
+            "end": "\\{",
+            "patterns": [
+                {
+                    "include": "$self"
+                }
+            ]
+        },
+        {
+            "begin": "\\b(type)\\s+([a-zA-Z_][a-zA-Z0-9_]*)",
+            "beginCaptures": {
+                "1": {
+                    "name": "storage.type.td5"
+                },
+                "2": {
+                    "name": "entity.name.type.td5"
+                }
+            },
+            "end": ";",
+            "patterns": [
+                {
+                    "include": "$self"
+                }
+            ]
+        },
+        {
+            "captures": {
+                "1": {
+                    "name": "entity.name.function.td5"
+                }
+            },
+            "match": "\\b([a-zA-Z_][a-zA-Z0-9_]*)\\s*\\("
+        },
+        {
+            "begin": ":",
+            "end": "[,;]",
+            "patterns": [
+                {
+                    "include": "$self"
+                }
+            ]
+        }
+    ],
+    "repository": {
+        "types": {
+            "patterns": []
+        },
+        "storage_types": {
+            "patterns": [{
+                "name": "storage.type.td5",
+                "match": "\\b(bool|u\\d+)\\b"
+            }]
+        },
+        "string_like_literals": {
+            "patterns": [{
+                "name": "string.quoted.double.td5",
+                "match": "\"(\\\\.|[^\"])*\""
+            }, {
+                "name": "string.quoted.single.td5",
+                "match": "'(\\\\.|[^'])*'"
+            }]
+        },
+        "line_comment": {
+            "patterns": [{
+                "name": "comment.line.td5",
+                "begin": "#",
+                "end": "\n"
+            }]
+        }
+    }
+}
