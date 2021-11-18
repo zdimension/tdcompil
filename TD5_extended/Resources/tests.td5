@@ -1,28 +1,12 @@
 {
-	func isqrt(x: u16): u16
+	var x = 5;
+
+	if (x is 5 | 6)
 	{
-		var rem: u16, root: u16;
-
-		for (var i = 0; i < 8; i++)
-		{
-			root = root << 1;
-			rem = (rem << 2) + (x >> 14);
-			x = x << 2;
-			root++;
-			if (root <= rem)
-			{
-				rem -= root;
-				root++;
-			}
-			else
-			{
-				root--;
-			}
-		}
-
-		return root >> 1;
+	    print 1;
 	}
-
-
-	print isqrt(32768);
+	else
+	{
+	    print 2;
+    }
 }

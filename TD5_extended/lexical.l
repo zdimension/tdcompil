@@ -54,7 +54,7 @@
 
 	/* ---- Single char tokens ---- */
 
-[-()\[\]<>=+*/;{}.&~,_:]			{ return *yytext; }
+[-()\[\]<>=+*/;{}.&~,_:\|]			{ return *yytext; }
 
 	/* ---- "complex" tokens ---- */
 ">="				{ return GE; }
@@ -71,6 +71,7 @@
 "||" { return OR; }
 "<<" { return SHL; }
 ">>" { return SHR; }
+"=>" { return ARROW; }
 
 "print"         		{ return KPRINT; }
 "while" { return KWHILE; }
@@ -94,6 +95,8 @@
 "new" { return KNEW; }
 "assert" { return KASSERT; }
 "loop" { return KLOOP; }
+"match" { return KMATCH; }
+"is" { return KIS; }
 
 	/* ---- Idents ---- */
 [a-zA-Z_][a-zA-Z0-9_]*			{ yylval.var = strdup(yytext); return IDENT; }

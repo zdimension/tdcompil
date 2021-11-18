@@ -664,6 +664,36 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
 
             switch (OPER_OPERATOR(*n))
             {
+                case '|':
+                {
+                    analysis(&op[0], frame, false);
+                    analysis(&op[1], frame, false);
+                    SET_TYPE(VOID_TYPE);// todo: pattern type?
+                }
+                case KIS:
+                {
+                    analysis(&op[0], frame, false);
+                    analysis(&op[1], frame, false);
+
+                    if (AST_KIND(op[1]) == k_operator)
+                    {
+                        if (OPER_OPERATOR(op[1]) == '|')
+                        {
+                            ast_node* truc = make_node(OR, 2,
+                                                       make_node(KIS, 2, op[0], OPER_OPERANDS(op[1])[0]),
+                                                       make_node(KIS, 2, op[0], OPER_OPERANDS(op[1])[1]));
+                            analysis(&truc, frame, false);
+                            RETURN(truc, BOOL_TYPE);
+                        }
+                    }
+
+                    ast_node* ret = make_node(EQ, 2, op[0], op[1]);
+                    analysis(&ret, frame, false);
+                    RETURN(ret, BOOL_TYPE);
+
+                    /*error_msg(*n, "Could not analyse pattern\n");
+                    exit(1);*/
+                }
                 case KASSERT:
                 {
                     analysis(&op[0], frame, false);
