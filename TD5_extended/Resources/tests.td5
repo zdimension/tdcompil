@@ -1,7 +1,7 @@
 {
 	var x = 5;
 
-	if (x is 5 | 6)
+	if (x is 3..=8)
 	{
 		print 1;
 	}

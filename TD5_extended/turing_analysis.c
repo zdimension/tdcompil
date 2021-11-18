@@ -665,6 +665,7 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
             switch (OPER_OPERATOR(*n))
             {
                 case '|':
+                case RANGE:
                 {
                     analysis(&op[0], frame, false);
                     analysis(&op[1], frame, false);
@@ -675,15 +676,46 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
                     analysis(&op[0], frame, false);
                     analysis(&op[1], frame, false);
 
-                    if (AST_KIND(op[1]) == k_operator)
+                    if (!op[1])
                     {
-                        if (OPER_OPERATOR(op[1]) == '|')
+                        RETURN(make_number(1), BOOL_TYPE);
+                    }
+                    else if (AST_KIND(op[1]) == k_operator)
+                    {
+                        switch (OPER_OPERATOR(op[1]))
                         {
-                            ast_node* truc = make_node(OR, 2,
-                                                       make_node(KIS, 2, op[0], OPER_OPERANDS(op[1])[0]),
-                                                       make_node(KIS, 2, op[0], OPER_OPERANDS(op[1])[1]));
-                            analysis(&truc, frame, false);
-                            RETURN(truc, BOOL_TYPE);
+                            case '|':
+                            {
+                                ast_node* truc = make_node(OR, 2,
+                                                           make_node(KIS, 2, op[0], OPER_OPERANDS(op[1])[0]),
+                                                           make_node(KIS, 2, op[0], OPER_OPERANDS(op[1])[1]));
+                                analysis(&truc, frame, false);
+                                RETURN(truc, BOOL_TYPE);
+                            }
+                            case RANGE:
+                            {
+                                ast_node* left = OPER_OPERANDS(op[1])[0];
+                                ast_node* right = OPER_OPERANDS(op[1])[1];
+                                ast_node* res;
+                                if (left && right)
+                                {
+                                    res = make_scope(make_node('{', 2,
+                                                               make_node(';', 2,
+                                                                         make_node(KVAR, 2, make_ident("$"), make_node(KTYPEOF, 1, op[0])),
+                                                                         clean_stack(make_node('=', 2, make_ident("$"), op[0]))),
+                                                               make_node(AND, 2,
+                                                                         make_node(GE, 2, make_ident("$"), left),
+                                                                         make_node(AST_DATA(op[1]) ? LE : '<', 2, make_ident("$"), right)
+                                                                         )));
+
+                                }
+                                else if (left)
+                                    res = make_node(GE, 2, op[0], left);
+                                else
+                                    res = make_node('<', 2, op[0], right);
+                                analysis(&res, frame, false);
+                                RETURN(res, BOOL_TYPE);
+                            }
                         }
                     }
 
@@ -1012,7 +1044,7 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
                 {
                     if (!type_compatible_symmetric(&TLEFT, &TRIGHT))
                     {
-                        error_msg(*n, "Cannot perform arithmetic comparison '%c' on different types %s and %s",
+                        error_msg(*n, "Cannot perform arithmetic comparison '%c' on different types %s and %s\n",
                                   OPER_OPERATOR(*n), type_display(TLEFT), type_display(TRIGHT));
                         exit(1);
                     }

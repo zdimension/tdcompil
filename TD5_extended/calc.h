@@ -66,6 +66,8 @@ typedef struct ast_node_s
 #define AST_INFERRED(p)         (((ast_node*)(p))->inferred_type)
 #define AST_DATA(p)           (((ast_node*)(p))->data)
 
+ast_node* clean_stack(ast_node* p);
+
 // ----------------------------------------------------------------------
 //		Idents stuff
 // ----------------------------------------------------------------------

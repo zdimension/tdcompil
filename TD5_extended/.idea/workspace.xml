@@ -21,6 +21,12 @@
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Resources/tests.am" beforeDir="false" afterPath="$PROJECT_DIR$/Resources/tests.am" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Resources/tests.td5" beforeDir="false" afterPath="$PROJECT_DIR$/Resources/tests.td5" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/calc.c" beforeDir="false" afterPath="$PROJECT_DIR$/calc.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/calc.h" beforeDir="false" afterPath="$PROJECT_DIR$/calc.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lexical.l" beforeDir="false" afterPath="$PROJECT_DIR$/lexical.l" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/syntax.y" beforeDir="false" afterPath="$PROJECT_DIR$/syntax.y" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/turing_analysis.c" beforeDir="false" afterPath="$PROJECT_DIR$/turing_analysis.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/turing_dis.c" beforeDir="false" afterPath="$PROJECT_DIR$/turing_dis.c" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -134,7 +140,7 @@
       <workItem from="1637088107336" duration="2000" />
       <workItem from="1637088321828" duration="2000" />
       <workItem from="1637092553268" duration="602000" />
-      <workItem from="1637186344841" duration="15849000" />
+      <workItem from="1637186344841" duration="17715000" />
     </task>
     <servers />
   </component>
@@ -161,7 +167,7 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
           <url>file://$PROJECT_DIR$/turing_dis.c</url>
-          <line>302</line>
+          <line>303</line>
           <option name="timeStamp" value="155" />
         </line-breakpoint>
       </breakpoints>

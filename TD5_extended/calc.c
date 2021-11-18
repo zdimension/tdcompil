@@ -30,6 +30,12 @@ extern int yylineno;                    // line number defined by lex
 
 static ast_node* allocate_node(int size);
 
+ast_node* clean_stack(ast_node* p)
+{
+    AST_CLEAN_STACK(p) = true;
+    return p;
+}
+
 
 // ----------------------------------------------------------------------
 //		Idents stuff

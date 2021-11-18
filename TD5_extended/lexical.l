@@ -72,6 +72,8 @@
 "<<" { return SHL; }
 ">>" { return SHR; }
 "=>" { return ARROW; }
+".." { return RANGE; }
+"..=" { return IRANGE; }
 
 "print"         		{ return KPRINT; }
 "while" { return KWHILE; }

@@ -196,6 +196,7 @@ void write_code(ast_node* n)
                     un_stmt("new");
                     sci();
                     return;
+
                 case KPRINT:
                     code_n("print ");
                     write_inline(op[0]);
@@ -327,6 +328,13 @@ void write_code(ast_node* n)
                             code_n(", ");
                     }
                     code_n(")");
+                    sci();
+                    return;
+                case '{':
+                    code_n("{");
+                    write_inline(op[0]);
+                    write_inline(op[1]);
+                    code_n("}");
                     sci();
                     return;
             }

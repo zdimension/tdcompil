@@ -40,7 +40,7 @@ void yyerror(const char *s);
 //                      Tokens
 %token  <number>         NUMBER
 %token  <var>           IDENT STRING
-%token                  KWHILE KIF KPRINT KELSE KREAD KFOR KDO KVAR KFUNC KRETURN KPROC KBREAK KCONTINUE KCONST KTYPE KTYPEOF KSIZEOF KSTRUCT KBITSOF KNEW KASSERT KLOOP KMATCH KIS
+%token                  KWHILE KIF KPRINT KELSE KREAD KFOR KDO KVAR KFUNC KRETURN KPROC KBREAK KCONTINUE KCONST KTYPE KTYPEOF KSIZEOF KSTRUCT KBITSOF KNEW KASSERT KLOOP KMATCH KIS RANGE IRANGE
 %token '+' '-' '*' '/' GE LE EQ NE '>' '<' REF DEREF APL AMN AML ADV INC DEC AND OR SHL SHR ARROW
 %token UMINUS VDECL SCOPE TUPLEASSIGN
 //                       Precedence rules
@@ -227,8 +227,10 @@ aug_assign
     ;
 
 pattern_basic
-	: l_and_expr					{ $$ = $1; }
-	| '_'							{ $$ = NULL; }
+	: l_and_expr						{ $$ = $1; }
+	| pattern_basic RANGE l_and_expr 	{ $$ = make_node(RANGE, 2, $1, $3); }
+	| pattern_basic IRANGE l_and_expr 	{ $$ = make_node(RANGE, 2, $1, $3); AST_DATA($$) = (void*) 1; }
+	| '_'								{ $$ = NULL; }
 	;
 
 pattern
