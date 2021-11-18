@@ -795,7 +795,7 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
                         case 2:
                         {
                             const type_list* type = op[1] ? decode_spec(op[1], frame) : WORD_TYPE;
-                            AST_INFERRED(op[0]) = type;
+                            AST_DATA(op[0]) = (void*) type;
                             var_list* var = check_add_var(VAR_NAME(op[0]), frame, type);
                             if (!var)
                             {
@@ -810,7 +810,7 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
                             type->type = T_ARRAY;
                             type->array_count = static_eval(&op[1], frame);
                             type->array_target = WORD_TYPE;
-                            AST_INFERRED(op[0]) = type;
+                            AST_DATA(op[0]) = (void*) type;
                             var_list* var = check_add_var(VAR_NAME(op[0]), frame, type);
                             if (!var)
                             {
@@ -834,7 +834,7 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
                     newNode->header.owner = NULL;
                     newNode->return_type = OPER_OPERATOR(*n) == KPROC ? VOID_TYPE :
                                            (op[3] ? decode_spec(op[3], frame) : WORD_TYPE);
-                    AST_INFERRED(op[0]) = newNode->return_type;
+                    AST_DATA(op[0]) = (void*) newNode->return_type;
                     newNode->arglist = AST_LIST_HEAD(op[1]);
                     newNode->callsites = NULL;
                     newNode->frame = (stack_frame) {

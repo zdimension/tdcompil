@@ -1,16 +1,12 @@
 {
-	func fact(n: u32): u32
-	{
-		func fact_rec(n: u32, acc: u32): u32
-		{
-			if (n == 0)
-			{
-				return acc;
-			}
+	var x = 5;
 
-			return fact_rec(n - 1, acc * n);
-		}
-		return fact_rec(n, 1);
+	if (x is 5 | 6)
+	{
+		print 1;
 	}
-	print fact(12);
+	else
+	{
+        print 2;
+    }
 }

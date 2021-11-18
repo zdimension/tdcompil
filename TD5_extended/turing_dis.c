@@ -226,7 +226,7 @@ void write_code(ast_node* n)
                     {
                         case 2:
                         {
-                            code_n(": %s", type_display(AST_INFERRED(op[0])));
+                            code_n(": %s", type_display(AST_DATA(op[0])));
                             break;
                         }
                         case 3:
@@ -293,7 +293,7 @@ void write_code(ast_node* n)
                         if (lst->next)
                             code_n(", ");
                     }
-                    code_n("): %s\n", type_display(AST_INFERRED(op[0])));
+                    code_n("): %s\n", type_display(AST_DATA(op[0])));
                     expect_sub = true;
                     indent++;
                     write_code(op[2]);
