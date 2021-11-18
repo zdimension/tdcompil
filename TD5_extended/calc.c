@@ -92,6 +92,7 @@ ast_node* make_scope(ast_node* code)
     initialize_header(p, k_scope);
     SC_CODE(p) = code;
     SC_SCOPE(p) = NULL;
+    AST_CLEAN_STACK(p) = true;
     return p;
 }
 

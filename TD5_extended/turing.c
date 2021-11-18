@@ -149,8 +149,6 @@ void emit_main(ast_node* n);
 // ---------------------------------------------------------------------
 void produce_code(ast_node* n)
 {
-    optimize = true;
-
     init_builtin_types();
 
     analysis(&n, &global_frame, false);
@@ -164,11 +162,18 @@ void produce_code(ast_node* n)
         }
     }
 
-    emit_main(n);
+    if (write_c)
+    {
+        write_code(n);
+    }
+    else
+    {
+        emit_main(n);
 
-    emit_functions();
+         emit_functions();
 
-    emit_functions_epilogues();
+         emit_functions_epilogues();
+    }
 }
 
 

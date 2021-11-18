@@ -154,7 +154,5 @@ void error_msg(ast_node* node, const char* format, ...);        // Display an er
 void info_msg(ast_node* node, const char* format, ...);        // Display an info message
 void free_node(ast_node* p);                    // Freeing a node
 
-extern bool optimize;
-
 
 #endif /* _CALC_H_ */

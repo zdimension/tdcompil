@@ -189,9 +189,9 @@ int type_size_cells(type_list const* type)
     }
 }
 
-const char* type_display_full_inner(type_list const* type, bool inner, bool expand)
+const char* type_display_full_inner(type_list const* type, int inner, bool expand)
 {
-    if (!inner && type->header.name)
+    if (inner <= 0 && type->header.name)
         return type->header.name;
 
     switch (type->type)
@@ -222,13 +222,13 @@ const char* type_display_full_inner(type_list const* type, bool inner, bool expa
         }
         case T_COMPOSITE:
         {
-            if (!expand)
+            if (inner <= 0)
                 return "<anonymous type>";
             char* buf = malloc(1024);
             int p = sprintf(buf, "struct { ");
             for (var_list* ptr = type->composite_members.head; ptr; ptr = (var_list*) ptr->header.next)
             {
-                p += sprintf(buf + p, "%s: %s; ", ptr->header.name, type_display_full(ptr->type, inner, true));
+                p += sprintf(buf + p, "%s: %s; ", ptr->header.name, type_display_full(ptr->type, inner - 1, true));
             }
             strcat(buf + p, "}");
             return buf;
@@ -245,7 +245,7 @@ const char* type_display_full_inner(type_list const* type, bool inner, bool expa
  * @param expand If true, will expand composite types, otherwise will display "<anonymous type>"
  * @return A human-readable textual representation of the specified type
  */
-const char* type_display_full(type_list const* type, bool inner, bool expand)
+const char* type_display_full(type_list const* type, int inner, bool expand)
 {
     const char* res = type_display_full_inner(type, inner, expand);
     if (type->is_const)
@@ -757,11 +757,14 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
                     type->is_const = true;
                     var->type = type;
                     var->value = static_eval(&op[1], frame);
-                    SET_TYPE(VOID_TYPE);
+                    *n = NULL;
+                    return;
+                    //SET_TYPE(VOID_TYPE);
                 }
                 case KTYPE:
                 {
                     type_list* type = check_add_type(VAR_NAME(op[0]), frame);
+                    AST_INFERRED(op[0]) = type;
                     if (!type)
                     {
                         error_msg(*n, "Cannot redeclare type '%s'\n", VAR_NAME(op[0]));
@@ -792,6 +795,7 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
                         case 2:
                         {
                             const type_list* type = op[1] ? decode_spec(op[1], frame) : WORD_TYPE;
+                            AST_INFERRED(op[0]) = type;
                             var_list* var = check_add_var(VAR_NAME(op[0]), frame, type);
                             if (!var)
                             {
@@ -806,6 +810,7 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
                             type->type = T_ARRAY;
                             type->array_count = static_eval(&op[1], frame);
                             type->array_target = WORD_TYPE;
+                            AST_INFERRED(op[0]) = type;
                             var_list* var = check_add_var(VAR_NAME(op[0]), frame, type);
                             if (!var)
                             {
@@ -829,6 +834,7 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
                     newNode->header.owner = NULL;
                     newNode->return_type = OPER_OPERATOR(*n) == KPROC ? VOID_TYPE :
                                            (op[3] ? decode_spec(op[3], frame) : WORD_TYPE);
+                    AST_INFERRED(op[0]) = newNode->return_type;
                     newNode->arglist = AST_LIST_HEAD(op[1]);
                     newNode->callsites = NULL;
                     newNode->frame = (stack_frame) {
@@ -842,8 +848,10 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
                     SC_SCOPE(newNode->code) = &newNode->frame;
                     for (linked_list* ptr = newNode->arglist; ptr; ptr = ptr->next)
                     {
-                        check_add_var(VAR_NAME(OPER_OPERANDS(ptr->value)[0]), &newNode->frame,
-                                      decode_spec(OPER_OPERANDS(ptr->value)[1], frame));
+                        ast_node* argname = OPER_OPERANDS(ptr->value)[0];
+                        const type_list* spec = decode_spec(OPER_OPERANDS(ptr->value)[1], frame);
+                        AST_INFERRED(argname) = spec;
+                        check_add_var(VAR_NAME(argname), &newNode->frame, spec);
                     }
                     analysis(&newNode->code, &newNode->frame, false);
                     if (OPER_OPERATOR(*n) == KFUNC)
@@ -879,9 +887,11 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
                                         }
                                         ast_node* assignment = make_node(TUPLEASSIGN, 2, list,
                                                                          OPER_OPERANDS(returned)[1]);
-                                        analysis(&assignment, c_frame, false);
-                                        *code = make_node(KLOOP, 1,
-                                                          make_node(';', 2, OPER_OPERANDS(*code)[0], assignment));
+                                        AST_CLEAN_STACK(assignment) = true;
+                                        ast_node* loop_code = (make_node(';', 2, OPER_OPERANDS(*code)[0], assignment));
+                                        *code = make_node(KLOOP, 1, loop_code);
+                                        analysis(code, c_frame, false);
+                                        AST_CLEAN_STACK(*code) = true;
                                     }
                                 }
                             }
@@ -951,6 +961,7 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
                     *sc_frame = (stack_frame) {.function = frame->function, .loop = new_loop_info(
                             *n), .is_root = false, .vars = {.head = NULL, .tail = NULL}, .parent = frame};
                     SC_SCOPE(op[0]) = sc_frame;
+                    AST_CLEAN_STACK(op[0]) = AST_CLEAN_STACK(*n);
                     analysis(&op[0], sc_frame, false);
                     break;
                 }
@@ -1331,7 +1342,7 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
 
                     for (; left && right; left = left->next, right = right->next)
                     {
-                        analysis(&left->value, frame, false);
+                        analysis(&left->value, frame, true);
                         analysis(&right->value, frame, false);
                         expect_non_void(right->value);
                         check_assignment(left->value, right->value);

@@ -110,7 +110,7 @@ expr_or_inline_decl
 expr_discard_or_inline_decl_opt
 	: 								{ $$ = NULL; }
 	| expr_discard					{ $$ = $1; }
-    | KVAR var_decl_list			{ $$ = $2; }
+    | KVAR var_decl_list			{ $$ = $2; AST_CLEAN_STACK($2) = true; }
 	;
 
 stmt_braced
@@ -353,7 +353,7 @@ var
 %%
 void yyerror(const char *s)     { error_msg(NULL, "%s\n",s); exit(1); }
 int  yywrap(void)               { return 1;          } // to avoid linking with -ldl
-bool optimize = false;
+bool write_c = false;
 int  main(int argc, char* argv[]) {
   extern FILE *yyin;
   yyin = stdin;
@@ -363,9 +363,11 @@ int  main(int argc, char* argv[]) {
       fprintf(stderr, "%s: cannot open input file '%s'\n", *argv, argv[1]);
       exit(1);
     }
-    if (argc >= 3 && !strcmp(argv[2], "-O")) {
-      printf("# Optimizations enabled\n");
-      optimize = true;
+    for (int i = 2; i < argc; i++) {
+      if (!strcmp(argv[i], "-c")) {
+		printf("# Write C code\n");
+	    write_c = true;
+	  }
     }
   }
   return yyparse();

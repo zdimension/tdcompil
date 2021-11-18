@@ -123,6 +123,7 @@ extern type_list const* WORD_TYPE;
 extern type_list const* BOOL_TYPE;
 
 extern int label;
+extern bool write_c;
 
 typedef enum
 {
@@ -136,7 +137,7 @@ const char* type_display(type_list const* type);
 
 int type_size_cells(type_list const* type);
 
-const char* type_display_full(type_list const* type, bool inner, bool expand);
+const char* type_display_full(type_list const* type, int inner, bool expand);
 
 void analysis(ast_node** n, stack_frame* frame, bool force);
 
@@ -157,3 +158,5 @@ void init_builtin_types();
 int type_size_bits(type_list const* type);
 
 type_list const* decode_spec(ast_node* spec, stack_frame* frame);
+
+void write_code(ast_node* n);
