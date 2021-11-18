@@ -671,61 +671,6 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
                     analysis(&op[1], frame, false);
                     SET_TYPE(VOID_TYPE);// todo: pattern type?
                 }
-                case KIS:
-                {
-                    analysis(&op[0], frame, false);
-                    analysis(&op[1], frame, false);
-
-                    if (!op[1])
-                    {
-                        RETURN(make_number(1), BOOL_TYPE);
-                    }
-                    else if (AST_KIND(op[1]) == k_operator)
-                    {
-                        switch (OPER_OPERATOR(op[1]))
-                        {
-                            case '|':
-                            {
-                                ast_node* truc = make_node(OR, 2,
-                                                           make_node(KIS, 2, op[0], OPER_OPERANDS(op[1])[0]),
-                                                           make_node(KIS, 2, op[0], OPER_OPERANDS(op[1])[1]));
-                                analysis(&truc, frame, false);
-                                RETURN(truc, BOOL_TYPE);
-                            }
-                            case RANGE:
-                            {
-                                ast_node* left = OPER_OPERANDS(op[1])[0];
-                                ast_node* right = OPER_OPERANDS(op[1])[1];
-                                ast_node* res;
-                                if (left && right)
-                                {
-                                    res = make_scope(make_node('{', 2,
-                                                               make_node(';', 2,
-                                                                         make_node(KVAR, 2, make_ident("$"), make_node(KTYPEOF, 1, op[0])),
-                                                                         clean_stack(make_node('=', 2, make_ident("$"), op[0]))),
-                                                               make_node(AND, 2,
-                                                                         make_node(GE, 2, make_ident("$"), left),
-                                                                         make_node(AST_DATA(op[1]) ? LE : '<', 2, make_ident("$"), right)
-                                                                         )));
-
-                                }
-                                else if (left)
-                                    res = make_node(GE, 2, op[0], left);
-                                else
-                                    res = make_node('<', 2, op[0], right);
-                                analysis(&res, frame, false);
-                                RETURN(res, BOOL_TYPE);
-                            }
-                        }
-                    }
-
-                    ast_node* ret = make_node(EQ, 2, op[0], op[1]);
-                    analysis(&ret, frame, false);
-                    RETURN(ret, BOOL_TYPE);
-
-                    /*error_msg(*n, "Could not analyse pattern\n");
-                    exit(1);*/
-                }
                 case KASSERT:
                 {
                     analysis(&op[0], frame, false);
@@ -1517,6 +1462,99 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
                         }
                     }
                     SET_TYPE(VOID_TYPE);
+                }
+                case KMATCH:
+                {
+                    expect_non_void(op[0]);
+
+                    ast_node* res;
+                    ast_node** body_else = &res;
+
+                    AST_INFERRED(*n) = NULL;
+
+                    for (linked_list* lst = AST_LIST_HEAD(op[1]); lst; lst = lst->next)
+                    {
+                        ast_node* pattern = OPER_OPERANDS(lst->value)[0];
+                        ast_node* body = OPER_OPERANDS(lst->value)[1];
+
+                        analysis(&body, frame, false);
+                        scalar_infer_auto(body);
+
+                        if (AST_INFERRED(*n))
+                            check_assignment(*n, body);
+                        else
+                            AST_INFERRED(*n) = AST_INFERRED(body);
+
+                        *body_else = make_node(KIF, 3,
+                                               make_node(KIS, 2, op[0], pattern),
+                                               body,
+                                               NULL);
+
+                        body_else = &OPER_OPERANDS(*body_else)[2];
+                    }
+
+                    const type_list* tl = AST_INFERRED(*n);
+                    *n = res;
+                    analysis(n, frame, false);
+                    AST_INFERRED(*n) = tl;
+                    return;
+                }
+                case KIS:
+                {
+                    expect_non_void(op[0]);
+
+                    if (!op[1])
+                    {
+                        RETURN(make_number(1), BOOL_TYPE);
+                    }
+                    else if (AST_KIND(op[1]) == k_operator)
+                    {
+                        switch (OPER_OPERATOR(op[1]))
+                        {
+                            case '|':
+                            {
+                                ast_node* truc = make_node(OR, 2,
+                                                           make_node(KIS, 2, op[0], OPER_OPERANDS(op[1])[0]),
+                                                           make_node(KIS, 2, op[0], OPER_OPERANDS(op[1])[1]));
+                                analysis(&truc, frame, false);
+                                RETURN(truc, BOOL_TYPE);
+                            }
+                            case RANGE:
+                            {
+                                ast_node* left = OPER_OPERANDS(op[1])[0];
+                                ast_node* right = OPER_OPERANDS(op[1])[1];
+                                ast_node* res;
+                                if (left && right)
+                                {
+                                    res = make_scope(make_node('{', 2,
+                                                               make_node(';', 2,
+                                                                         make_node(KVAR, 2, make_ident("$"),
+                                                                                   make_node(KTYPEOF, 1, op[0])),
+                                                                         clean_stack(make_node('=', 2, make_ident("$"),
+                                                                                               op[0]))),
+                                                               make_node(AND, 2,
+                                                                         make_node(GE, 2, make_ident("$"), left),
+                                                                         make_node(AST_DATA(op[1]) ? LE : '<', 2,
+                                                                                   make_ident("$"), right)
+                                                               )));
+
+                                }
+                                else if (left)
+                                    res = make_node(GE, 2, op[0], left);
+                                else
+                                    res = make_node('<', 2, op[0], right);
+                                analysis(&res, frame, false);
+                                RETURN(res, BOOL_TYPE);
+                            }
+                        }
+                    }
+
+                    ast_node* ret = make_node(EQ, 2, op[0], op[1]);
+                    analysis(&ret, frame, false);
+                    RETURN(ret, BOOL_TYPE);
+
+                    /*error_msg(*n, "Could not analyse pattern\n");
+                    exit(1);*/
                 }
                 default:
                     break;
