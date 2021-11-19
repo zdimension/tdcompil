@@ -599,6 +599,11 @@ void expect_non_void(ast_node* n)
     }
 }
 
+bool is_pure_var(ast_node* op)
+{
+    return AST_KIND(op) == k_operator && OPER_OPERATOR(op) == DEREF && AST_KIND(OPER_OPERANDS(op)[0]) == k_number;
+}
+
 /**
  * Static analysis + type checking + constant folding
  */
@@ -664,6 +669,162 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
 
             switch (OPER_OPERATOR(*n))
             {
+                case KIS:
+                {
+                    analysis(&op[0], frame, true);
+                    expect_non_void(op[0]);
+
+                    if (!op[1])
+                    {
+                        RETURN(make_number(1), BOOL_TYPE);
+                    }
+                    else if (AST_KIND(op[1]) == k_operator)
+                    {
+                        switch (OPER_OPERATOR(op[1]))
+                        {
+                            case STRUCTLIT:
+                            {
+                                ast_node* lit = op[1];
+                                ast_node* lit_type = OPER_OPERANDS(lit)[0];
+                                const type_list* type = decode_spec(lit_type, frame);
+
+                                if (type != AST_INFERRED(op[0]))
+                                {
+                                    error_msg(lit, "Type mismatch in struct pattern; expected %s got %s\n",
+                                              type_display(AST_INFERRED(op[0])), type_display(type));
+                                    exit(1);
+                                }
+
+                                ast_node* base = make_number_sized(1, 1);
+                                ast_node* temp, *init;
+                                if (is_pure_var(op[0]))
+                                {
+                                    temp = make_node(DEREF, 1, make_number(NUMBER_VALUE(get_position(op[0]))));
+                                    AST_INFERRED(temp) = AST_INFERRED(op[0]);
+                                    init = make_node(';', 0);
+                                }
+                                else
+                                {
+                                    temp = make_ident("$");
+                                    init = make_node(';', 2,
+                                                     make_node(KVAR, 2, temp, lit_type),
+                                                     clean_stack(make_node('=', 2, temp, op[0])));
+                                }
+                                ast_node* res = make_scope(
+                                        make_node('{', 2,
+                                                  init,
+                                                  base));
+                                analysis(&res, frame, false);
+
+                                ast_node* assignments = make_number_sized(1, 1);
+                                for (linked_list* lst = AST_LIST_HEAD(OPER_OPERANDS(lit)[1]); lst; lst = lst->next)
+                                {
+                                    ast_node* member = OPER_OPERANDS(lst->value)[0];
+                                    ast_node* value = OPER_OPERANDS(lst->value)[1];
+                                    ast_node* assignment = clean_stack(
+                                            make_node(KIS, 2, make_node('.', 2, temp, member), value));
+                                    analysis(&assignment, SC_SCOPE(res), false);
+                                    assignments = make_node(AND, 2, assignments, assignment);
+                                }
+
+                                OPER_OPERANDS(SC_CODE(res))[1] = assignments;
+                                analysis(&OPER_OPERANDS(SC_CODE(res))[1], frame, true);
+
+                                *n = res;
+                                return;
+                            }
+                        }
+                        analysis(&op[1], frame, true);
+                        switch (OPER_OPERATOR(op[1]))
+                        {
+                            case '|':
+                            {
+                                ast_node* truc = make_node(OR, 2,
+                                                           make_node(KIS, 2, op[0], OPER_OPERANDS(op[1])[0]),
+                                                           make_node(KIS, 2, op[0], OPER_OPERANDS(op[1])[1]));
+                                analysis(&truc, frame, false);
+                                RETURN(truc, BOOL_TYPE);
+                            }
+                            case RANGE:
+                            {
+                                ast_node* left = OPER_OPERANDS(op[1])[0];
+                                ast_node* right = OPER_OPERANDS(op[1])[1];
+                                ast_node* res;
+                                if (left && right)
+                                {
+                                    if (is_pure_var(op[0]))
+                                    {
+                                        res = make_node(AND, 2,
+                                                        make_node(GE, 2, op[0], left),
+                                                        make_node(AST_DATA(op[1]) ? LE : '<', 2, op[0], right));
+                                    }
+                                    else
+                                    {
+                                        res = make_scope(make_node('{', 2,
+                                                                   make_node(';', 2,
+                                                                             make_node(KVAR, 2, make_ident("$"),
+                                                                                       make_node(KTYPEOF, 1, op[0])),
+                                                                             clean_stack(
+                                                                                     make_node('=', 2, make_ident("$"),
+                                                                                               op[0]))),
+                                                                   make_node(AND, 2,
+                                                                             make_node(GE, 2, make_ident("$"), left),
+                                                                             make_node(AST_DATA(op[1]) ? LE : '<', 2,
+                                                                                       make_ident("$"), right)
+                                                                   )));
+                                    }
+                                }
+                                else if (left)
+                                    res = make_node(GE, 2, op[0], left);
+                                else
+                                    res = make_node(AST_DATA(op[1]) ? LE : '<', 2, op[0], right);
+                                analysis(&res, frame, false);
+                                RETURN(res, BOOL_TYPE);
+                            }
+                        }
+                    }
+
+                    ast_node* ret = make_node(EQ, 2, op[0], op[1]);
+                    analysis(&ret, frame, false);
+                    RETURN(ret, BOOL_TYPE);
+
+                    /*error_msg(*n, "Could not analyse pattern\n");
+                    exit(1);*/
+                }
+                case STRUCTLIT:
+                {
+                    const type_list* type = decode_spec(op[0], frame);
+
+                    if (type->type != T_COMPOSITE)
+                    {
+                        error_msg(op[0], "Expected struct type, got %s\n", type_display(type));
+                        exit(1);
+                    }
+
+                    ast_node* assignments = make_node(';', 2, NULL, NULL);
+                    AST_INFERRED(assignments) = VOID_TYPE;
+                    ast_node* temp = make_ident("$");
+                    ast_node* res = make_scope(make_node('{', 2,
+                                                         make_node(';', 2,
+                                                                   make_node(KVAR, 2, temp, op[0]),
+                                                                   assignments),
+                                                         temp));
+                    analysis(&res, frame, false);
+
+                    for (linked_list* lst = AST_LIST_HEAD(op[1]); lst; lst = lst->next)
+                    {
+                        ast_node* member = OPER_OPERANDS(lst->value)[0];
+                        ast_node* value = OPER_OPERANDS(lst->value)[1];
+                        ast_node* assignment = clean_stack(make_node('=', 2, make_node('.', 2, temp, member), value));
+                        analysis(&assignment, SC_SCOPE(res), false);
+                        OPER_OPERANDS(assignments)[0] = make_node(';', 2, OPER_OPERANDS(assignments)[0], assignment);
+                    }
+
+                    analysis(&OPER_OPERANDS(assignments)[0], frame, true);
+
+                    *n = res;
+                    return;
+                }
                 case '|':
                 case RANGE:
                 {
@@ -1274,9 +1435,38 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
                 }
                 case AND:
                 {
+                    type_compatible_symmetric(&TLEFT, &TRIGHT);
+                    if (TLEFT->type != T_SCALAR || TRIGHT->type != T_SCALAR)
+                    {
+                        error_msg(*n, "Cannot perform boolean AND on types %s and %s\n",
+                                  type_display(TLEFT), type_display(TRIGHT));
+                        exit(1);
+                    }
                     if (o[0].is_num && o[1].is_num)
                     {
                         RETURN(make_number(o[0].value && o[1].value), BOOL_TYPE);
+                    }
+                    else if (o[0].is_num)
+                    {
+                        if (o[0].value == 1)
+                        {
+                            RETURN(op[1], BOOL_TYPE);
+                        }
+                        else if (o[0].value == 0)
+                        {
+                            RETURN(make_number(0), BOOL_TYPE);
+                        }
+                    }
+                    else if (o[1].is_num)
+                    {
+                        if (o[1].value == 1)
+                        {
+                            RETURN(op[0], BOOL_TYPE);
+                        }
+                        else if (o[1].value == 0)
+                        {
+                            RETURN(make_number(0), BOOL_TYPE);
+                        }
                     }
                     SET_TYPE(BOOL_TYPE);
                 }
@@ -1498,63 +1688,6 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
                     analysis(n, frame, false);
                     AST_INFERRED(*n) = tl;
                     return;
-                }
-                case KIS:
-                {
-                    expect_non_void(op[0]);
-
-                    if (!op[1])
-                    {
-                        RETURN(make_number(1), BOOL_TYPE);
-                    }
-                    else if (AST_KIND(op[1]) == k_operator)
-                    {
-                        switch (OPER_OPERATOR(op[1]))
-                        {
-                            case '|':
-                            {
-                                ast_node* truc = make_node(OR, 2,
-                                                           make_node(KIS, 2, op[0], OPER_OPERANDS(op[1])[0]),
-                                                           make_node(KIS, 2, op[0], OPER_OPERANDS(op[1])[1]));
-                                analysis(&truc, frame, false);
-                                RETURN(truc, BOOL_TYPE);
-                            }
-                            case RANGE:
-                            {
-                                ast_node* left = OPER_OPERANDS(op[1])[0];
-                                ast_node* right = OPER_OPERANDS(op[1])[1];
-                                ast_node* res;
-                                if (left && right)
-                                {
-                                    res = make_scope(make_node('{', 2,
-                                                               make_node(';', 2,
-                                                                         make_node(KVAR, 2, make_ident("$"),
-                                                                                   make_node(KTYPEOF, 1, op[0])),
-                                                                         clean_stack(make_node('=', 2, make_ident("$"),
-                                                                                               op[0]))),
-                                                               make_node(AND, 2,
-                                                                         make_node(GE, 2, make_ident("$"), left),
-                                                                         make_node(AST_DATA(op[1]) ? LE : '<', 2,
-                                                                                   make_ident("$"), right)
-                                                               )));
-
-                                }
-                                else if (left)
-                                    res = make_node(GE, 2, op[0], left);
-                                else
-                                    res = make_node('<', 2, op[0], right);
-                                analysis(&res, frame, false);
-                                RETURN(res, BOOL_TYPE);
-                            }
-                        }
-                    }
-
-                    ast_node* ret = make_node(EQ, 2, op[0], op[1]);
-                    analysis(&ret, frame, false);
-                    RETURN(ret, BOOL_TYPE);
-
-                    /*error_msg(*n, "Could not analyse pattern\n");
-                    exit(1);*/
                 }
                 default:
                     break;

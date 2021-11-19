@@ -21,7 +21,10 @@
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Resources/tests.am" beforeDir="false" afterPath="$PROJECT_DIR$/Resources/tests.am" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Resources/tests.td5" beforeDir="false" afterPath="$PROJECT_DIR$/Resources/tests.td5" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/syntax.y" beforeDir="false" afterPath="$PROJECT_DIR$/syntax.y" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/turing_analysis.c" beforeDir="false" afterPath="$PROJECT_DIR$/turing_analysis.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/turing_dis.c" beforeDir="false" afterPath="$PROJECT_DIR$/turing_dis.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/turing_emit.c" beforeDir="false" afterPath="$PROJECT_DIR$/turing_emit.c" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -136,7 +139,7 @@
       <workItem from="1637088321828" duration="2000" />
       <workItem from="1637092553268" duration="602000" />
       <workItem from="1637186344841" duration="19712000" />
-      <workItem from="1637271471100" duration="839000" />
+      <workItem from="1637271471100" duration="8732000" />
     </task>
     <servers />
   </component>
@@ -163,7 +166,7 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
           <url>file://$PROJECT_DIR$/turing_dis.c</url>
-          <line>303</line>
+          <line>302</line>
           <option name="timeStamp" value="155" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
@@ -175,6 +178,11 @@
           <url>file://$PROJECT_DIR$/turing_analysis.c</url>
           <line>161</line>
           <option name="timeStamp" value="157" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
+          <url>file://$PROJECT_DIR$/turing_analysis.c</url>
+          <line>461</line>
+          <option name="timeStamp" value="159" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>

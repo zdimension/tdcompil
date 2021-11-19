@@ -41,11 +41,10 @@ void yyerror(const char *s);
 %token  <number>         NUMBER
 %token  <var>           IDENT STRING
 %token                  KWHILE KIF KPRINT KELSE KREAD KFOR KDO KVAR KFUNC KRETURN KPROC KBREAK KCONTINUE KCONST KTYPE KTYPEOF KSIZEOF KSTRUCT KBITSOF KNEW KASSERT KLOOP KMATCH KIS RANGE IRANGE
-%token '+' '-' '*' '/' GE LE EQ NE '>' '<' REF DEREF APL AMN AML ADV INC DEC AND OR SHL SHR ARROW
+%token '+' '-' '*' '/' GE LE EQ NE '>' '<' REF DEREF APL AMN AML ADV INC DEC AND OR SHL SHR ARROW STRUCTLIT
 %token UMINUS VDECL SCOPE TUPLEASSIGN
 //                       Precedence rules
 %left '+'
-
 
 %precedence DEREF
 %nonassoc THEN
@@ -57,6 +56,7 @@ void yyerror(const char *s);
 %type	<node> 		l_and_expr l_or_expr stmt_list_opt expr_discard expr_discard_opt scalar_var_init type_arg_list tuple_assign_left tuple_assign_right
 %type 	<node>		param_list param_list_ne arg_list arg_list_ne var_decl var_decl_list type_spec_opt type_spec type_decl type_decl_list type_params type_param_list
 %type	<node>		struct_field struct_field_list var_typed stmt_braced expr_discard_or_inline_decl_opt expr_or_inline_decl pattern pattern_list pattern_branch pattern_basic
+%type	<node>		struct_field_init struct_field_init_list
 %type   <chr>		aug_assign unary_op
 
 %%
@@ -227,10 +227,11 @@ aug_assign
     ;
 
 pattern_basic
-	: l_and_expr						{ $$ = $1; }
-	| pattern_basic RANGE l_and_expr 	{ $$ = make_node(RANGE, 2, $1, $3); }
-	| pattern_basic IRANGE l_and_expr 	{ $$ = make_node(RANGE, 2, $1, $3); AST_DATA($$) = (void*) 1; }
-	| '_'								{ $$ = NULL; }
+	: l_and_expr 											{ $$ = $1; }
+	| pattern_basic RANGE l_and_expr 						{ $$ = make_node(RANGE, 2, $1, $3); }
+	| pattern_basic IRANGE l_and_expr 						{ $$ = make_node(RANGE, 2, $1, $3); AST_DATA($$) = (void*) 1; }
+/*| var '{' struct_field_pattern_list '}' 				{ $$ = make_node(STRUCTLIT, 2, $1, $3); }*/
+	| '_'													{ $$ = NULL; }
 	;
 
 pattern
@@ -247,6 +248,15 @@ pattern_list
 	| pattern_branch ',' pattern_list	{ $$ = prepend_list($3, $1); }
 	;
 
+struct_field_init
+	: var ':' pattern						{ $$ = make_node('=', 2, $1, $3); }
+	;
+
+struct_field_init_list
+	: struct_field_init								{ $$ = make_list($1); }
+	| struct_field_init ',' struct_field_init_list 	{ $$ = prepend_list($3, $1); }
+	;
+
 basic_expr
 	: NUMBER																{ $$ = make_number_sized($1.value, $1.size); }
 	| KSIZEOF '(' type_spec ')' 											{ $$ = make_node(KSIZEOF, 1, $3); }
@@ -259,6 +269,7 @@ basic_expr
     | KIF '(' expr_or_inline_decl ')' '{' expr '}' KELSE '{' expr '}'      	{ $$ = make_scope(make_node(KIF, 3, $3, $6, $10)); }
     | KLOOP '{' stmt_list '}'												{ $$ = make_node(KLOOP, 1, $3); }
     | KMATCH '(' expr_or_inline_decl ')' '{' pattern_list '}'				{ $$ = make_node(KMATCH, 2, $3, $6); }
+    | var '{' struct_field_init_list '}'									{ $$ = make_node(STRUCTLIT, 2, $1, $3); }
 	;
 
 postfix_expr

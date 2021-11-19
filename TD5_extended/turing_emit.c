@@ -288,7 +288,7 @@ void eval(ast_node* n, stack_frame* frame);
  */
 void nav_to_var(ast_node* op, stack_frame* frame)
 {
-    if (AST_KIND(op) != k_operator && OPER_OPERATOR(op) != DEREF)
+    if (AST_KIND(op) != k_operator || OPER_OPERATOR(op) != DEREF)
     {
         error_msg(op, "Expected lvalue for assignment\n");
         exit(1);

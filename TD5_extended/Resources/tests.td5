@@ -1,15 +1,12 @@
 {
 	type point = struct { x: u8; y: u8; };
 
-	var p: point;
+	var p = point { x: 7, y: 2 };
 
-	p.x = 5;
-	p.y = 8;
-
-	print match (x)
+	print match (p)
 	{
-		3..=8 => 1,
-	    8..10 => 4,
-		_ => 2
+		point { x: 0..5, y: 0..5 } => 1,
+		point { x: 5..10, y: 5..10 } => 2,
+		_ => 3
 	};
 }
