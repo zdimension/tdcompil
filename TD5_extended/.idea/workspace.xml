@@ -19,22 +19,8 @@
   <component name="ChangeListManager">
     <list default="true" id="a6805983-d57b-442f-a29f-dcb10bd9ca72" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Resources/calc_rpn.am" beforeDir="false" afterPath="$PROJECT_DIR$/Resources/calc_rpn.am" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Resources/calc_rpn_dyn.am" beforeDir="false" afterPath="$PROJECT_DIR$/Resources/calc_rpn_dyn.am" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Resources/fact.am" beforeDir="false" afterPath="$PROJECT_DIR$/Resources/fact.am" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Resources/fibo_iter.am" beforeDir="false" afterPath="$PROJECT_DIR$/Resources/fibo_iter.am" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Resources/fibo_ptrs.am" beforeDir="false" afterPath="$PROJECT_DIR$/Resources/fibo_ptrs.am" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Resources/fibo_rec.am" beforeDir="false" afterPath="$PROJECT_DIR$/Resources/fibo_rec.am" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Resources/func.am" beforeDir="false" afterPath="$PROJECT_DIR$/Resources/func.am" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Resources/ifwhile.am" beforeDir="false" afterPath="$PROJECT_DIR$/Resources/ifwhile.am" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Resources/linked_list.am" beforeDir="false" afterPath="$PROJECT_DIR$/Resources/linked_list.am" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Resources/loop_break.am" beforeDir="false" afterPath="$PROJECT_DIR$/Resources/loop_break.am" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Resources/nested_consts.am" beforeDir="false" afterPath="$PROJECT_DIR$/Resources/nested_consts.am" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Resources/puiss.am" beforeDir="false" afterPath="$PROJECT_DIR$/Resources/puiss.am" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Resources/sqrt16.am" beforeDir="false" afterPath="$PROJECT_DIR$/Resources/sqrt16.am" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Resources/sqrt_hypot.am" beforeDir="false" afterPath="$PROJECT_DIR$/Resources/sqrt_hypot.am" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Resources/tail_rec.am" beforeDir="false" afterPath="$PROJECT_DIR$/Resources/tail_rec.am" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Resources/tests.td5" beforeDir="false" afterPath="$PROJECT_DIR$/Resources/tests.td5" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Resources/tests.am" beforeDir="false" afterPath="$PROJECT_DIR$/Resources/tests.am" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/turing_analysis.c" beforeDir="false" afterPath="$PROJECT_DIR$/turing_analysis.c" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -170,24 +156,9 @@
           <option name="timeStamp" value="118" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
-          <url>file://$PROJECT_DIR$/turing_analysis.c</url>
-          <line>596</line>
-          <option name="timeStamp" value="144" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
           <url>file://$PROJECT_DIR$/turing_dis.c</url>
           <line>302</line>
           <option name="timeStamp" value="155" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
-          <url>file://$PROJECT_DIR$/turing_analysis.c</url>
-          <line>132</line>
-          <option name="timeStamp" value="156" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
-          <url>file://$PROJECT_DIR$/turing_analysis.c</url>
-          <line>161</line>
-          <option name="timeStamp" value="157" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
           <url>file://$PROJECT_DIR$/turing_analysis.c</url>

@@ -1662,9 +1662,22 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
 
                     AST_INFERRED(*n) = NULL;
 
+                    bool wildcard_found = false;
+
                     for (linked_list* lst = AST_LIST_HEAD(op[1]); lst; lst = lst->next)
                     {
                         ast_node* pattern = OPER_OPERANDS(lst->value)[0];
+
+                        if (!pattern)
+                        {
+                            if (wildcard_found)
+                            {
+                                error_msg(pattern, "Only one wildcard pattern allowed\n");
+                                exit(1);
+                            }
+                            wildcard_found = true;
+                        }
+
                         ast_node* body = OPER_OPERANDS(lst->value)[1];
 
                         analysis(&body, frame, false);
@@ -1681,6 +1694,12 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
                                                NULL);
 
                         body_else = &OPER_OPERANDS(*body_else)[2];
+                    }
+
+                    if (!AST_CLEAN_STACK(*n) && !wildcard_found)
+                    {
+                        error_msg(op[1], "Patterns must be exhaustive\n");
+                        exit(1);
                     }
 
                     const type_list* tl = AST_INFERRED(*n);
