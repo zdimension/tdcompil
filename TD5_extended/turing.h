@@ -105,7 +105,11 @@ typedef struct type_list_s
             int array_count;
             struct type_list_s const* array_target;
         };
-        struct type_list_s const* pointer_target;
+        struct
+        {
+            struct type_list_s const* pointer_target;
+            bool pointer_is_global;
+        };
         struct
         {
             var_list* head, * tail;

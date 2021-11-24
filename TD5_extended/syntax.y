@@ -40,7 +40,7 @@ void yyerror(const char *s);
 //                      Tokens
 %token  <number>         NUMBER
 %token  <var>           IDENT STRING
-%token                  KWHILE KIF KPRINT KELSE KREAD KFOR KDO KVAR KFUNC KRETURN KPROC KBREAK KCONTINUE KCONST KTYPE KTYPEOF KSIZEOF KSTRUCT KBITSOF KNEW KASSERT KLOOP KMATCH KIS RANGE IRANGE
+%token                  KWHILE KIF KPRINT KELSE KREAD KFOR KDO KVAR KFUNC KRETURN KPROC KBREAK KCONTINUE KCONST KTYPE KTYPEOF KSIZEOF KSTRUCT KBITSOF KNEW KASSERT KLOOP KMATCH KIS RANGE IRANGE KGLOBAL
 %token '+' '-' '*' '/' GE LE EQ NE '>' '<' REF DEREF APL AMN AML ADV INC DEC AND OR SHL SHR ARROW STRUCTLIT
 %token UMINUS VDECL SCOPE TUPLEASSIGN
 //                       Precedence rules
@@ -93,6 +93,11 @@ stmt
     | KFUNC var '(' param_list ')' type_spec_opt stmt_braced								{ $$ = make_node(KFUNC, 4, $2, $4, $7, $6); }
     | stmt_braced		                													{ $$ = $1; }
     ;
+
+/*func_global
+	: KGLOBAL						{ $$ = make_node(KGLOBAL, 0); }
+	|								{ $$ = NULL; }
+	;*/
 
 tuple_assign_left
 	: var ',' var					{ $$ = prepend_list(make_list($3), $1); }
@@ -153,6 +158,7 @@ type_spec
 	| var '<' type_arg_list '>'			{ $$ = make_node(KNEW, 2, $1, $3); }
 	| type_spec '*'						{ $$ = make_node('*', 1, $1); }
 	| type_spec KCONST					{ $$ = make_node(KCONST, 1, $1); }
+	| type_spec KGLOBAL					{ $$ = make_node(KGLOBAL, 1, $1); }
 	| type_spec '[' expr ']'			{ $$ = make_node('[', 2, $1, $3); }
 	| KTYPEOF '(' expr ')'				{ $$ = make_node(KTYPEOF, 1, $3); }
 	| KSTRUCT '{' struct_field_list '}'	{ $$ = make_node(KSTRUCT, 1, $3); }

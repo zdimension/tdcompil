@@ -72,7 +72,8 @@ bool type_assignable(type_list const* given, type_list const* wanted)
                    type_assignable(given->array_target, wanted->array_target);
         case T_POINTER:
             return type_assignable(given->pointer_target, wanted->pointer_target) &&
-                   !(given->pointer_target->is_const && !wanted->pointer_target->is_const);
+                   !(given->pointer_target->is_const && !wanted->pointer_target->is_const) &&
+                    (given->pointer_is_global == wanted->pointer_is_global);
         case T_COMPOSITE:
             return false;
     }
@@ -217,7 +218,7 @@ const char* type_display_full_inner(type_list const* type, int inner, bool expan
         case T_POINTER:
         {
             char* buf = malloc(256);
-            sprintf(buf, "%s*", type_display(type->pointer_target));
+            sprintf(buf, "%s*%s", type_display(type->pointer_target), type->pointer_is_global ? " global" : "");
             return buf;
         }
         case T_COMPOSITE:
@@ -310,7 +311,7 @@ type_list const* make_pointer(type_list const* target)
 }
 
 /**
- * @return The pointer type corresponding to the specified array type. If a non-array type is passed, will do nothing
+ * @return The pointer type corresponding to the specified array type. If a non-array type is passed, will do nav_back_local
  * @example The array type u8[10] decays to the pointer type u8*
  */
 type_list const* decay_array_ptr(type_list const* t)
@@ -383,6 +384,18 @@ type_list const* decode_spec(ast_node* spec, stack_frame* frame)
                 type_list* ret = NEW_TYPE();
                 *ret = *decode_spec(op[0], frame);
                 ret->is_const = true;
+                return ret;
+            }
+            case KGLOBAL:
+            {
+                type_list* ret = NEW_TYPE();
+                *ret = *decode_spec(op[0], frame);
+                if (ret->type != T_POINTER)
+                {
+                    error_msg(spec, "Global specifier only applies to pointer types\n");
+                    exit(1);
+                }
+                ret->pointer_is_global = true;
                 return ret;
             }
             case '[':
@@ -461,6 +474,20 @@ type_list const* decode_spec(ast_node* spec, stack_frame* frame)
 
     error_msg(spec, "Invalid type specification\n");
     exit(1);
+}
+
+const type_list* make_pointer_global_if(const type_list* type, bool global)
+{
+    if (!global)
+        return type;
+
+    assert(type->type == T_POINTER);
+
+    type_list* ret = NEW_TYPE();
+    *ret = *type;
+    memset(&ret->header, 0, sizeof(ret->header));
+    ret->pointer_is_global = true;
+    return ret;
 }
 
 
@@ -645,7 +672,7 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
             {
                 if (ptr->type->type == T_ARRAY) // referencing an array directly is equivalent to &array[0]
                 {
-                    ast_node* ret = set_inferred_type(make_number(var_position(ptr)), decay_array_ptr(ptr->type));
+                    ast_node* ret = set_inferred_type(make_number(var_position(ptr)), make_pointer_global_if(decay_array_ptr(ptr->type), frame->function == NULL));
                     *n = ret;
                     return;
                 }
@@ -653,7 +680,7 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
                 {
                     RETURN(make_number(ptr->value), ptr->type);
                 }
-                RETURN_LVALUE(set_inferred_type(make_number(var_position(ptr)), make_pointer(ptr->type)));
+                RETURN_LVALUE(set_inferred_type(make_number(var_position(ptr)), make_pointer_global_if(make_pointer(ptr->type), frame->function == NULL)));
             }
             ptr = get_var_id(*n, frame, F_RECURSE);
             if (ptr->type->is_const && is_numeric(ptr->type)) // allow resolving constants for parent frames
@@ -690,7 +717,7 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
 
                                 if (type != AST_INFERRED(op[0]))
                                 {
-                                    error_msg(lit, "Type mismatch in struct pattern; expected %s got %s\n",
+                                    error_msg(lit, "Type mismatch in struct pattern; expected '%s' got '%s'\n",
                                               type_display(AST_INFERRED(op[0])), type_display(type));
                                     exit(1);
                                 }
@@ -1065,7 +1092,7 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
                             if (!type_compatible(&AST_INFERRED(list->value), fargs->type))
                             {
                                 error_msg(list->value,
-                                          "Type mismatch for argument %d in call to '%s'; expected %s, got %s\n",
+                                          "Type mismatch for argument %d in call to '%s'; expected '%s', got '%s'\n",
                                           i, func->header.name, type_display(fargs->type),
                                           type_display(infer_type(list->value)));
                                 exit(1);
@@ -1551,7 +1578,7 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
                         {
                             if (!type_compatible(&TLEFT, AST_INFERRED(frame->loop->node)))
                             {
-                                error_msg(op[0], "Loop return type mismatch; expected %s got %s\n",
+                                error_msg(op[0], "Loop return type mismatch; expected '%s' got '%s'\n",
                                           type_display(AST_INFERRED(frame->loop->node)), type_display(TLEFT));
                                 exit(1);
                             }
@@ -1646,7 +1673,7 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
 
                         if (!type_compatible(&TLEFT, frame->function->return_type))
                         {
-                            error_msg(op[0], "Return type mismatch; expected %s got %s\n",
+                            error_msg(op[0], "Return type mismatch; expected '%s' got '%s'\n",
                                       type_display(frame->function->return_type), type_display(TLEFT));
                             exit(1);
                         }

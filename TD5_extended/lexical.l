@@ -99,6 +99,7 @@
 "loop" { return KLOOP; }
 "match" { return KMATCH; }
 "is" { return KIS; }
+"global" { return KGLOBAL; }
 
 	/* ---- Idents ---- */
 [a-zA-Z_][a-zA-Z0-9_]*			{ yylval.var = strdup(yytext); return IDENT; }
