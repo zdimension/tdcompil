@@ -1,11 +1,11 @@
 # Types
 # NAME        VALUE
-NEW "generated" 4		# line 1525
-START @INIT		# line 1526
-END @END "END"		# line 1527
-END @DEFAULT "default option"		# line 1528
-FROM @INIT		# line 1530
-'_,'_,'_,'_ '[,'[,'_,'_ S,S,S,S @1		# line 1531
+NEW "generated" 4		# line 1527
+START @INIT		# line 1528
+END @END "END"		# line 1529
+END @DEFAULT "default option"		# line 1530
+FROM @INIT		# line 1532
+'_,'_,'_,'_ '[,'[,'_,'_ S,S,S,S @1		# line 1533
 #	------ BEGIN: program
 # KIND = 4 (k_scope)		# line 426
 # Memory map
@@ -43,59 +43,55 @@ FROM @11		# line 143
 # KIND = 2 (k_operator)		# line 426
 #	; first
 # KIND = 2 (k_operator)		# line 426
-#	; first
-# KIND = 2 (k_operator)		# line 426
-#	; first
-# KIND = 2 (k_operator)		# line 426
 #	var
 #	; second
 # KIND = 2 (k_operator)		# line 426
 #	store
 #	evaluating right-hand value
 # KIND = 1 (k_number)		# line 426
-#	push	255
+#	push	0
 FROM @12		# line 387
 '/|'[,'[,'_,'_ S,R,S,S @13		# line 388
 '/|'[,'/,'_,'_ S,R,S,S @13		# line 389
 FROM @13		# line 390
-'/|'[,'_,'_,'_ '/|'[,'1,'_,'_ S,R,S,S @14		# line 393
+'/|'[,'_,'_,'_ '/|'[,'0,'_,'_ S,R,S,S @14		# line 393
 FROM @14		# line 394
-'/|'[,'_,'_,'_ '/|'[,'1,'_,'_ S,R,S,S @15		# line 393
+'/|'[,'_,'_,'_ '/|'[,'0,'_,'_ S,R,S,S @15		# line 393
 FROM @15		# line 394
-'/|'[,'_,'_,'_ '/|'[,'1,'_,'_ S,R,S,S @16		# line 393
+'/|'[,'_,'_,'_ '/|'[,'0,'_,'_ S,R,S,S @16		# line 393
 FROM @16		# line 394
-'/|'[,'_,'_,'_ '/|'[,'1,'_,'_ S,R,S,S @17		# line 393
+'/|'[,'_,'_,'_ '/|'[,'0,'_,'_ S,R,S,S @17		# line 393
 FROM @17		# line 394
-'/|'[,'_,'_,'_ '/|'[,'1,'_,'_ S,R,S,S @18		# line 393
+'/|'[,'_,'_,'_ '/|'[,'0,'_,'_ S,R,S,S @18		# line 393
 FROM @18		# line 394
-'/|'[,'_,'_,'_ '/|'[,'1,'_,'_ S,R,S,S @19		# line 393
+'/|'[,'_,'_,'_ '/|'[,'0,'_,'_ S,R,S,S @19		# line 393
 FROM @19		# line 394
-'/|'[,'_,'_,'_ '/|'[,'1,'_,'_ S,R,S,S @20		# line 393
+'/|'[,'_,'_,'_ '/|'[,'0,'_,'_ S,R,S,S @20		# line 393
 FROM @20		# line 394
-'/|'[,'_,'_,'_ '/|'[,'1,'_,'_ S,R,S,S @21		# line 393
+'/|'[,'_,'_,'_ '/|'[,'0,'_,'_ S,R,S,S @21		# line 393
 FROM @21		# line 394
 '/|'[,'_,'_,'_ '/|'[,'/,'_,'_ S,S,S,S @22		# line 396
-FROM @22		# line 1274
-'0|'1|'/,'/,'_,'_ L,S,S,S		# line 1275
-'[,'/,'_,'_ S,S,S,S @23		# line 1276
+FROM @22		# line 1276
+'0|'1|'/,'/,'_,'_ L,S,S,S		# line 1277
+'[,'/,'_,'_ S,S,S,S @23		# line 1278
 # navigating to 0		# line 332
 #	navigating to left of stack head
-FROM @23		# line 1279
-'/|'[,'/,'_,'_ S,L,S,S @24		# line 1280
-FROM @24		# line 1289
-'/,'0|'1,'_,'_ S,L,S,S		# line 1290
-'[,'0|'1,'_,'_ S,L,S,S		# line 1291
-'/,'/|'[,'_,'_ R,R,S,S @25		# line 1292
-'[,'/|'[,'_,'_ R,R,S,S @25		# line 1293
-FROM @25		# line 1304
-'0|'1,'0,'_,'_ '0,'_,'_,'_ R,R,S,S		# line 1305
-'0|'1,'1,'_,'_ '1,'_,'_,'_ R,R,S,S		# line 1306
-'0|'1,'/,'_,'_ '0,'/,'_,'_ R,S,S,S		# line 1307
-'/,'/,'_,'_ '/,'_,'_,'_ L,L,S,S @26		# line 1308
-FROM @26		# line 1309
-'/|'0|'1|'[,'_,'_,'_ L,L,S,S		# line 1310
-'/|'0|'1|'[,'/,'_,'_ S,S,S,S @27		# line 1311
-'/|'0|'1|'[,'[,'_,'_ S,S,S,S @27		# line 1312
+FROM @23		# line 1281
+'/|'[,'/,'_,'_ S,L,S,S @24		# line 1282
+FROM @24		# line 1291
+'/,'0|'1,'_,'_ S,L,S,S		# line 1292
+'[,'0|'1,'_,'_ S,L,S,S		# line 1293
+'/,'/|'[,'_,'_ R,R,S,S @25		# line 1294
+'[,'/|'[,'_,'_ R,R,S,S @25		# line 1295
+FROM @25		# line 1306
+'0|'1,'0,'_,'_ '0,'_,'_,'_ R,R,S,S		# line 1307
+'0|'1,'1,'_,'_ '1,'_,'_,'_ R,R,S,S		# line 1308
+'0|'1,'/,'_,'_ '0,'/,'_,'_ R,S,S,S		# line 1309
+'/,'/,'_,'_ '/,'_,'_,'_ L,L,S,S @26		# line 1310
+FROM @26		# line 1311
+'/|'0|'1|'[,'_,'_,'_ L,L,S,S		# line 1312
+'/|'0|'1|'[,'/,'_,'_ S,S,S,S @27		# line 1313
+'/|'0|'1|'[,'[,'_,'_ S,S,S,S @27		# line 1314
 #	nav back local
 FROM @27		# line 289
 '0|'1|'/,'/,'_,'_ L,S,S,S		# line 290
@@ -103,201 +99,40 @@ FROM @27		# line 289
 '[,'/|'[,'_,'_ S,S,S,S @28		# line 292
 #	; second
 # KIND = 2 (k_operator)		# line 426
-#	proc
-#	; second
-# KIND = 2 (k_operator)		# line 426
-#	call
-# KIND = 1 (k_number)		# line 426
-#	push	0
-FROM @28		# line 387
-'/|'[,'[,'_,'_ S,R,S,S @29		# line 388
-'/|'[,'/,'_,'_ S,R,S,S @29		# line 389
-FROM @29		# line 390
-'/|'[,'_,'_,'_ '/|'[,'0,'_,'_ S,R,S,S @30		# line 393
-FROM @30		# line 394
-'/|'[,'_,'_,'_ '/|'[,'0,'_,'_ S,R,S,S @31		# line 393
-FROM @31		# line 394
-'/|'[,'_,'_,'_ '/|'[,'0,'_,'_ S,R,S,S @32		# line 393
-FROM @32		# line 394
-'/|'[,'_,'_,'_ '/|'[,'0,'_,'_ S,R,S,S @33		# line 393
-FROM @33		# line 394
-'/|'[,'_,'_,'_ '/|'[,'0,'_,'_ S,R,S,S @34		# line 393
-FROM @34		# line 394
-'/|'[,'_,'_,'_ '/|'[,'0,'_,'_ S,R,S,S @35		# line 393
-FROM @35		# line 394
-'/|'[,'_,'_,'_ '/|'[,'0,'_,'_ S,R,S,S @36		# line 393
-FROM @36		# line 394
-'/|'[,'_,'_,'_ '/|'[,'0,'_,'_ S,R,S,S @37		# line 393
-FROM @37		# line 394
-'/|'[,'_,'_,'_ '/|'[,'/,'_,'_ S,S,S,S @38		# line 396
-#	go to left of args on stack
-FROM @38		# line 1380
-'[,'/,'_,'_ S,L,S,S @40		# line 1381
-'[,'[,'_,'_ S,S,S,S @39		# line 1382
-FROM @40		# line 1389
-'[,'0|'1,'_,'_ S,L,S,S		# line 1390
-'[,'/|'[,'_,'_ S,S,S,S @39		# line 1391
-#	go to right of heap
-FROM @39		# line 1398
-'/|'0|'1|'[,'/,'_,'_ R,S,S,S		# line 1399
-'/|'0|'1|'[,'[,'_,'_ R,S,S,S		# line 1400
-'_,'/|'[,'_,'_ '[,'/|'[,'_,'_ R,S,S,S @F0C0		# line 1402
-#	start copying args from stack to heap
-FROM @41		# line 1407
-'_,'/|'[,'_,'_ '[,'/|'[,'_,'_ R,R,S,S @42		# line 1408
-FROM @42		# line 1409
-'_,'0|'1,'_,'_ '0|'1,'_,'_,'_ R,R,S,S		# line 1410
-'_,'/,'_,'_ '/,'_,'_,'_ R,R,S,S		# line 1411
-'_,'_,'_,'_ L,L,S,S @43		# line 1412
-FROM @43		# line 1414
-'/|'0|'1,'_,'_,'_ L,L,S,S		# line 1415
-'/|'0|'1,'/,'_,'_ L,S,S,S		# line 1416
-'/|'0|'1,'[,'_,'_ L,S,S,S		# line 1417
-'[,'/|'[,'_,'_ S,S,S,S @F0		# line 1418
-'_,'/|'[,'_,'_ '[,'/|'[,'_,'_ S,S,S,S @F0		# line 1419
-#	; second
-# KIND = 2 (k_operator)		# line 426
 #	print
 # KIND = 2 (k_operator)		# line 426
-#	deref
+#	dec
 # navigating to 0		# line 332
-FROM @44		# line 502
-'/|'[,'/,'_,'_ R,R,S,S @45		# line 503
-'/|'[,'[,'_,'_ R,R,S,S @45		# line 504
-FROM @45		# line 512
-'0|'1,'_,'_,'_ '0|'1,'0|'1,'_,'_ R,R,S,S		# line 513
-'/,'_,'_,'_ '/,'/,'_,'_ L,S,S,S @46		# line 514
+FROM @28		# line 1023
+'/|'[,'[,'_,'_ R,R,S,S @29		# line 1024
+'/|'[,'/,'_,'_ R,R,S,S @29		# line 1025
+FROM @29		# line 1036
+'1,'_,'_,'_ '0,'0,'_,'_ R,R,S,S @30		# line 1040
+'0,'_,'_,'_ '1,'1,'_,'_ R,R,S,S		# line 1041
+FROM @30		# line 1048
+'0|'1,'_,'_,'_ '0|'1,'0|'1,'_,'_ R,R,S,S		# line 1049
+'/,'_,'_,'_ '/,'/,'_,'_ L,S,S,S @31		# line 1050
 #	nav back local
-FROM @46		# line 289
+FROM @31		# line 289
 '0|'1|'/,'/,'_,'_ L,S,S,S		# line 290
 '0|'1|'/,'[,'_,'_ L,S,S,S		# line 291
-'[,'/|'[,'_,'_ S,S,S,S @47		# line 292
+'[,'/|'[,'_,'_ S,S,S,S @32		# line 292
 #	; exiting scope
-FROM @47		# line 155
+FROM @32		# line 155
 '/|'0|'1|'[,'[,'_,'_ R,R,S,S		# line 156
 '/|'0|'1|'[,'/,'_,'_ R,R,S,S		# line 157
 '/|'0|'1|'[,'_,'_,'_ R,S,S,S		# line 158
-'_,'_,'_,'_ L,S,S,S @48		# line 159
-FROM @48		# line 168
-'/|'0|'1,'_,'_,'_ '_,'_,'_,'_ L,S,S,S @49		# line 169
-FROM @49		# line 170
+'_,'_,'_,'_ L,S,S,S @33		# line 159
+FROM @33		# line 168
+'/|'0|'1,'_,'_,'_ '_,'_,'_,'_ L,S,S,S @34		# line 169
+FROM @34		# line 170
 '0|'1,'_,'_,'_ '_,'_,'_,'_ L,S,S,S		# line 171
-'/,'_,'_,'_ L,S,S,S @50		# line 172
-'[,'_,'_,'_ S,L,S,S @51		# line 173
-FROM @50		# line 174
+'/,'_,'_,'_ L,S,S,S @35		# line 172
+'[,'_,'_,'_ S,L,S,S @36		# line 173
+FROM @35		# line 174
 '/|'0|'1,'_,'_,'_ L,S,S,S		# line 175
-'[,'_,'_,'_ S,L,S,S @51		# line 176
+'[,'_,'_,'_ S,L,S,S @36		# line 176
 #	------ END: program
-FROM @51		# line 1539
-'[,'/,'_,'_ S,S,S,S @END		# line 1540
-'[,'[,'_,'_ S,S,S,S @END		# line 1541
-# procedure inc (F0)		# line 1510
-FROM @F0		# line 1512
-'[,'/|'[,'_,'_ S,S,S,S @52		# line 1513
-#	------ BEGIN: function code
-# KIND = 4 (k_scope)		# line 426
-#	; entering scope
-# KIND = 2 (k_operator)		# line 426
-#	inc
-#	navigating to dynamic pointer
-# KIND = 2 (k_operator)		# line 426
-#	deref
-# navigating to 0		# line 332
-FROM @52		# line 502
-'/|'[,'/,'_,'_ R,R,S,S @53		# line 503
-'/|'[,'[,'_,'_ R,R,S,S @53		# line 504
-FROM @53		# line 512
-'0|'1,'_,'_,'_ '0|'1,'0|'1,'_,'_ R,R,S,S		# line 513
-'/,'_,'_,'_ '/,'/,'_,'_ L,S,S,S @54		# line 514
-#	nav back local
-FROM @54		# line 289
-'0|'1|'/,'/,'_,'_ L,S,S,S		# line 290
-'0|'1|'/,'[,'_,'_ L,S,S,S		# line 291
-'[,'/|'[,'_,'_ S,S,S,S @55		# line 292
-#	setup nav global
-FROM @55		# line 308
-'[,'/,'_,'_ '#,'/,'_,'_ L,S,S,S @56		# line 309
-FROM @56		# line 310
-'/|'0|'1|'[,'/,'_,'_ L,S,S,S		# line 311
-'_,'/,'_,'_ R,S,S,S @57		# line 312
-# deref()		# line 234
-FROM @57		# line 235
-'[,'/,'_,'_ '[,'_,'_,'_ S,L,S,S @58		# line 236
-FROM @58		# line 237
-'[,'0|'1,'_,'_ '[,'_,'0|'1,'_ S,L,L,S		# line 238
-'[,'/|'[,'_,'_ S,S,R,S @59		# line 239
-FROM @59		# line 241
-'/|'[,'[,'1,'_ '/|'[,'[,'0,'_ S,S,L,S @60		# line 246
-'/|'[,'[,'0,'_ '/|'[,'[,'1,'_ S,S,R,S		# line 247
-'/|'[,'[,'_,'_ S,S,L,S @63		# line 248
-'/|'[,'/,'1,'_ '/|'[,'/,'0,'_ S,S,L,S @60		# line 249
-'/|'[,'/,'0,'_ '/|'[,'/,'1,'_ S,S,R,S		# line 250
-'/|'[,'/,'_,'_ S,S,L,S @63		# line 251
-FROM @60		# line 252
-'[,'/,'0|'1,'_ S,S,L,S		# line 253
-'[,'[,'0|'1,'_ S,S,L,S		# line 254
-'/,'/,'0|'1,'_ S,S,L,S		# line 255
-'/,'[,'0|'1,'_ S,S,L,S		# line 256
-'/|'[,'/,'_,'_ R,S,S,S @61		# line 257
-'/|'[,'[,'_,'_ R,S,S,S @61		# line 258
-FROM @61		# line 259
-'0,'[,'0|'1,'_ R,S,L,S		# line 260
-'1,'[,'0|'1,'_ R,S,L,S		# line 261
-'0,'/|'[,'_,'_ R,S,S,S		# line 262
-'1,'/|'[,'_,'_ R,S,S,S		# line 263
-'/,'[,'0|'1,'_ S,S,L,S @62		# line 264
-'/,'/,'0|'1,'_ S,S,L,S @62		# line 265
-'/,'/|'[,'_,'_ S,S,S,S @62		# line 266
-'[,'[,'0|'1,'_ S,S,L,S @62		# line 267
-'[,'/,'0|'1,'_ S,S,L,S @62		# line 268
-'[,'/|'[,'_,'_ S,S,S,S @62		# line 269
-FROM @62		# line 270
-'/,'[,'0|'1,'_ S,S,L,S		# line 271
-'/,'/,'0|'1,'_ S,S,L,S		# line 272
-'/,'/|'[,'_,'_ S,S,R,S @59		# line 273
-'[,'[,'0|'1,'_ S,S,L,S		# line 274
-'[,'/,'0|'1,'_ S,S,L,S		# line 275
-'[,'/|'[,'_,'_ S,S,R,S @59		# line 276
-FROM @63		# line 277
-'/|'[,'/,'1,'_ '/|'[,'/,'_,'_ S,S,L,S		# line 278
-'/|'[,'/,'_,'_ S,S,S,S @64		# line 279
-'/|'[,'[,'1,'_ '/|'[,'[,'_,'_ S,S,L,S		# line 280
-'/|'[,'[,'_,'_ S,S,S,S @64		# line 281
-FROM @64		# line 984
-'/|'[,'[,'_,'_ R,R,S,S @65		# line 985
-'/|'[,'/,'_,'_ R,R,S,S @65		# line 986
-FROM @65		# line 989
-'0,'_,'_,'_ '1,'_,'_,'_ L,L,S,S @66		# line 990
-'1,'_,'_,'_ '0,'_,'_,'_ R,S,S,S		# line 991
-#	nav back global
-FROM @66		# line 298
-'0|'1|'/|'[,'/,'_,'_ R,R,S,S		# line 299
-'0|'1|'/|'[,'[,'_,'_ R,R,S,S		# line 300
-'0|'1|'/|'[,'_,'_,'_ R,S,S,S		# line 301
-'#,'_,'_,'_ '[,'_,'_,'_ S,L,S,S @67		# line 302
-#	; exiting scope
-#	------ END: function code
-FROM @67		# line 1518
-'[,'/|'[,'_,'_ S,S,S,S @F0ret		# line 1519
-#	------ BEGIN: call site ID writing
-FROM @F0C0		# line 191
-'_,'/|'[,'_,'_ '1,'/|'[,'_,'_ R,S,S,S @41		# line 199
-#	------ END: call site ID writing
-#	begin call site ID check
-#	------ BEGIN: call site ID check
-FROM @F0C0check		# line 205
-'1,'_,'_,'_ '_,'_,'_,'_ L,S,S,S @68		# line 206
-FROM @68		# line 209
-'0,'_,'_,'_ '_,'_,'_,'_ L,S,S,S		# line 210
-'[,'_,'_,'_ '_,'_,'_,'_ L,S,S,S @69		# line 211
-FROM @69		# line 212
-'/|'0|'1,'_,'_,'_ L,S,S,S		# line 213
-'[,'_,'_,'_ S,L,S,S @44		# line 214
-#	------ END: call site ID check
-#	------ BEGIN: function epilogue
-FROM @F0ret		# line 220
-'[,'/|'[,'_,'_ '[,'/|'[,'_,'_ R,R,S,S		# line 221
-'0|'1|'/,'_,'_,'_ '_,'_,'_,'_ R,S,S,S		# line 222
-'_,'_,'_,'_ L,S,S,S		# line 223
-'[,'_,'_,'_ '_,'_,'_,'_ L,S,S,S @F0C0check		# line 224
-#	------ END: function epilogue
+FROM @36		# line 1541
+'[,'/,'_,'_ S,S,S,S @END		# line 1542
+'[,'[,'_,'_ S,S,S,S @END		# line 1543

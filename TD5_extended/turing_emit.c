@@ -989,7 +989,7 @@ void exec(ast_node* n, stack_frame* frame)
                         instr("FROM @%d", label);
                         instr("'0,'_,'_,'_ '1,'_,'_,'_ L,L,S,S @%d", label + 1);
                         instr("'1,'_,'_,'_ '0,'_,'_,'_ R,S,S,S");
-                        // todo: what if 1111111 ?
+                        instr("'/,'_,'_,'_ S,L,S,S @%d", label + 1);
                         back();
                     }
                     else // expression
@@ -1000,11 +1000,13 @@ void exec(ast_node* n, stack_frame* frame)
                         {
                             instr("'0,'_,'_,'_ '1,'1,'_,'_ R,R,S,S @%d", end);
                             instr("'1,'_,'_,'_ '0,'0,'_,'_ R,R,S,S");
+                            instr("'/,'_,'_,'_ S,S,S,S @%d", end);
                         }
                         else // x++
                         {
                             instr("'0,'_,'_,'_ '1,'0,'_,'_ R,R,S,S @%d", end);
                             instr("'1,'_,'_,'_ '0,'1,'_,'_ R,R,S,S");
+                            instr("'/,'_,'_,'_ S,S,S,S @%d", end);
                         }
                         instr("FROM @%d", end);
                         instr("'0|'1,'_,'_,'_ '0|'1,'0|'1,'_,'_ R,R,S,S");
@@ -1026,7 +1028,7 @@ void exec(ast_node* n, stack_frame* frame)
                         instr("FROM @%d", label);
                         instr("'1,'_,'_,'_ '0,'_,'_,'_ L,L,S,S @%d", label + 1);
                         instr("'0,'_,'_,'_ '1,'_,'_,'_ R,S,S,S");
-                        // todo: what if 1111111 ?
+                        instr("'/,'_,'_,'_ S,L,S,S @%d", label + 1);
                         back();
                     }
                     else // expression
@@ -1037,11 +1039,13 @@ void exec(ast_node* n, stack_frame* frame)
                         {
                             instr("'1,'_,'_,'_ '0,'0,'_,'_ R,R,S,S @%d", end);
                             instr("'0,'_,'_,'_ '1,'1,'_,'_ R,R,S,S");
+                            instr("'/,'_,'_,'_ S,S,S,S @%d", end);
                         }
                         else // x--
                         {
                             instr("'1,'_,'_,'_ '0,'1,'_,'_ R,R,S,S @%d", end);
                             instr("'0,'_,'_,'_ '1,'0,'_,'_ R,R,S,S");
+                            instr("'/,'_,'_,'_ S,S,S,S @%d", end);
                         }
                         instr("FROM @%d", end);
                         instr("'0|'1,'_,'_,'_ '0|'1,'0|'1,'_,'_ R,R,S,S");

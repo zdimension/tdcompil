@@ -1,12 +1,5 @@
 {
-	var x: u8 = 255;
+	var x: u8 = 0;
 
-	proc inc(ptr: u8* global)
-	{
-		(*ptr)++;
-	}
-
-	inc(&x);
-
-	print x;
+	print --x;
 }
