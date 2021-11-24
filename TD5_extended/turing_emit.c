@@ -1355,6 +1355,9 @@ void exec(ast_node* n, stack_frame* frame)
                 case KASSERT:
                     PROD0("assert");
                     return;
+                case KIMPL:
+                    PROD0("impl");
+                    return;
                 case KRETURN:
                 {
                     PROD0("return");
@@ -1366,8 +1369,23 @@ void exec(ast_node* n, stack_frame* frame)
                 case '(':
                 {
                     PROD0("call");
-                    func_list* fct = FIND_SYM(func_list, funcs_head, op[0]);
+                    struct
+                    {
+                        func_list* function;
+                        call_site_list* site;
+                    } * call_site = n->data;
+                    func_list* fct = call_site->function;
                     linked_list* args = AST_LIST_HEAD(op[1]);
+
+                    if (fct->frame.parent->impl_parent)
+                    {
+                        PROD0("pushing instance");
+                        linked_list* narg = malloc(sizeof(linked_list));
+                        narg->value = OPER_OPERANDS(op[0])[0]; // get A from A.B
+                        narg->next = args;
+                        args = narg;
+                    }
+
                     int right_heap;
                     if (args)
                     {
@@ -1402,7 +1420,7 @@ void exec(ast_node* n, stack_frame* frame)
                     instr("FROM @%d", right_heap);
                     instr("'/|'0|'1|'[,'/,'_,'_ R,S,S,S");
                     instr("'/|'0|'1|'[,'[,'_,'_ R,S,S,S");
-                    call_site_list* call = n->data;
+                    call_site_list* call = call_site->site;
                     instr("'_,'/|'[,'_,'_ '[,'/|'[,'_,'_ R,S,S,S @F%dC%d", fct->header.id, call->id);
                     call->argalloc_address = label + 1;
                     if (args)

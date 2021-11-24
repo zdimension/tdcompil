@@ -67,6 +67,7 @@ typedef struct stack_frame_s
         struct type_list_s* head, * tail;
     } types;
     struct stack_frame_s* parent;
+    struct type_list_s* impl_parent;
 } stack_frame;
 extern stack_frame global_frame;
 
@@ -112,8 +113,15 @@ typedef struct type_list_s
         };
         struct
         {
-            var_list* head, * tail;
-        } composite_members;
+            struct
+            {
+                var_list* head, * tail;
+            } composite_members;
+            struct
+            {
+                func_list* head, * tail;
+            } composite_methods;
+        };
         struct
         {
             linked_list* params;

@@ -11,11 +11,8 @@
  */
 #define ADD_SYM(type, head, tail) ((type*) add_symbol((linked_list_header**)(head), (linked_list_header**)(tail), sizeof(type)))
 
-// Internal.
-linked_list_header* add_symbol(linked_list_header** head, linked_list_header** tail, size_t size)
+void add_symbol_existing(linked_list_header** head, linked_list_header** tail, linked_list_header* newNode)
 {
-    linked_list_header* newNode = malloc(size);
-    newNode->next = NULL;
     if (*head == NULL)
     {
         newNode->id = 0;
@@ -28,6 +25,14 @@ linked_list_header* add_symbol(linked_list_header** head, linked_list_header** t
         (*tail)->next = newNode;
         *tail = newNode;
     }
+}
+
+// Internal.
+linked_list_header* add_symbol(linked_list_header** head, linked_list_header** tail, size_t size)
+{
+    linked_list_header* newNode = malloc(size);
+    newNode->next = NULL;
+    add_symbol_existing(head, tail, newNode);
     return newNode;
 }
 
@@ -73,7 +78,7 @@ bool type_assignable(type_list const* given, type_list const* wanted)
         case T_POINTER:
             return type_assignable(given->pointer_target, wanted->pointer_target) &&
                    !(given->pointer_target->is_const && !wanted->pointer_target->is_const) &&
-                    (given->pointer_is_global == wanted->pointer_is_global);
+                   (given->pointer_is_global == wanted->pointer_is_global);
         case T_COMPOSITE:
             return false;
     }
@@ -672,7 +677,9 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
             {
                 if (ptr->type->type == T_ARRAY) // referencing an array directly is equivalent to &array[0]
                 {
-                    ast_node* ret = set_inferred_type(make_number(var_position(ptr)), make_pointer_global_if(decay_array_ptr(ptr->type), frame->function == NULL));
+                    ast_node* ret = set_inferred_type(make_number(var_position(ptr)),
+                                                      make_pointer_global_if(decay_array_ptr(ptr->type),
+                                                                             frame->function == NULL));
                     *n = ret;
                     return;
                 }
@@ -680,7 +687,9 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
                 {
                     RETURN(make_number(ptr->value), ptr->type);
                 }
-                RETURN_LVALUE(set_inferred_type(make_number(var_position(ptr)), make_pointer_global_if(make_pointer(ptr->type), frame->function == NULL)));
+                RETURN_LVALUE(set_inferred_type(make_number(var_position(ptr)),
+                                                make_pointer_global_if(make_pointer(ptr->type),
+                                                                       frame->function == NULL)));
             }
             ptr = get_var_id(*n, frame, F_RECURSE);
             if (ptr->type->is_const && is_numeric(ptr->type)) // allow resolving constants for parent frames
@@ -723,7 +732,7 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
                                 }
 
                                 ast_node* base = make_number_sized(1, 1);
-                                ast_node* temp, *init;
+                                ast_node* temp, * init;
                                 if (is_pure_var(op[0]))
                                 {
                                     temp = make_node(DEREF, 1, make_number(NUMBER_VALUE(get_position(op[0]))));
@@ -926,6 +935,26 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
                     return;
                     //SET_TYPE(VOID_TYPE);
                 }
+                case KIMPL:
+                {
+                    type_list* type = get_type(op[0], frame);
+                    AST_INFERRED(op[0]) = type;
+                    stack_frame temp_frame = (stack_frame) {
+                            .function = NULL,
+                            .loop = NULL,
+                            .is_root = true,
+                            .vars = {NULL, NULL},
+                            .impl_parent = type,
+                            .parent = frame
+                    };
+                    for (linked_list* lst = AST_LIST_HEAD(op[1]); lst; lst = lst->next)
+                    {
+                        ast_node* method = lst->value;
+
+                        analysis(&method, &temp_frame, false);
+                    }
+                    SET_TYPE(VOID_TYPE);
+                }
                 case KTYPE:
                 {
                     type_list* type = check_add_type(VAR_NAME(op[0]), frame);
@@ -994,7 +1023,17 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
                 case KFUNC:
                 case KPROC:
                 {
-                    func_list* newNode = ADD_SYM(func_list, &funcs_head, &funcs_tail);
+                    func_list* newNode;
+                    if (frame->impl_parent)
+                    {
+                        newNode = ADD_SYM(func_list, &frame->impl_parent->composite_methods.head,
+                                          &frame->impl_parent->composite_methods.tail);
+                        add_symbol_existing((linked_list_header**) &funcs_head, (linked_list_header**) &funcs_tail, &newNode->header);
+                    }
+                    else
+                    {
+                        newNode = ADD_SYM(func_list, &funcs_head, &funcs_tail);
+                    }
                     newNode->header.name = VAR_NAME(op[0]);
                     newNode->header.owner = NULL;
                     newNode->return_type = OPER_OPERATOR(*n) == KPROC ? VOID_TYPE :
@@ -1079,12 +1118,45 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
                 {
                     if (!AST_DATA(*n))
                     {
-                        func_list* func = FIND_SYM(func_list, funcs_head, op[0]);
-                        linked_list* list, * flist;
+                        func_list* func;
+                        ast_node* member = NULL;
+                        if (AST_KIND(op[0]) == k_ident)
+                        {
+                            func = FIND_SYM(func_list, funcs_head, op[0]);
+                        }
+                        else if (AST_KIND(op[0]) == k_operator && OPER_OPERATOR(op[0]) == '.')
+                        {
+                            ast_node** left = &OPER_OPERANDS(op[0])[0];
+                            analysis(left, frame, false);
+                            type_list const* member_type = infer_type(*left);
+                            if (member_type->type != T_COMPOSITE)
+                            {
+                                error_msg(*n, "Method access on non-composite type\n");
+                                exit(1);
+                            }
+                            ast_node* right = OPER_OPERANDS(op[0])[1];
+                            func = FIND_SYM(func_list, member_type->composite_methods.head, right);
+                            member = *left;
+                        }
+                        else
+                        {
+                            error_msg(op[0], "Invalid call target\n");
+                            exit(1);
+                        }
+
+                        linked_list* list = AST_LIST_HEAD(op[1]), * flist;
+
+                        if (member)
+                        {
+                            linked_list* nlist = malloc(sizeof(linked_list));
+                            nlist->value = member;
+                            nlist->next = list;
+                            list = nlist;
+                        }
+
                         var_list* fargs;
                         int i = 1;
-                        for (list = AST_LIST_HEAD(op[1]),
-                             flist = func->arglist, fargs = func->frame.vars.head;
+                        for (flist = func->arglist, fargs = func->frame.vars.head;
                              list && flist;
                              list = list->next, flist = flist->next, fargs = (var_list*) fargs->header.next, i++)
                         {
@@ -1103,7 +1175,14 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
                             error_msg(*n, "Invalid number of arguments in call to '%s'\n", func->header.name);
                             exit(1);
                         }
-                        AST_DATA(*n) = add_call_site(&func->callsites);
+                        struct
+                        {
+                            func_list* function;
+                            call_site_list* site;
+                        } * call_site = malloc(sizeof(*call_site));
+                        call_site->function = func;
+                        call_site->site = add_call_site(&func->callsites);
+                        AST_DATA(*n) = call_site;
                         SET_TYPE(func->return_type);
                     }
                     return;
