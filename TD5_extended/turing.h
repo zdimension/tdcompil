@@ -161,6 +161,10 @@ type_list* get_type(ast_node* node, stack_frame* frame);
 
 linked_list_header* find_symbol(linked_list_header* list, ast_node* node);
 
+#define FIND_SYM_OR_NULL(type, list, name) ((type*)find_symbol_or_null(&((list)->header), name))
+
+linked_list_header* find_symbol_or_null(linked_list_header* list, ast_node* node);
+
 _Noreturn void missing_symbol(ast_node* node, const char* name);
 
 int var_position(var_list* var);
@@ -172,3 +176,7 @@ int type_size_bits(type_list const* type);
 type_list const* decode_spec(ast_node* spec, stack_frame* frame);
 
 void write_code(ast_node* n);
+
+const char* stringify_operator(enum yytokentype op);
+
+const char* stringify_operator_or_null(enum yytokentype op);

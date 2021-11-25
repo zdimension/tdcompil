@@ -148,6 +148,7 @@ typedef struct
 
 ast_node* make_list(ast_node* value);
 ast_node* prepend_list(ast_node* list, ast_node* value);
+linked_list* make_list_item(ast_node* value);
 
 // ----------------------------------------------------------------------
 //		Utilities

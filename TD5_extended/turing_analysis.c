@@ -1174,7 +1174,7 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
                         {
                             func = FIND_SYM(func_list, funcs_head, op[0]);
                         }
-                        else if (AST_KIND(op[0]) == k_operator && OPER_OPERATOR(op[0]) == '.')
+                        else if (AST_KIND(op[0]) == k_operator && OPER_OPERATOR(op[0]) == '.' && AST_KIND(OPER_OPERANDS(op[0])[1]) == k_ident)
                         {
                             ast_node** left = &OPER_OPERANDS(op[0])[0];
                             analysis(left, frame, false);
@@ -1297,6 +1297,35 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
                 analysis(&op[i], frame, false);
                 if ((o[i].is_num = AST_KIND(op[i]) == k_number))
                     o[i].value = NUMBER_VALUE(op[i]);
+            }
+
+            if (TLEFT->type == T_COMPOSITE)
+            {
+                const char* op_str = stringify_operator_or_null( OPER_OPERATOR(*n));
+                if (op_str)
+                {
+                    ast_node* func_name = make_ident(op_str);
+                    func_list* func = FIND_SYM_OR_NULL(func_list, TLEFT->composite_methods.head, func_name);
+                    if (func)
+                    {
+                        ast_node* args = NULL;
+                        if (arity > 1)
+                        {
+                            args = make_list(op[1]);
+                            linked_list** tail = &AST_LIST_HEAD(args)->next;
+                            for (int i = 2; i < arity; i++)
+                            {
+                                linked_list* item = make_list_item(op[i]);
+                                *tail = item;
+                                tail = &item->next;
+                            }
+                        }
+
+                        *n = make_node('(', 2, make_node('.', 2, op[0], func_name), args);
+                        analysis(n, frame, false);
+                        return;
+                    }
+                }
             }
 
             type_list const* result;

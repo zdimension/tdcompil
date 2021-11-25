@@ -104,6 +104,7 @@
 
 	/* ---- Idents ---- */
 [a-zA-Z_][a-zA-Z0-9_]*			{ yylval.var = strdup(yytext); return IDENT; }
+`[^`]+`			{ yylval.var = strndup(yytext + 1, strlen(yytext) - 2); return IDENT; }
 
 
 	/* ---- Spaces ----*/

@@ -26,6 +26,72 @@ bool expect_sub = false;
 
 #define sci() do { if (AST_CLEAN_STACK(n)) sc(); } while (0)
 
+const char* stringify_operator_or_null(enum yytokentype op)
+{
+    if (op < YYerror)
+    {
+        char* res = malloc(2);
+        res[0] = (char) op;
+        res[1] = 0;
+        return res;
+    }
+
+    switch(op)
+    {
+        case GE:
+            return ">=";
+        case LE:
+            return "<=";
+        case EQ:
+            return "==";
+        case NE:
+            return "!=";
+        case REF:
+            return "&";
+        case DEREF:
+            return "*";
+        case APL:
+            return "+=";
+        case AMN:
+            return "-=";
+        case AML:
+            return "*=";
+        case ADV:
+            return "/=";
+        case INC:
+            return "++";
+        case DEC:
+            return "--";
+        case AND:
+            return "&&";
+        case OR:
+            return "||";
+        case SHL:
+            return "<<";
+        case SHR:
+            return ">>";
+        case ARROW:
+            return "=>";
+        case UMINUS:
+            return "-";
+        case KNEW:
+            return "new";
+        default:
+            return NULL;
+    }
+}
+
+const char* stringify_operator(enum yytokentype op)
+{
+    const char* res = stringify_operator_or_null(op);
+    if (!res)
+    {
+        error_msg(NULL, "stringify: unknown %d\n", op);
+        exit(1);
+    }
+    return res;
+}
+
 void write_inline(ast_node* n)
 {
     if (!n)
@@ -100,15 +166,9 @@ void write_code(ast_node* n)
             switch (OPER_OPERATOR(n))
             {
                 case UMINUS:
-                    write_un("-");
-                    sci();
-                    return;
                 case '~':
-                    write_un("~");
-                    sci();
-                    return;
                 case DEREF:
-                    write_un("*");
+                    write_un(stringify_operator(OPER_OPERATOR(n)));
                     sci();
                     return;
                 case ';':
@@ -149,7 +209,15 @@ void write_code(ast_node* n)
                 case '<':
                 case '>':
                 case '=':
-                    write_bin(str);
+                case GE:
+                case LE:
+                case EQ:
+                case NE:
+                case AND:
+                case OR:
+                case SHL:
+                case SHR:
+                    write_bin(stringify_operator(OPER_OPERATOR(n)));
                     sci();
                     return;
                 case '.':
@@ -158,48 +226,10 @@ void write_code(ast_node* n)
                     write_inline(op[1]);
                     sci();
                     return;
-                case SHL:
-                    write_bin("<<");
-                    sci();
-                    return;
-                case SHR:
-                    write_bin(">>");
-                    sci();
-                    return;
-                case GE:
-                    write_bin(">=");
-                    sci();
-                    return;
-                case LE:
-                    write_bin("<=");
-                    sci();
-                    return;
-                case EQ:
-                    write_bin("==");
-                    sci();
-                    return;
-                case NE:
-                    write_bin("!=");
-                    sci();
-                    return;
-                case OR:
-                    write_bin("||");
-                    sci();
-                    return;
-                case AND:
-                    write_bin("&&");
-                    sci();
-                    return;
                 case INC:
-                    un_stmt("++");
-                    sci();
-                    return;
                 case DEC:
-                    un_stmt("--");
-                    sci();
-                    return;
                 case KNEW:
-                    un_stmt("new");
+                    un_stmt(stringify_operator(OPER_OPERATOR(n)));
                     sci();
                     return;
                 case KPRINT:

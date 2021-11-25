@@ -177,11 +177,18 @@ ast_node* make_list(ast_node* value)
     return (ast_node*) ptr;
 }
 
+linked_list* make_list_item(ast_node* value)
+{
+    linked_list* ptr = malloc(sizeof(*ptr));
+    ptr->value = value;
+    ptr->next = NULL;
+    return ptr;
+}
+
 ast_node* prepend_list(ast_node* node, ast_node* value)
 {
     ast_linked_list* list = (ast_linked_list*) node;
-    linked_list* ptr = malloc(sizeof(*ptr));
-    ptr->value = value;
+    linked_list* ptr = make_list_item(value);
     ptr->next = list->list;
     list->list = ptr;
     return (ast_node*) list;
