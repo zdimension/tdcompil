@@ -74,12 +74,12 @@ ast_node* clean_stack(ast_node* p);
 typedef struct
 {
     ast_node header;        // AST header
-    char* name;            // name of the ident
+    const char* name;            // name of the ident
 } ast_ident;
 
 #define VAR_NAME(p)        (((ast_ident *) (p))->name)
 
-ast_node* make_ident(char* str);    // make a ident node
+ast_node* make_ident(const char* str);    // make a ident node
 
 
 // ----------------------------------------------------------------------

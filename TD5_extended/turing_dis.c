@@ -152,6 +152,12 @@ void write_code(ast_node* n)
                     write_bin(str);
                     sci();
                     return;
+                case '.':
+                    write_inline(op[0]);
+                    code_n(".");
+                    write_inline(op[1]);
+                    sci();
+                    return;
                 case SHL:
                     write_bin("<<");
                     sci();
@@ -278,6 +284,20 @@ void write_code(ast_node* n)
                     write_inline(op[0]);
                     code_n(" = %s", type_display_full(AST_INFERRED(op[0]), true, false));
                     sc();
+                    return;
+                case KIMPL:
+                    code_n("impl %s\n", VAR_NAME(op[0]));
+                    tab();
+                    code_n("{\n");
+                    indent++;
+                    for(linked_list* lst = AST_LIST_HEAD(op[1]); lst; lst = lst->next)
+                    {
+                        tab();
+                        write_code(lst->value);
+                    }
+                    indent--;
+                    tab();
+                    code_n("}\n");
                     return;
                 case ':':
                     write_inline(op[0]);

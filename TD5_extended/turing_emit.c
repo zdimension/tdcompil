@@ -76,7 +76,7 @@ void allocate_var(var_list* ptr)
         }
         case T_ARRAY:
         {
-            char* str = ptr->initial;
+            const char* str = ptr->initial;
             int cell_bits = type_size_bits(ptr->type->array_target);
             for (int j = 0; j < ptr->type->array_count; j++, (str && *str && str++))
             {

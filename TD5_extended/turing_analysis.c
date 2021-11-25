@@ -488,6 +488,9 @@ const type_list* make_pointer_global_if(const type_list* type, bool global)
 
     assert(type->type == T_POINTER);
 
+    if (type->pointer_is_global)
+        return type;
+
     type_list* ret = NEW_TYPE();
     *ret = *type;
     memset(&ret->header, 0, sizeof(ret->header));
@@ -753,6 +756,14 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
                                 analysis(&res, frame, false);
 
                                 ast_node* assignments = make_number_sized(1, 1);
+
+                                if (OPER_ARITY(lit) == 3) // auto
+                                {
+                                    error_msg(lit,
+                                              "Struct pattern with implicit fields not supported; please specify field names\n");
+                                    exit(1);
+                                }
+
                                 for (linked_list* lst = AST_LIST_HEAD(OPER_OPERANDS(lit)[1]); lst; lst = lst->next)
                                 {
                                     ast_node* member = OPER_OPERANDS(lst->value)[0];
@@ -847,13 +858,45 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
                                                          temp));
                     analysis(&res, frame, false);
 
-                    for (linked_list* lst = AST_LIST_HEAD(op[1]); lst; lst = lst->next)
+#define assignment() do{ \
+                    ast_node* assignment = clean_stack(\
+                    make_node('=', 2, make_node('.', 2, temp, member), value));\
+                    analysis(&assignment, SC_SCOPE(res), false);\
+                    OPER_OPERANDS(assignments)[0] = make_node(';', 2, OPER_OPERANDS(assignments)[0],\
+                    assignment);\
+                    }while(0)
+
+                    if (arity == 3)
                     {
-                        ast_node* member = OPER_OPERANDS(lst->value)[0];
-                        ast_node* value = OPER_OPERANDS(lst->value)[1];
-                        ast_node* assignment = clean_stack(make_node('=', 2, make_node('.', 2, temp, member), value));
-                        analysis(&assignment, SC_SCOPE(res), false);
-                        OPER_OPERANDS(assignments)[0] = make_node(';', 2, OPER_OPERANDS(assignments)[0], assignment);
+                        var_list* fields = type->composite_members.head;
+                        linked_list* lst;
+                        for (lst = AST_LIST_HEAD(op[1]);
+                             lst && fields; lst = lst->next, fields = (var_list*) fields->header.next)
+                        {
+                            ast_node* member = make_ident(fields->header.name);
+                            ast_node* value = lst->value;
+                            assignment();
+                        }
+
+                        if (lst)
+                        {
+                            error_msg(op[1], "Too many arguments to struct literal\n");
+                            exit(1);
+                        }
+                        else if (fields)
+                        {
+                            error_msg(op[1], "Too few arguments to struct literal\n");
+                            exit(1);
+                        }
+                    }
+                    else
+                    {
+                        for (linked_list* lst = AST_LIST_HEAD(op[1]); lst; lst = lst->next)
+                        {
+                            ast_node* member = OPER_OPERANDS(lst->value)[0];
+                            ast_node* value = OPER_OPERANDS(lst->value)[1];
+                            assignment();
+                        }
                     }
 
                     analysis(&OPER_OPERANDS(assignments)[0], frame, true);
@@ -898,7 +941,7 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
                     }
                     var_list* member = FIND_SYM(var_list, ltype->composite_members.head, op[1]);
                     ast_node* lhs_ptr = get_position(op[0]);
-                    set_inferred_type(lhs_ptr, make_pointer(member->type)); // convert to pointer to member
+                    set_inferred_type(lhs_ptr, make_pointer_global_if(make_pointer(member->type), lhs_ptr->inferred_type->pointer_is_global)); // convert to pointer to member
                     ast_node* ret = make_node('+', 2, lhs_ptr, make_number(member->position));
                     analysis(&ret, frame, false);
                     RETURN_LVALUE(ret);
@@ -1026,9 +1069,15 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
                     func_list* newNode;
                     if (frame->impl_parent)
                     {
+                        if (!AST_LIST_HEAD(op[1]))
+                        {
+                            error_msg(*n, "Method '%s' missing instance parameter\n", VAR_NAME(op[0]));
+                            exit(1);
+                        }
                         newNode = ADD_SYM(func_list, &frame->impl_parent->composite_methods.head,
                                           &frame->impl_parent->composite_methods.tail);
-                        add_symbol_existing((linked_list_header**) &funcs_head, (linked_list_header**) &funcs_tail, &newNode->header);
+                        add_symbol_existing((linked_list_header**) &funcs_head, (linked_list_header**) &funcs_tail,
+                                            &newNode->header);
                     }
                     else
                     {
@@ -1054,6 +1103,7 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
                     {
                         ast_node* argname = OPER_OPERANDS(ptr->value)[0];
                         const type_list* spec = decode_spec(OPER_OPERANDS(ptr->value)[1], frame);
+                        spec = make_pointer_global_if(spec, ptr == newNode->arglist && spec->type == T_POINTER);
                         AST_INFERRED(argname) = spec;
                         check_add_var(VAR_NAME(argname), &newNode->frame, spec);
                     }
@@ -1119,7 +1169,7 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
                     if (!AST_DATA(*n))
                     {
                         func_list* func;
-                        ast_node* member = NULL;
+                        ast_node** member = NULL;
                         if (AST_KIND(op[0]) == k_ident)
                         {
                             func = FIND_SYM(func_list, funcs_head, op[0]);
@@ -1136,7 +1186,7 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
                             }
                             ast_node* right = OPER_OPERANDS(op[0])[1];
                             func = FIND_SYM(func_list, member_type->composite_methods.head, right);
-                            member = *left;
+                            member = left;
                         }
                         else
                         {
@@ -1148,8 +1198,19 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
 
                         if (member)
                         {
+                            if (!func->frame.vars.head)
+                            {
+                                error_msg(*n, "Method call on static function\n");// todo, better detection
+                                exit(1);
+                            }
+
                             linked_list* nlist = malloc(sizeof(linked_list));
-                            nlist->value = member;
+                            if (func->frame.vars.head->type->type == T_POINTER)
+                            {
+                                *member = make_node(REF, 1, *member);
+                                analysis(member, frame, false);
+                            }
+                            nlist->value = *member;
                             nlist->next = list;
                             list = nlist;
                         }

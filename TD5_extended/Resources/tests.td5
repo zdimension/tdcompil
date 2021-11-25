@@ -28,13 +28,13 @@
 
 	impl point
 	{
-		func hypot(z: point): u16
+		func hypot(z: point*): u16
 		{
-			return isqrt(z.x * z.x + z.y * z.y);
+			return isqrt((*z).x * (*z).x + (*z).y * (*z).y);
 		}
 	}
 
-    var p = point { x: 3, y: 4 };
+    var p = point { 3, 4 };
 
     print p.hypot();
 }

@@ -36,7 +36,7 @@ typedef struct
             int position; // in cells
             struct // array
             {
-                char* initial;
+                const char* initial;
             };
         };
         struct // const

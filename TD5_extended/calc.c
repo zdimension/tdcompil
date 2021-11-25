@@ -40,7 +40,7 @@ ast_node* clean_stack(ast_node* p)
 // ----------------------------------------------------------------------
 //		Idents stuff
 // ----------------------------------------------------------------------
-ast_node* make_ident(char* str)
+ast_node* make_ident(const char* str)
 {
     ast_node* p = allocate_node(sizeof(ast_ident));
 
@@ -126,9 +126,6 @@ void free_node(ast_node* p)
     switch (AST_KIND(p))
     {
         case k_number:    /* Nothing to do */ break;
-        case k_ident:
-            free(VAR_NAME(p));
-            break;
         case k_operator:
             for (int i = 0; i < OPER_ARITY(p); i++)
                 free(OPER_OPERANDS(p)[i]);
