@@ -230,7 +230,6 @@ pattern_basic
 	: l_and_expr 											{ $$ = $1; }
 	| pattern_basic RANGE l_and_expr 						{ $$ = make_node(RANGE, 2, $1, $3); }
 	| pattern_basic IRANGE l_and_expr 						{ $$ = make_node(RANGE, 2, $1, $3); AST_DATA($$) = (void*) 1; }
-/*| var '{' struct_field_pattern_list '}' 				{ $$ = make_node(STRUCTLIT, 2, $1, $3); }*/
 	| '_'													{ $$ = NULL; }
 	;
 

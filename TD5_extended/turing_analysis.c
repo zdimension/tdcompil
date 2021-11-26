@@ -49,7 +49,7 @@ bool is_pointer(type_list const* type)
  */
 bool is_numeric(type_list const* type)
 {
-    return is_scalar(type) || is_pointer(type);
+    return type && (is_scalar(type) || is_pointer(type));
 }
 
 /**
@@ -696,7 +696,7 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
                                 }
 
                                 ast_node* base = make_number_sized(1, 1);
-                                ast_node* temp, *init;
+                                ast_node* temp, * init;
                                 if (is_pure_var(op[0]))
                                 {
                                     temp = make_node(DEREF, 1, make_number(NUMBER_VALUE(get_position(op[0]))));
@@ -824,13 +824,6 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
 
                     *n = res;
                     return;
-                }
-                case '|':
-                case RANGE:
-                {
-                    analysis(&op[0], frame, false);
-                    analysis(&op[1], frame, false);
-                    SET_TYPE(VOID_TYPE);// todo: pattern type?
                 }
                 case KASSERT:
                 {
@@ -1186,6 +1179,47 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
 
             switch (OPER_OPERATOR(*n))
             {
+                case '|':
+                {
+                    SET_TYPE(VOID_TYPE);// todo: pattern type?
+                }
+                case RANGE:
+                {
+                    if (!is_numeric(TLEFT))
+                    {
+                        error_msg(op[0], "Expected numeric type, got %s\n", type_display(TLEFT));
+                        exit(1);
+                    }
+
+                    if (!is_numeric(TRIGHT))
+                    {
+                        error_msg(op[1], "Expected numeric type, got %s\n", type_display(TRIGHT));
+                        exit(1);
+                    }
+
+                    if (o[0].is_num && o[1].is_num)
+                    {
+                        if (AST_DATA(*n))
+                        {
+                            if (o[0].value > o[1].is_num)
+                            {
+                                error_msg(*n, "Invalid range: %d..=%d\n", o[0].value, o[1].value);
+                                exit(1);
+                            }
+                        }
+                        else
+                        {
+                            if (o[0].value >= o[1].is_num)
+                            {
+                                error_msg(*n, "Invalid range: %d..%d\n", o[0].value, o[1].value);
+                                exit(1);
+                            }
+                        }
+                    }
+
+
+                    SET_TYPE(VOID_TYPE);// todo: pattern type?
+                }
                 case SHL:
                 {
                     if (o[0].is_num && o[1].is_num)
