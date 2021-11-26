@@ -1299,7 +1299,7 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
                     o[i].value = NUMBER_VALUE(op[i]);
             }
 
-            if (TLEFT->type == T_COMPOSITE)
+            if (op[0] && TLEFT && TLEFT->type == T_COMPOSITE)
             {
                 const char* op_str = stringify_operator_or_null( OPER_OPERATOR(*n));
                 if (op_str)
