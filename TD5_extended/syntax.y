@@ -40,7 +40,7 @@ void yyerror(const char *s);
 //                      Tokens
 %token  <number>         NUMBER
 %token  <var>           IDENT STRING
-%token                  KWHILE KIF KPRINT KELSE KREAD KFOR KDO KVAR KFUNC KRETURN KBREAK KCONTINUE KCONST KTYPE KTYPEOF KSIZEOF KSTRUCT KBITSOF KNEW KASSERT KLOOP KMATCH KIS RANGE IRANGE KGLOBAL KIMPL
+%token                  KWHILE KIF KPRINT KELSE KREAD KFOR KDO KVAR KFUNC KRETURN KBREAK KCONTINUE KCONST KTYPE KTYPEOF KSIZEOF KSTRUCT KBITSOF KNEW KASSERT KLOOP KMATCH KIS RANGE IRANGE KGLOBAL KIMPL KIN KFOREACH
 %token '+' '-' '*' '/' GE LE EQ NE '>' '<' REF DEREF APL AMN AML ADV INC DEC AND OR SHL SHR ARROW STRUCTLIT
 %token UMINUS VDECL SCOPE TUPLEASSIGN
 //                       Precedence rules
@@ -88,6 +88,7 @@ stmt
     | KIF '(' expr_or_inline_decl ')' stmt    %prec THEN    								{ $$ = make_scope(make_node(KIF, 3, $3, $5, NULL)); }
     | KIF '(' expr_or_inline_decl ')' stmt KELSE stmt      									{ $$ = make_scope(make_node(KIF, 3, $3, $5, $7)); }
     | KFOR '(' expr_discard_or_inline_decl_opt ';' expr_opt ';' expr_discard_opt ')' stmt 	{ $$ = make_scope(make_node(KFOR, 4, $3, $5, $7, $9)); }
+    | KFOR '(' KVAR var KIN expr ')' stmt 													{ $$ = make_scope(make_node(KFOREACH, 3, $4, $6, $8)); }
     | KDO stmt KWHILE '(' expr ')' ';' 														{ $$ = make_node(KDO, 2, $2, $5); }
     | func																					{ $$ = $1; }
     | KIMPL var '{' func_list '}'															{ $$ = make_node(KIMPL, 2, $2, $4); }

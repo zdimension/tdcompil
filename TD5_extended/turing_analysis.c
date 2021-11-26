@@ -934,7 +934,8 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
                     }
                     var_list* member = FIND_SYM(var_list, ltype->composite_members.head, op[1]);
                     ast_node* lhs_ptr = get_position(op[0]);
-                    set_inferred_type(lhs_ptr, make_pointer_global_if(make_pointer(member->type), lhs_ptr->inferred_type->pointer_is_global)); // convert to pointer to member
+                    set_inferred_type(lhs_ptr, make_pointer_global_if(make_pointer(member->type),
+                                                                      lhs_ptr->inferred_type->pointer_is_global)); // convert to pointer to member
                     ast_node* ret = make_node('+', 2, lhs_ptr, make_number(member->position));
                     analysis(&ret, frame, false);
                     RETURN_LVALUE(ret);
@@ -1166,7 +1167,8 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
                         {
                             func = FIND_SYM(func_list, funcs_head, op[0]);
                         }
-                        else if (AST_KIND(op[0]) == k_operator && OPER_OPERATOR(op[0]) == '.' && AST_KIND(OPER_OPERANDS(op[0])[1]) == k_ident)
+                        else if (AST_KIND(op[0]) == k_operator && OPER_OPERATOR(op[0]) == '.' &&
+                                 AST_KIND(OPER_OPERANDS(op[0])[1]) == k_ident)
                         {
                             ast_node** left = &OPER_OPERANDS(op[0])[0];
                             analysis(left, frame, false);
@@ -1281,6 +1283,28 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
                     analysis(&op[3], sc_frame, false);
                     break;
                 }
+                case KFOREACH:
+                {
+                    ast_node* variable = op[0], * iter = op[1], * code = op[2];
+                    analysis(&iter, frame, false);
+                    ast_node* iter_decl = NULL;
+                    if (!is_pure_var(iter))
+                    {
+                        ast_node* temp_name = make_ident("$iter");
+                        iter_decl = make_node(';', 2,
+                                              make_node(KVAR, 2, temp_name, make_node(KTYPEOF, 1, iter)),
+                                              clean_stack(make_node('=', 2, temp_name, iter)));
+                        iter = temp_name;
+                    }
+                    ast_node* next_fct_call = make_node('(', 2, make_node('.', 2, iter, make_ident("next")), NULL);
+                    ast_node* has_fct_call = make_node('(', 2, make_node('.', 2, iter, make_ident("hasNext")), NULL);
+                    *n = make_scope(make_node(KFOR, 4, make_node(';', 2, iter_decl, make_node(KVAR, 2, variable, make_node(KTYPEOF, 1, next_fct_call))),
+                                              has_fct_call,
+                                              NULL,
+                                              make_node(';', 2, clean_stack(make_node('=', 2, variable, next_fct_call)), code)));
+                    analysis(n, frame, false);
+                    return;
+                }
             }
 
             struct
@@ -1299,7 +1323,7 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
 
             if (op[0] && TLEFT && TLEFT->type == T_COMPOSITE)
             {
-                const char* op_str = stringify_operator_or_null( OPER_OPERATOR(*n));
+                const char* op_str = stringify_operator_or_null(OPER_OPERATOR(*n));
                 if (op_str)
                 {
                     ast_node* func_name = make_ident(op_str);

@@ -1369,6 +1369,7 @@ void exec(ast_node* n, stack_frame* frame)
                 }
                 case '(':
                 {
+
                     func_data* call_site = AST_DATA(n);
                     func_list* fct = call_site->function;
 

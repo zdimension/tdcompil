@@ -27,9 +27,8 @@
 	var iter: fibo_iter;
 	iter.init();
 
-	while (iter.hasNext())
+	for (var val in iter)
 	{
-		var val = iter.next();
 		if (val > 10)
 			break;
 		print val;
