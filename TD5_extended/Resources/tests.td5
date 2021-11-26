@@ -1,4 +1,20 @@
 {
-	type box = struct { val: u8; };
-	var x = box { 5 };
+	type point<T> = struct { x: T; y: T; };
+
+	impl point
+	{
+		func truc(p: self*): void
+		{
+			;
+		}
+	}
+
+	type bidule = point<u16>;
+	var inst16 = bidule { 5, 6 };
+	inst16.truc();
+
+
+	type b32 = point<u32>;
+	var inst32 = b32 { 7, 8 };
+	inst32.truc();
 }

@@ -1376,7 +1376,6 @@ void exec(ast_node* n, stack_frame* frame)
                 }
                 case '(':
                 {
-
                     func_data* call_site = AST_DATA(n);
                     func_list* fct = call_site->function;
 
@@ -1437,6 +1436,10 @@ void exec(ast_node* n, stack_frame* frame)
                     instr("'[,'/|'[,'_,'_ S,S,S,S @F%d", fct->header.id);
                     instr("'_,'/|'[,'_,'_ '[,'/|'[,'_,'_ S,S,S,S @F%d", fct->header.id);
                     call->return_address = label + 1;
+                    if (clean_stack && fct->return_type->type != T_VOID)
+                    {
+                        pop(type_size_cells(fct->return_type));
+                    }
 
                     return;
                 }

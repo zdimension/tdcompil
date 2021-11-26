@@ -204,6 +204,9 @@ int type_size_cells(type_list const* type)
 
 const char* type_display_full_inner(type_list const* type, int inner, bool expand)
 {
+    if (!type)
+        return "<NULL TYPE!!>";
+
     if (inner <= 0 && type->header.name)
         return type->header.name;
 
@@ -261,7 +264,7 @@ const char* type_display_full_inner(type_list const* type, int inner, bool expan
 const char* type_display_full(type_list const* type, int inner, bool expand)
 {
     const char* res = type_display_full_inner(type, inner, expand);
-    if (type->is_const)
+    if (type && type->is_const)
     {
         char* buf = malloc(1024);
         sprintf(buf, "%s const", res);
@@ -937,12 +940,21 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
 
                     ast_node* assignments = make_node(';', 2, NULL, NULL);
                     AST_INFERRED(assignments) = VOID_TYPE;
-                    ast_node* temp = make_ident("$");
-                    ast_node* res = make_scope(make_node('{', 2,
-                                                         make_node(';', 2,
-                                                                   make_node(KVAR, 2, temp, op[0]),
-                                                                   assignments),
-                                                         temp));
+                    ast_node* temp, *res;
+                    if (frame->assign_target)
+                    {
+                        temp = frame->assign_target;
+                        res = make_scope(assignments);
+                    }
+                    else
+                    {
+                        temp = make_ident("$");
+                        res = make_scope(make_node('{', 2,
+                                                   make_node(';', 2,
+                                                             make_node(KVAR, 2, temp, op[0]),
+                                                             assignments),
+                                                   temp));
+                    }
                     analysis(&res, frame, false);
 
 #define assignment() do{ \
@@ -1220,7 +1232,7 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
                                 AST_INFERRED(argname) = spec;
                                 check_add_var(VAR_NAME(argname), &newNode->frame, spec);
                             }
-                            analysis(&newNode->code, &newNode->frame, false);
+                            analysis(&newNode->code, &newNode->frame, force);
 
                             // tail recursion
 
@@ -1510,6 +1522,28 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
                                                         code)));
                     analysis(n, frame, false);
                     return;
+                }
+                case '=':
+                {
+                    analysis(&op[0], frame, false);
+                    if (AST_KIND(op[1]) == k_operator && OPER_OPERATOR(op[1]) == STRUCTLIT)
+                    {
+                        stack_frame* fr = make_child_frame(frame);
+                        fr->assign_target = op[0];
+                        analysis(&op[1], fr, false);
+                        *n = op[1];
+                    }
+                    else
+                    {
+                        analysis(&op[1], frame, false);
+                        expect_non_void(op[1]);
+                        check_assignment(op[0], op[1]);
+                        if (AST_KIND(op[1]) == k_ident && !strcmp(VAR_NAME(op[0]), VAR_NAME(op[1])))
+                        {
+                            info_msg(*n, "Assignment has no effect\n");
+                        }
+                    }
+                    SET_TYPE(infer_type(op[0]));
                 }
             }
 
@@ -1956,16 +1990,6 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
                     }
                     else
                         SET_TYPE(left);
-                }
-                case '=':
-                {
-                    expect_non_void(op[1]);
-                    check_assignment(op[0], op[1]);
-                    if (AST_KIND(op[1]) == k_ident && !strcmp(VAR_NAME(op[0]), VAR_NAME(op[1])))
-                    {
-                        info_msg(*n, "Assignment has no effect\n");
-                    }
-                    SET_TYPE(infer_type(op[0]));
                 }
                 case TUPLEASSIGN:
                 {

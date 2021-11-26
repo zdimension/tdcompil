@@ -68,6 +68,8 @@ typedef struct stack_frame_s
     } types;
     struct stack_frame_s* parent;
     struct type_list_s* impl_parent;
+    struct ast_node_s* assign_target;
+    bool call_clean;
 } stack_frame;
 extern stack_frame global_frame;
 
@@ -214,3 +216,5 @@ const char* stringify_operator(enum yytokentype op);
 const char* stringify_operator_or_null(enum yytokentype op);
 
 type_list const* unalias(type_list const* type);
+
+type_list const* infer_type(ast_node* n);

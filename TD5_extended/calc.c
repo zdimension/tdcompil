@@ -219,7 +219,8 @@ ast_node* ast_copy_internal(ast_node* n)
             initialize_header(p, k_operator);
             OPER_OPERATOR(p) = OPER_OPERATOR(n);
             OPER_ARITY(p) = OPER_ARITY(n);
-            memcpy(OPER_OPERANDS(p), OPER_OPERANDS(n), ops_size);
+            for (int i = 0; i < OPER_ARITY(p); i++)
+                OPER_OPERANDS(p)[i] = ast_copy(OPER_OPERANDS(n)[i]);
             return p;
         }
         case k_list:
