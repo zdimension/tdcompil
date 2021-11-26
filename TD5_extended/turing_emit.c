@@ -1350,9 +1350,6 @@ void exec(ast_node* n, stack_frame* frame)
                 case KFUNC:
                     PROD0("func");
                     return;
-                case KPROC:
-                    PROD0("proc");
-                    return;
                 case KTYPE:
                     PROD0("type");
                     return;

@@ -1,46 +1,37 @@
 {
-	type coord = u16;
-	type point = struct { x: coord; y: coord; };
+	type fibo_iter = struct { a: u16; b: u16; };
 
-	func isqrt(x: coord): coord
+	impl fibo_iter
 	{
-		var rem: coord, root: coord;
-
-		for (var i = 0; i < (bitsof(coord) / 2); i++)
+		func init(iter: fibo_iter*): void
 		{
-			root = root << 1;
-			rem = (rem << 2) + (x >> (bitsof(coord) - 2));
-			x = x << 2;
-			root++;
-			if (root <= rem)
-			{
-				rem -= root;
-				root++;
-			}
-			else
-			{
-				root--;
-			}
+			(*iter).a = 0;
+			(*iter).b = 1;
 		}
 
-		return root >> 1;
-	}
-
-	impl point
-	{
-		func hypot(z: point): u16
+		func hasNext(iter: fibo_iter*): bool
 		{
-			return isqrt(z.x * z.x + z.y * z.y);
+			return true;
 		}
 
-		func `+`(a: point, b: point): point
+		func next(iter: fibo_iter*): u16
 		{
-			return point { a.x + b.x, a.y + b.y };
+			var a = (*iter).a;
+			var b = (*iter).b;
+			(*iter).a = b;
+			(*iter).b = a + b;
+			return a;
 		}
 	}
 
-    var p = point { 3, 0 };
-    var q = point { 0, 4 };
+	var iter: fibo_iter;
+	iter.init();
 
-    print (p + q).hypot();
+	while (iter.hasNext())
+	{
+		var val = iter.next();
+		if (val > 10)
+			break;
+		print val;
+	}
 }

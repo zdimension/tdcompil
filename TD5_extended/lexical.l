@@ -37,6 +37,8 @@
 
 [0-9]+u[1-9][0-9]*	{ sscanf(yytext, "%du%d", &yylval.number.value, &yylval.number.size); return NUMBER; }
 [0-9]+ 				{ yylval.number.value = atol(yytext); yylval.number.size = 0; return NUMBER; }
+"true"				{ yylval.number.value = 1; yylval.number.size = 1; return NUMBER; }
+"false"				{ yylval.number.value = 0; yylval.number.size = 1; return NUMBER; }
 
 \'\\a\'	{ yylval.number.value = '\a'; yylval.number.size = 0; return NUMBER; }
 \'\\b\'	{ yylval.number.value = '\b'; yylval.number.size = 0; return NUMBER; }
@@ -85,7 +87,6 @@
 "var" { return KVAR; }
 "return" { return KRETURN; }
 "func" { return KFUNC; }
-"proc" { return KPROC; }
 "break" { return KBREAK; }
 "continue" { return KCONTINUE; }
 "const" { return KCONST; }

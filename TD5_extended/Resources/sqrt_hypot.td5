@@ -32,9 +32,15 @@
 		{
 			return isqrt(z.x * z.x + z.y * z.y);
 		}
+
+		func `+`(a: point, b: point): point
+		{
+			return point { a.x + b.x, a.y + b.y };
+		}
 	}
 
-    var p = point { 3, 4 };
+    var p = point { 3, 0 };
+    var q = point { 0, 4 };
 
-    print p.hypot();
+    print (p + q).hypot();
 }

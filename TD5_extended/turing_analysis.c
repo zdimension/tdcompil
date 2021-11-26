@@ -1058,7 +1058,6 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
                     }
                 }
                 case KFUNC:
-                case KPROC:
                 {
                     func_list* newNode;
                     if (frame->impl_parent)
@@ -1079,8 +1078,7 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
                     }
                     newNode->header.name = VAR_NAME(op[0]);
                     newNode->header.owner = NULL;
-                    newNode->return_type = OPER_OPERATOR(*n) == KPROC ? VOID_TYPE :
-                                           (op[3] ? decode_spec(op[3], frame) : WORD_TYPE);
+                    newNode->return_type = decode_spec(op[3], frame);
                     AST_DATA(op[0]) = (void*) newNode->return_type;
                     newNode->arglist = AST_LIST_HEAD(op[1]);
                     newNode->callsites = NULL;
@@ -1979,7 +1977,10 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
  */
 void init_builtin_types()
 {
-    VOID_TYPE = NEW_TYPE();
+    type_list* void_type = ADD_SYM(type_list, &global_frame.types.head, &global_frame.types.tail);
+    void_type->header.name = "void";
+    void_type->type = T_VOID;
+    VOID_TYPE = void_type;
 
     type_list* word_type = ADD_SYM(type_list, &global_frame.types.head, &global_frame.types.tail);
     word_type->header.name = "u8";
