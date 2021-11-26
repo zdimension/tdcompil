@@ -40,7 +40,9 @@ void yyerror(const char *s);
 //                      Tokens
 %token  <number>         NUMBER
 %token  <var>           IDENT STRING
-%token                  KWHILE KIF KPRINT KELSE KREAD KFOR KDO KVAR KFUNC KRETURN KBREAK KCONTINUE KCONST KTYPE KTYPEOF KSIZEOF KSTRUCT KBITSOF KNEW KASSERT KLOOP KMATCH KIS RANGE IRANGE KGLOBAL KIMPL KIN KFOREACH
+%token                  KWHILE KIF KPRINT KELSE KREAD KFOR KDO KVAR KFUNC KRETURN KBREAK KCONTINUE KCONST KTYPE KTYPEOF
+%token					KSIZEOF KSTRUCT KBITSOF KNEW KASSERT KLOOP KMATCH KIS RANGE IRANGE KGLOBAL KIMPL KIN KFOREACH
+%token					KINTERFACE KSELF
 %token '+' '-' '*' '/' GE LE EQ NE '>' '<' REF DEREF APL AMN AML ADV INC DEC AND OR SHL SHR ARROW STRUCTLIT
 %token UMINUS VDECL SCOPE TUPLEASSIGN
 //                       Precedence rules
@@ -56,7 +58,7 @@ void yyerror(const char *s);
 %type	<node> 		l_and_expr l_or_expr stmt_list_opt expr_discard expr_discard_opt scalar_var_init type_arg_list tuple_assign_left tuple_assign_right
 %type 	<node>		param_list param_list_ne arg_list arg_list_ne var_decl var_decl_list type_spec_opt type_spec type_decl type_decl_list type_params type_param_list
 %type	<node>		struct_field struct_field_list var_typed stmt_braced expr_discard_or_inline_decl_opt expr_or_inline_decl pattern pattern_list pattern_branch pattern_basic
-%type	<node>		struct_field_init struct_field_init_list func_list func
+%type	<node>		struct_field_init struct_field_init_list func_list func func_signature interf_func_list interf_func
 %type   <chr>		aug_assign unary_op
 
 %%
@@ -92,11 +94,16 @@ stmt
     | KDO stmt KWHILE '(' expr ')' ';' 														{ $$ = make_node(KDO, 2, $2, $5); }
     | func																					{ $$ = $1; }
     | KIMPL var '{' func_list '}'															{ $$ = make_node(KIMPL, 2, $2, $4); }
+    | KIMPL var KFOR var '{' func_list '}'													{ $$ = make_node(KIMPL, 3, $4, $6, $2); }
     | stmt_braced		                													{ $$ = $1; }
     ;
 
+func_signature
+	: KFUNC var '(' param_list ')' ':' type_spec											{ $$ = make_node(KFUNC, 4, $2, $4, NULL, $7); }
+    ;
+
 func
-	: KFUNC var '(' param_list ')' ':' type_spec stmt_braced								{ $$ = make_node(KFUNC, 4, $2, $4, $8, $7); }
+	: func_signature stmt_braced															{ $$ = $1; OPER_OPERANDS($$)[2] = $2; }
     ;
 
 func_list
@@ -159,14 +166,16 @@ type_spec_opt
 	;
 
 type_spec
-	: var								{ $$ = $1; }
-	| var '<' type_arg_list '>'			{ $$ = make_node(KNEW, 2, $1, $3); }
-	| type_spec '*'						{ $$ = make_node('*', 1, $1); }
-	| type_spec KCONST					{ $$ = make_node(KCONST, 1, $1); }
-	| type_spec KGLOBAL					{ $$ = make_node(KGLOBAL, 1, $1); }
-	| type_spec '[' expr ']'			{ $$ = make_node('[', 2, $1, $3); }
-	| KTYPEOF '(' expr ')'				{ $$ = make_node(KTYPEOF, 1, $3); }
-	| KSTRUCT '{' struct_field_list '}'	{ $$ = make_node(KSTRUCT, 1, $3); }
+	: var									{ $$ = $1; }
+	| var '<' type_arg_list '>'				{ $$ = make_node(KNEW, 2, $1, $3); }
+	| KSELF									{ $$ = make_node(KSELF, 0); }
+	| type_spec '*'							{ $$ = make_node('*', 1, $1); }
+	| type_spec KCONST						{ $$ = make_node(KCONST, 1, $1); }
+	| type_spec KGLOBAL						{ $$ = make_node(KGLOBAL, 1, $1); }
+	| type_spec '[' expr ']'				{ $$ = make_node('[', 2, $1, $3); }
+	| KTYPEOF '(' expr ')'					{ $$ = make_node(KTYPEOF, 1, $3); }
+	| KSTRUCT '{' struct_field_list '}'		{ $$ = make_node(KSTRUCT, 1, $3); }
+	| KINTERFACE '{' interf_func_list '}'	{ $$ = make_node(KINTERFACE, 1, $3); }
 	;
 
 type_arg_list
@@ -185,6 +194,15 @@ struct_field
 struct_field_list
 	: struct_field						{ $$ = make_list($1); }
 	| struct_field struct_field_list 	{ $$ = prepend_list($2, $1); }
+	;
+
+interf_func
+	: func_signature ';'				{ $$ = $1; }
+	;
+
+interf_func_list
+	: interf_func						{ $$ = make_list($1); }
+	| interf_func interf_func_list 		{ $$ = prepend_list($2, $1); }
 	;
 
 var_decl_list

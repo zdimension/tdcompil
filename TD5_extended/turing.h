@@ -90,7 +90,7 @@ typedef enum
     T_POINTER,
     T_COMPOSITE,
     T_GENERIC,
-    T_GENERIC_VARIABLE
+    T_INTERFACE
 } type_type;
 
 typedef struct type_list_s

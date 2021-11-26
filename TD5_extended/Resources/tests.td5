@@ -1,36 +1,12 @@
 {
 	type fibo_iter = struct { a: u16; b: u16; };
 
-	impl fibo_iter
+	var x: fibo_iter;
+
+	func truc(f: fibo_iter*): void
 	{
-		func init(iter: fibo_iter*): void
-		{
-			(*iter).a = 0;
-			(*iter).b = 1;
-		}
-
-		func hasNext(iter: fibo_iter*): bool
-		{
-			return true;
-		}
-
-		func next(iter: fibo_iter*): u16
-		{
-			var a = (*iter).a;
-			var b = (*iter).b;
-			(*iter).a = b;
-			(*iter).b = a + b;
-			return a;
-		}
+		(*f).a = 1;
 	}
 
-	var iter: fibo_iter;
-	iter.init();
-
-	for (var val in iter)
-	{
-		if (val > 10)
-			break;
-		print val;
-	}
+	(&x).truc();
 }

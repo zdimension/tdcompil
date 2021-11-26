@@ -316,7 +316,14 @@ void write_code(ast_node* n)
                     sc();
                     return;
                 case KIMPL:
-                    code_n("impl %s\n", VAR_NAME(op[0]));
+                    if (arity == 3)
+                    {
+                        code_n("impl %s for %s\n", VAR_NAME(op[2]), VAR_NAME(op[0]));
+                    }
+                    else
+                    {
+                        code_n("impl %s\n", VAR_NAME(op[0]));
+                    }
                     tab();
                     code_n("{\n");
                     indent++;

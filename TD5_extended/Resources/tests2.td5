@@ -1,0 +1,48 @@
+{
+	type fibo_iter = struct { a: u16; b: u16; };
+	type iterator = interface
+	{
+		func hasNext(iter: self*): bool;
+		func next(iter: self*): u16;
+	};
+
+	impl fibo_iter
+	{
+		func init(iter: fibo_iter*): void
+		{
+			(*iter).a = 0;
+			(*iter).b = 1;
+		}
+	}
+	impl iterator for fibo_iter
+    {
+		func hasNext(iter: fibo_iter*): bool
+		{
+			return true;
+		}
+
+		func next(iter: fibo_iter*): u16
+		{
+			var a = (*iter).a;
+			var b = (*iter).b;
+			(*iter).a = b;
+			(*iter).b = a + b;
+			return a;
+		}
+	}
+
+	func skip_one(iter: iterator*): void
+	{
+		iter.next();
+	}
+
+	var iter: fibo_iter;
+	iter.init();
+
+	for (var val in iter)
+	{
+		if (val > 10)
+			break;
+		print val;
+	}
+}

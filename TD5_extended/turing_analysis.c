@@ -380,6 +380,20 @@ type_list const* decode_spec(ast_node* spec, stack_frame* frame)
         ast_node** op = OPER_OPERANDS(spec);
         switch (OPER_OPERATOR(spec))
         {
+            case KSELF:
+            {
+                while (frame->impl_parent == NULL)
+                {
+                    frame = frame->parent;
+
+                    if (!frame)
+                    {
+                        error_msg(spec, "'self' is only valid inside type declaration'\n");
+                        exit(1);
+                    }
+                }
+                return frame->impl_parent;
+            }
             case '*':
             {
                 return make_pointer(decode_spec(op[0], frame));
@@ -437,6 +451,27 @@ type_list const* decode_spec(ast_node* spec, stack_frame* frame)
                     exit(1);
                 }
                 return decode_spec(generic->generic.spec, sc_frame);
+            }
+            case KINTERFACE:
+            {
+                type_list* ret = NEW_TYPE();
+                ret->type = T_INTERFACE;
+                stack_frame* temp_frame = malloc(sizeof(stack_frame));
+                *temp_frame = (stack_frame) {
+                        .function = NULL,
+                        .loop = NULL,
+                        .is_root = true,
+                        .vars = {NULL, NULL},
+                        .impl_parent = ret,
+                        .parent = frame
+                };
+                for (linked_list* lst = AST_LIST_HEAD(op[0]); lst; lst = lst->next)
+                {
+                    ast_node* method = lst->value;
+
+                    analysis(&method, temp_frame, false);
+                }
+                return ret;
             }
             case KSTRUCT:
             {
@@ -1090,19 +1125,26 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
                             .vars = {NULL, NULL},
                             .parent = frame
                     };
-                    newNode->code = make_scope(op[2]);
-                    SC_SCOPE(newNode->code) = &newNode->frame;
-                    for (linked_list* ptr = newNode->arglist; ptr; ptr = ptr->next)
+                    if (!op[2])
                     {
-                        ast_node* argname = OPER_OPERANDS(ptr->value)[0];
-                        const type_list* spec = decode_spec(OPER_OPERANDS(ptr->value)[1], frame);
-                        spec = make_pointer_global_if(spec, ptr == newNode->arglist && spec->type == T_POINTER);
-                        AST_INFERRED(argname) = spec;
-                        check_add_var(VAR_NAME(argname), &newNode->frame, spec);
+                        newNode->code = NULL;
                     }
-                    analysis(&newNode->code, &newNode->frame, false);
-                    if (OPER_OPERATOR(*n) == KFUNC)
+                    else
                     {
+                        newNode->code = make_scope(op[2]);
+                        SC_SCOPE(newNode->code) = &newNode->frame;
+                        for (linked_list* ptr = newNode->arglist; ptr; ptr = ptr->next)
+                        {
+                            ast_node* argname = OPER_OPERANDS(ptr->value)[0];
+                            const type_list* spec = decode_spec(OPER_OPERANDS(ptr->value)[1], frame);
+                            spec = make_pointer_global_if(spec, ptr == newNode->arglist && spec->type == T_POINTER);
+                            AST_INFERRED(argname) = spec;
+                            check_add_var(VAR_NAME(argname), &newNode->frame, spec);
+                        }
+                        analysis(&newNode->code, &newNode->frame, false);
+
+                        // tail recursion
+
                         ast_node** code = &newNode->code;
                         stack_frame* c_frame = NULL;
                         while (AST_KIND(*code) == k_scope)
@@ -1298,10 +1340,13 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
                     }
                     ast_node* next_fct_call = make_node('(', 2, make_node('.', 2, iter, make_ident("next")), NULL);
                     ast_node* has_fct_call = make_node('(', 2, make_node('.', 2, iter, make_ident("hasNext")), NULL);
-                    *n = make_scope(make_node(KFOR, 4, make_node(';', 2, iter_decl, make_node(KVAR, 2, variable, make_node(KTYPEOF, 1, next_fct_call))),
+                    *n = make_scope(make_node(KFOR, 4, make_node(';', 2, iter_decl, make_node(KVAR, 2, variable,
+                                                                                              make_node(KTYPEOF, 1,
+                                                                                                        next_fct_call))),
                                               has_fct_call,
                                               NULL,
-                                              make_node(';', 2, clean_stack(make_node('=', 2, variable, next_fct_call)), code)));
+                                              make_node(';', 2, clean_stack(make_node('=', 2, variable, next_fct_call)),
+                                                        code)));
                     analysis(n, frame, false);
                     return;
                 }
