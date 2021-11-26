@@ -104,10 +104,17 @@ void allocate_var(var_list* ptr)
         }
         case T_COMPOSITE:
         {
+            PROD0("composite type, allocating fields:");
             for (var_list* member = ptr->type->composite_members.head; member; member = (var_list*) member->header.next)
             {
                 allocate_var(member);
             }
+            break;
+        }
+        default:
+        {
+            error_msg(NULL, "Invalid type in allocate_var\n");
+            exit(1);
         }
     }
 }

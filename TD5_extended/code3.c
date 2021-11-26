@@ -69,6 +69,14 @@ int eval(ast_node* n, int* label)
 
             int o = OPER_OPERATOR(n);
 
+            switch(o)
+            {
+                case KTYPE:
+                    return KEYWORD("type");
+                case KIMPL:
+                    return KEYWORD("impl");
+            }
+
             int op0 = arity > 0 ? eval(op[0], label) : -1;
             int op1 = arity > 1 ? eval(op[1], label) : -1;
             int op2 = arity > 2 ? eval(op[2], label) : -1;
@@ -79,6 +87,8 @@ int eval(ast_node* n, int* label)
                 /* Expressions */
                 case UMINUS:
                     return link(KEYWORD("[-]"), op0);
+                case STRUCTLIT:
+                    return KEYWORD("structlit");
                 case KRETURN:
                     return link(KEYWORD("return"), op0);
                 case KTYPEOF:
@@ -129,6 +139,7 @@ int eval(ast_node* n, int* label)
                 case '>':
                 case '=':
                 case ';':
+                case '.':
                     return link2(BOXF("[%c]", o, "turquoise4"), op0, op1);
                 case KPRINT:
                     return link(KEYWORD("print"), op0);

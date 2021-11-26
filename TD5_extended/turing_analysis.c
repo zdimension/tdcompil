@@ -334,6 +334,20 @@ type_list const* decay_array_ptr(type_list const* t)
     return make_pointer(t->array_target);
 }
 
+stack_frame* make_child_frame(stack_frame* frame)
+{
+    stack_frame* sc_frame = malloc(sizeof(*sc_frame));
+    *sc_frame = (stack_frame)
+            {
+                    .function = frame->function,
+                    .loop = frame->loop,
+                    .is_root = false,
+                    .vars = {.head = NULL, .tail = NULL},
+                    .parent = frame
+            };
+    return sc_frame;
+}
+
 type_list const* scalar_auto_type(ast_node* n)
 {
     unsigned int value1 = (unsigned int) NUMBER_VALUE(n);
@@ -449,8 +463,7 @@ type_list const* decode_spec(ast_node* spec, stack_frame* frame)
             case KNEW:
             {
                 type_list* generic = get_type(op[0], frame);
-                stack_frame* sc_frame = malloc(sizeof(*sc_frame));
-                *sc_frame = (stack_frame) {.function = frame->function, .loop = frame->loop, .is_root = false, .parent = frame};
+                stack_frame* sc_frame = make_child_frame(frame);
                 linked_list* param, * arg;
                 char* namebuf = malloc(256);
                 sprintf(namebuf, "%s<", VAR_NAME(op[0]));
@@ -1261,8 +1274,25 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
                     if (arity)
                     {
                         analysis(&op[0], frame, false);
-                        analysis(&op[1], frame, false);
-                        SET_TYPE(infer_type(op[1]));
+                        if (op[1])
+                        {
+#if 0
+                            if (op[0])
+                            {
+                                ast_node* first = op[0];
+                                while (first && AST_KIND(first) == k_operator && OPER_OPERATOR(first) == ';')
+                                    first = OPER_OPERANDS(first)[0];
+                                if (first && AST_KIND(first) == k_operator && OPER_OPERATOR(first) == KVAR)
+                                {
+                                    op[1] = make_scope(op[1]);
+                                }
+                            }
+#endif // TODO
+
+
+                            analysis(&op[1], frame, false);
+                            SET_TYPE(infer_type(op[1]));
+                        }
                     }
                     SET_TYPE(VOID_TYPE);
                 }
@@ -2156,9 +2186,7 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
         {
             if (!SC_SCOPE(*n))
             {
-                stack_frame* sc_frame = malloc(sizeof(*sc_frame));
-                *sc_frame = (stack_frame) {.function = frame->function, .loop = frame->loop, .is_root = false, .vars = {.head = NULL, .tail = NULL}, .parent = frame};
-                SC_SCOPE(*n) = sc_frame;
+                SC_SCOPE(*n) = make_child_frame(frame);
             }
             analysis(&SC_CODE(*n), SC_SCOPE(*n), false);
             SET_TYPE(infer_type(SC_CODE(*n)));
