@@ -1215,13 +1215,22 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
                             ast_node** left = &OPER_OPERANDS(op[0])[0];
                             analysis(left, frame, false);
                             type_list const* member_type = infer_type(*left);
-                            if (member_type->type != T_COMPOSITE)
+                            type_list const* real_type;
+                            if (member_type->type == T_COMPOSITE)
+                            {
+                                real_type = member_type;
+                            }
+                            else if (member_type->type == T_POINTER && member_type->pointer_target->type == T_COMPOSITE)
+                            {
+                                real_type = member_type->pointer_target;
+                            }
+                            else
                             {
                                 error_msg(*n, "Method access on non-composite type\n");
                                 exit(1);
                             }
                             ast_node* right = OPER_OPERANDS(op[0])[1];
-                            func = FIND_SYM(func_list, member_type->composite_methods.head, right);
+                            func = FIND_SYM(func_list, real_type->composite_methods.head, right);
                             member = left;
                         }
                         else
@@ -1241,7 +1250,7 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
                             }
 
                             linked_list* nlist = malloc(sizeof(linked_list));
-                            if (func->frame.vars.head->type->type == T_POINTER)
+                            if (func->frame.vars.head->type->type == T_POINTER && infer_type(*member)->type != T_POINTER)
                             {
                                 *member = make_node(REF, 1, *member);
                                 analysis(member, frame, false);

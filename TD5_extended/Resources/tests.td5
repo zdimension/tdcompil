@@ -3,10 +3,15 @@
 
 	var x: fibo_iter;
 
-	func truc(f: fibo_iter*): void
+	impl fibo_iter
 	{
-		(*f).a = 1;
+		func truc(f: fibo_iter*): void
+    	{
+    		(*f).a = 1;
+    	}
 	}
 
 	(&x).truc();
+
+	print x.a;
 }
