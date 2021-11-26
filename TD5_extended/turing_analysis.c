@@ -62,6 +62,9 @@ bool is_numeric(type_list const* type)
  */
 bool type_assignable(type_list const* given, type_list const* wanted)
 {
+    given = unalias(given);
+    wanted = unalias(wanted);
+
     if (given == wanted)
         return true;
 
@@ -80,7 +83,8 @@ bool type_assignable(type_list const* given, type_list const* wanted)
                    !(given->pointer_target->is_const && !wanted->pointer_target->is_const) &&
                    (given->pointer_is_global == wanted->pointer_is_global);
         case T_COMPOSITE:
-            return false;
+            return given->composite_members.head == wanted->composite_members.head
+                   && given->composite_methods.head == wanted->composite_methods.head;
     }
 }
 
@@ -94,14 +98,17 @@ type_list const* make_scalar_type(int size)
 
 bool type_compatible(type_list const** given, type_list const* wanted)
 {
-    if (type_assignable(*given, wanted))
+    type_list const* gtype = unalias(*given);
+    wanted = unalias(wanted);
+
+    if (type_assignable(gtype, wanted))
         return true;
 
-    if (is_scalar(*given) && is_scalar(wanted))
+    if (is_scalar(gtype) && is_scalar(wanted))
     {
-        if ((*given)->scalar_bits == 0)
+        if ((gtype)->scalar_bits == 0)
         {
-            *given = make_scalar_type(wanted->scalar_bits);
+            gtype = make_scalar_type(wanted->scalar_bits);
             return true;
         }
     }
@@ -228,8 +235,8 @@ const char* type_display_full_inner(type_list const* type, int inner, bool expan
         }
         case T_COMPOSITE:
         {
-            if (inner <= 0)
-                return "<anonymous type>";
+            /*if (inner <= 0)
+                return "<anonymous type>";*/
             char* buf = malloc(1024);
             int p = sprintf(buf, "struct { ");
             for (var_list* ptr = type->composite_members.head; ptr; ptr = (var_list*) ptr->header.next)
@@ -445,20 +452,50 @@ type_list const* decode_spec(ast_node* spec, stack_frame* frame)
                 stack_frame* sc_frame = malloc(sizeof(*sc_frame));
                 *sc_frame = (stack_frame) {.function = frame->function, .loop = frame->loop, .is_root = false, .parent = frame};
                 linked_list* param, * arg;
+                char* namebuf = malloc(256);
+                sprintf(namebuf, "%s<", VAR_NAME(op[0]));
+                char* end = namebuf;
                 for (param = generic->generic.params,
                              arg = ((ast_linked_list*) op[1])->list; param && arg; param = param->next, arg = arg->next)
                 {
                     type_list* argt = check_add_type(VAR_NAME(param->value), sc_frame);
-                    linked_list_header h = argt->header;
-                    *argt = *decode_spec(arg->value, frame);
-                    argt->header = h;
+                    argt->type = T_ALIAS;
+                    argt->alias_target = decode_spec(arg->value, frame);
+                    end = strcat(end, type_display(argt->alias_target));
+                    if (arg->next)
+                        end = strcat(end, ", ");
                 }
                 if (param || arg)
                 {
                     error_msg(spec, "Invalid number of arguments in instanciation of generic type\n");
                     exit(1);
                 }
-                return decode_spec(generic->generic.spec, sc_frame);
+                type_list* res = (type_list*) decode_spec(generic->generic.spec, sc_frame);
+                strcat(end, ">");
+                res->header.name = namebuf;
+                if (res->type == T_GENERIC)
+                {
+                    res->generic.methods = generic->generic.methods;
+                }
+                else if (res->type == T_COMPOSITE)
+                {
+                    stack_frame* temp_frame = malloc(sizeof(stack_frame));
+                    *temp_frame = (stack_frame) {
+                            .function = NULL,
+                            .loop = NULL,
+                            .is_root = true,
+                            .vars = {NULL, NULL},
+                            .impl_parent = res,
+                            .parent = sc_frame
+                    };
+                    for (linked_list* lst = generic->generic.methods; lst; lst = lst->next)
+                    {
+                        ast_node* method = lst->value;
+
+                        analysis(&method, temp_frame, false);
+                    }
+                }
+                return res;
             }
             case KINTERFACE:
             {
@@ -1019,20 +1056,27 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
                 {
                     type_list* type = get_type(op[0], frame);
                     AST_INFERRED(op[0]) = type;
-                    stack_frame* temp_frame = malloc(sizeof(stack_frame));
-                    *temp_frame = (stack_frame) {
-                            .function = NULL,
-                            .loop = NULL,
-                            .is_root = true,
-                            .vars = {NULL, NULL},
-                            .impl_parent = type,
-                            .parent = frame
-                    };
-                    for (linked_list* lst = AST_LIST_HEAD(op[1]); lst; lst = lst->next)
+                    if (type->type == T_GENERIC)
                     {
-                        ast_node* method = lst->value;
+                        type->generic.methods = AST_LIST_HEAD(op[1]);
+                    }
+                    else
+                    {
+                        stack_frame* temp_frame = malloc(sizeof(stack_frame));
+                        *temp_frame = (stack_frame) {
+                                .function = NULL,
+                                .loop = NULL,
+                                .is_root = true,
+                                .vars = {NULL, NULL},
+                                .impl_parent = type,
+                                .parent = frame
+                        };
+                        for (linked_list* lst = AST_LIST_HEAD(op[1]); lst; lst = lst->next)
+                        {
+                            ast_node* method = lst->value;
 
-                        analysis(&method, temp_frame, false);
+                            analysis(&method, temp_frame, false);
+                        }
                     }
                     SET_TYPE(VOID_TYPE);
                 }
@@ -1307,14 +1351,14 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
                                 {
 
                                 }*/
-                             /*   if (!type_compatible(&AST_INFERRED(list->value), fargs->type))
-                                {
-                                    error_msg(list->value,
-                                              "Type mismatch for argument %d in call to '%s'; expected '%s', got '%s'\n",
-                                              i, func->header.name, type_display(fargs->type),
-                                              type_display(infer_type(list->value)));
-                                    exit(1);
-                                }*/
+                                /*   if (!type_compatible(&AST_INFERRED(list->value), fargs->type))
+                                   {
+                                       error_msg(list->value,
+                                                 "Type mismatch for argument %d in call to '%s'; expected '%s', got '%s'\n",
+                                                 i, func->header.name, type_display(fargs->type),
+                                                 type_display(infer_type(list->value)));
+                                       exit(1);
+                                   }*/
                             }
 
                             func_list* newNode = ADD_SYM(func_list, &funcs_head, &funcs_tail);

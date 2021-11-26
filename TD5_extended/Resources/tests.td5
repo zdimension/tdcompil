@@ -1,44 +1,17 @@
 {
-	type fibo_iter = struct { a: u16; b: u16; };
-	type iterator = fibo_iter;
+	type point<T> = struct { x: T; y: T; };
 
-	impl fibo_iter
+	impl point
 	{
-		func init(iter: fibo_iter*): void
+		func truc(p: self*): T
 		{
-			(*iter).a = 0;
-			(*iter).b = 1;
+			return 5;
 		}
 	}
-	impl iterator for fibo_iter
-    {
-		func hasNext(iter: fibo_iter*): bool
-		{
-			return true;
-		}
-
-		func next(iter: fibo_iter*): u16
-		{
-			var a = (*iter).a;
-			var b = (*iter).b;
-			(*iter).a = b;
-			(*iter).b = a + b;
-			return a;
-		}
-	}
-
-	func skip_one(iter: iterator*): void
-	{
-		iter.next();
-	}
-
-	var iter: fibo_iter;
-	iter.init();
-
-	for (var val in iter)
-	{
-		if (val > 10)
-			break;
-		print val;
-	}
+	#type bidule = point<u16>;
+	#var y = bidule { 5, 6 };
+	#var x: typeof(y.truc());
+	type b32 = point<u32>;
+	var z = b32 { 5, 6 };
+	var w: typeof(z.truc());
 }

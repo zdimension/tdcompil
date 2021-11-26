@@ -1,10 +1,5 @@
 {
 	type fibo_iter = struct { a: u16; b: u16; };
-	type iterator = interface
-	{
-		func hasNext(iter: self*): bool;
-		func next(iter: self*): u16;
-	};
 
 	impl fibo_iter
 	{
@@ -14,7 +9,8 @@
 			(*iter).b = 1;
 		}
 	}
-	impl iterator for fibo_iter
+
+	impl fibo_iter
     {
 		func hasNext(iter: fibo_iter*): bool
 		{
@@ -31,17 +27,34 @@
 		}
 	}
 
-	func skip_one(iter: iterator*): void
+	type even_filter = struct { base_iter: fibo_iter* global; };
+
+	impl even_filter
 	{
-		iter.next();
+		func hasNext(iter: even_filter*): bool
+		{
+			return (*iter).base_iter.hasNext();
+		}
+
+		func next(iter: even_filter*): u16
+		{
+			var n = (*iter).base_iter.next();
+			while (n != ((n >> 1) << 1))
+			{
+				n = (*iter).base_iter.next();
+			}
+			return n;
+		}
 	}
 
 	var iter: fibo_iter;
 	iter.init();
 
-	for (var val in iter)
+	var iter2 = even_filter{&iter};
+
+	for (var val in iter2)
 	{
-		if (val > 10)
+		if (val > 50)
 			break;
 		print val;
 	}

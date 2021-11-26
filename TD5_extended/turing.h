@@ -108,6 +108,12 @@ typedef enum
     T_ALIAS
 } type_type;
 
+typedef struct
+{
+
+    struct type_list_s const* instance;
+} generic_cache;
+
 typedef struct type_list_s
 {
     linked_list_header header;
@@ -141,6 +147,7 @@ typedef struct type_list_s
         {
             linked_list* params;
             ast_node* spec;
+            linked_list* methods;
         } generic;
         struct
         {
@@ -205,3 +212,5 @@ void write_code(ast_node* n);
 const char* stringify_operator(enum yytokentype op);
 
 const char* stringify_operator_or_null(enum yytokentype op);
+
+type_list const* unalias(type_list const* type);
