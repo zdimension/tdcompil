@@ -104,7 +104,8 @@ typedef enum
     T_COMPOSITE,
     T_GENERIC,
     T_GENERIC_VARIABLE,
-    T_INTERFACE
+    T_INTERFACE,
+    T_ALIAS
 } type_type;
 
 typedef struct type_list_s
@@ -141,6 +142,10 @@ typedef struct type_list_s
             linked_list* params;
             ast_node* spec;
         } generic;
+        struct
+        {
+            struct type_list_s const* alias_target;
+        };
     };
 } type_list;
 //extern type_list* types_head, * types_tail;

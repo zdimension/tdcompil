@@ -1,10 +1,6 @@
 {
 	type fibo_iter = struct { a: u16; b: u16; };
-	type iterator = interface
-	{
-		func hasNext(iter: self*): bool;
-		func next(iter: self*): u16;
-	};
+	type iterator = fibo_iter;
 
 	impl fibo_iter
 	{

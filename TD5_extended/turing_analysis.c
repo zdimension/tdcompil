@@ -355,6 +355,14 @@ loop_info* new_loop_info(ast_node* node)
     return res;
 }
 
+type_list const* unalias(type_list const* type)
+{
+    while (type->type == T_ALIAS)
+        type = type->alias_target;
+
+    return type;
+}
+
 /**
  * @return A type instance corresponding to the specified type specification node
  * @throws exit If the node is invalid
@@ -373,7 +381,7 @@ type_list const* decode_spec(ast_node* spec, stack_frame* frame)
                 return make_scalar_type(size);
             }
         }
-        return get_type(spec, frame);
+        return unalias(get_type(spec, frame));
     }
     else
     {
@@ -1048,9 +1056,17 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
                     }
                     else
                     {
-                        linked_list_header h = type->header;
-                        *type = *decode_spec(spec, new_frame);
-                        type->header = h;
+                        if (AST_KIND(spec) == k_ident)
+                        {
+                            type->type = T_ALIAS;
+                            type->alias_target = decode_spec(spec, new_frame);
+                        }
+                        else
+                        {
+                            linked_list_header h = type->header;
+                            *type = *decode_spec(spec, new_frame);
+                            type->header = h;
+                        }
                     }
                     printf("# %-10s  %-10s\n", VAR_NAME(op[0]), type_display_full(type, true, true));
                     SET_TYPE(VOID_TYPE);
