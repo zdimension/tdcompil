@@ -134,6 +134,12 @@ extern type_list const* VOID_TYPE;
 extern type_list const* WORD_TYPE;
 extern type_list const* BOOL_TYPE;
 
+typedef struct
+{
+    func_list* function;
+    call_site_list* site;
+} func_data;
+
 extern int label;
 extern bool write_c;
 

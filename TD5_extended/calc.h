@@ -146,6 +146,7 @@ typedef struct
 
 #define AST_LIST_HEAD(p) ((p) ? (((ast_linked_list*)(p))->list) : NULL)
 
+ast_node* make_node_from_list(linked_list* value);
 ast_node* make_list(ast_node* value);
 ast_node* prepend_list(ast_node* list, ast_node* value);
 linked_list* make_list_item(ast_node* value);

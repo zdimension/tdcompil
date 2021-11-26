@@ -975,7 +975,8 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
                 {
                     type_list* type = get_type(op[0], frame);
                     AST_INFERRED(op[0]) = type;
-                    stack_frame temp_frame = (stack_frame) {
+                    stack_frame* temp_frame = malloc(sizeof(stack_frame));
+                    *temp_frame = (stack_frame) {
                             .function = NULL,
                             .loop = NULL,
                             .is_root = true,
@@ -987,7 +988,7 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
                     {
                         ast_node* method = lst->value;
 
-                        analysis(&method, &temp_frame, false);
+                        analysis(&method, temp_frame, false);
                     }
                     SET_TYPE(VOID_TYPE);
                 }
@@ -1205,6 +1206,16 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
                             }
                             nlist->value = *member;
                             nlist->next = list;
+
+                            if (op[1])
+                            {
+                                ((ast_linked_list*) op[1])->list = nlist;
+                            }
+                            else
+                            {
+                                op[1] = make_node_from_list(nlist);
+                            }
+
                             list = nlist;
                         }
 
@@ -1229,11 +1240,7 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
                             error_msg(*n, "Invalid number of arguments in call to '%s'\n", func->header.name);
                             exit(1);
                         }
-                        struct
-                        {
-                            func_list* function;
-                            call_site_list* site;
-                        } * call_site = malloc(sizeof(*call_site));
+                        func_data* call_site = malloc(sizeof(*call_site));
                         call_site->function = func;
                         call_site->site = add_call_site(&func->callsites);
                         AST_DATA(*n) = call_site;

@@ -423,6 +423,10 @@ void exec(ast_node* n, stack_frame* frame)
         return;
     }
 
+    PROD0("** begin");
+    //write_code(n);
+    PROD0("** end");
+
     instr("# KIND = %d (%s)", AST_KIND(n), node_kind_NAMES[AST_KIND(n)]);
 
     bool clean_stack = AST_CLEAN_STACK(n); // whether this node is expected to "leave" something on the stack or not
@@ -1368,23 +1372,11 @@ void exec(ast_node* n, stack_frame* frame)
                 }
                 case '(':
                 {
-                    PROD0("call");
-                    struct
-                    {
-                        func_list* function;
-                        call_site_list* site;
-                    } * call_site = n->data;
+                    func_data* call_site = AST_DATA(n);
                     func_list* fct = call_site->function;
-                    linked_list* args = AST_LIST_HEAD(op[1]);
 
-                    if (fct->frame.parent->impl_parent)
-                    {
-                        PROD0("pushing instance");
-                        linked_list* narg = malloc(sizeof(linked_list));
-                        narg->value = OPER_OPERANDS(op[0])[0]; // get A from A.B
-                        narg->next = args;
-                        args = narg;
-                    }
+                    instr("# call %s", fct->header.name);
+                    linked_list* args = AST_LIST_HEAD(op[1]);
 
                     int right_heap;
                     if (args)

@@ -167,13 +167,18 @@ void info_msg(ast_node* node, const char* format, ...)
     display_code(node);
 }
 
-
-ast_node* make_list(ast_node* value)
+ast_node* make_node_from_list(linked_list* value)
 {
     ast_linked_list* ptr = malloc(sizeof(*ptr));
     initialize_header(ptr, k_list);
-    ptr->list = NULL;
-    prepend_list((ast_node*) ptr, value);
+    ptr->list = value;
+    return (ast_node*) ptr;
+}
+
+ast_node* make_list(ast_node* value)
+{
+    ast_node* ptr = make_node_from_list(NULL);
+    prepend_list(ptr, value);
     return (ast_node*) ptr;
 }
 
