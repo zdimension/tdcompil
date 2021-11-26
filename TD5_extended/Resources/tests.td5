@@ -1,12 +1,46 @@
 {
-	type point = struct { x: u8; y: u8; };
+	type coord = u16;
+	type point = struct { x: coord; y: coord; };
 
-	var p = point { x: 7, y: 2 };
-
-	print match (p)
+	func isqrt(x: coord): coord
 	{
-		point { x: 0..5, y: 0..5 } => 1,
-		point { x: 5..10, y: 5..10 } => 2,
-		_ => 3
-	};
+		var rem: coord, root: coord;
+
+		for (var i = 0; i < (bitsof(coord) / 2); i++)
+		{
+			root = root << 1;
+			rem = (rem << 2) + (x >> (bitsof(coord) - 2));
+			x = x << 2;
+			root++;
+			if (root <= rem)
+			{
+				rem -= root;
+				root++;
+			}
+			else
+			{
+				root--;
+			}
+		}
+
+		return root >> 1;
+	}
+
+	impl point
+	{
+		func hypot(z: point): u16
+		{
+			return isqrt(z.x * z.x + z.y * z.y);
+		}
+
+		func `+`(a: point, b: point): point
+		{
+			return point { a.x + b.x, a.y + b.y };
+		}
+	}
+
+    var p = point { 3, 0 };
+    var q = point { 0, 4 };
+
+    print (p + q).hypot();
 }

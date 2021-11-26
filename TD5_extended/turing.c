@@ -62,10 +62,9 @@ _Noreturn void missing_symbol(ast_node* node, const char* name)
 
 /**
  * Searches for a symbol recursively
- * @return The symbol, if found
- * @throws exit The symbol was not found
+ * @return The symbol, if found, otherwise NULL
  */
-linked_list_header* find_symbol(linked_list_header* list, ast_node* node)
+linked_list_header* find_symbol_or_null(linked_list_header* list, ast_node* node)
 {
     const char* name = VAR_NAME(node);
     for (linked_list_header* ptr = list; ptr; ptr = ptr->next)
@@ -77,7 +76,22 @@ linked_list_header* find_symbol(linked_list_header* list, ast_node* node)
     }
     if (list && list->owner && ((stack_frame*) list->owner)->parent)
         return find_symbol(&((stack_frame*) list->owner)->parent->vars.head->header, node);
-    missing_symbol(node, name);
+    return NULL;
+}
+
+/**
+ * Searches for a symbol recursively
+ * @return The symbol, if found
+ * @throws exit The symbol was not found
+ */
+linked_list_header* find_symbol(linked_list_header* list, ast_node* node)
+{
+    linked_list_header* sym = find_symbol_or_null(list, node);
+    if (!sym)
+    {
+        missing_symbol(node, VAR_NAME(node));
+    }
+    return sym;
 }
 
 /**

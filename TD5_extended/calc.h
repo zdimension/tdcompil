@@ -74,12 +74,12 @@ ast_node* clean_stack(ast_node* p);
 typedef struct
 {
     ast_node header;        // AST header
-    char* name;            // name of the ident
+    const char* name;            // name of the ident
 } ast_ident;
 
 #define VAR_NAME(p)        (((ast_ident *) (p))->name)
 
-ast_node* make_ident(char* str);    // make a ident node
+ast_node* make_ident(const char* str);    // make a ident node
 
 
 // ----------------------------------------------------------------------
@@ -148,6 +148,7 @@ typedef struct
 
 ast_node* make_list(ast_node* value);
 ast_node* prepend_list(ast_node* list, ast_node* value);
+linked_list* make_list_item(ast_node* value);
 
 // ----------------------------------------------------------------------
 //		Utilities

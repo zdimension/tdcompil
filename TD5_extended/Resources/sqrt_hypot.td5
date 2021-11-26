@@ -26,14 +26,15 @@
 		return root >> 1;
 	}
 
-	func hypot(z: point): u16
-    {
-        return isqrt(z.x * z.x + z.y * z.y);
-    }
+	impl point
+	{
+		func hypot(z: point): u16
+		{
+			return isqrt(z.x * z.x + z.y * z.y);
+		}
+	}
 
-    var p: point;
-	p.x = 3;
-	p.y = 4;
+    var p = point { 3, 4 };
 
-    print hypot(p);
+    print p.hypot();
 }

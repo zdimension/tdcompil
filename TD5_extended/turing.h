@@ -36,7 +36,7 @@ typedef struct
             int position; // in cells
             struct // array
             {
-                char* initial;
+                const char* initial;
             };
         };
         struct // const
@@ -67,6 +67,7 @@ typedef struct stack_frame_s
         struct type_list_s* head, * tail;
     } types;
     struct stack_frame_s* parent;
+    struct type_list_s* impl_parent;
 } stack_frame;
 extern stack_frame global_frame;
 
@@ -105,11 +106,22 @@ typedef struct type_list_s
             int array_count;
             struct type_list_s const* array_target;
         };
-        struct type_list_s const* pointer_target;
         struct
         {
-            var_list* head, * tail;
-        } composite_members;
+            struct type_list_s const* pointer_target;
+            bool pointer_is_global;
+        };
+        struct
+        {
+            struct
+            {
+                var_list* head, * tail;
+            } composite_members;
+            struct
+            {
+                func_list* head, * tail;
+            } composite_methods;
+        };
         struct
         {
             linked_list* params;
@@ -149,6 +161,10 @@ type_list* get_type(ast_node* node, stack_frame* frame);
 
 linked_list_header* find_symbol(linked_list_header* list, ast_node* node);
 
+#define FIND_SYM_OR_NULL(type, list, name) ((type*)find_symbol_or_null(&((list)->header), name))
+
+linked_list_header* find_symbol_or_null(linked_list_header* list, ast_node* node);
+
 _Noreturn void missing_symbol(ast_node* node, const char* name);
 
 int var_position(var_list* var);
@@ -160,3 +176,7 @@ int type_size_bits(type_list const* type);
 type_list const* decode_spec(ast_node* spec, stack_frame* frame);
 
 void write_code(ast_node* n);
+
+const char* stringify_operator(enum yytokentype op);
+
+const char* stringify_operator_or_null(enum yytokentype op);
