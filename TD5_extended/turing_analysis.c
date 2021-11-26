@@ -1285,7 +1285,7 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
                 {
                     if (arity)
                     {
-                        analysis(&op[0], frame, false);
+                        analysis(&op[0], frame, force);
                         if (op[1])
                         {
 #if 0
@@ -1302,7 +1302,7 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
 #endif // TODO
 
 
-                            analysis(&op[1], frame, false);
+                            analysis(&op[1], frame, force);
                             SET_TYPE(infer_type(op[1]));
                         }
                     }
@@ -2212,7 +2212,7 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
             {
                 SC_SCOPE(*n) = make_child_frame(frame);
             }
-            analysis(&SC_CODE(*n), SC_SCOPE(*n), false);
+            analysis(&SC_CODE(*n), SC_SCOPE(*n), force);
             SET_TYPE(infer_type(SC_CODE(*n)));
         }
     }

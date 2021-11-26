@@ -58,7 +58,7 @@ void yyerror(const char *s);
 %type	<node> 		l_and_expr l_or_expr stmt_list_opt expr_discard expr_discard_opt scalar_var_init type_arg_list tuple_assign_left tuple_assign_right
 %type 	<node>		param_list param_list_ne arg_list arg_list_ne var_decl var_decl_list type_spec_opt type_spec type_decl type_decl_list type_params type_param_list
 %type	<node>		struct_field struct_field_list var_typed stmt_braced expr_discard_or_inline_decl_opt expr_or_inline_decl pattern pattern_list pattern_branch pattern_basic
-%type	<node>		struct_field_init struct_field_init_list func_list func func_signature interf_func_list interf_func
+%type	<node>		struct_field_init struct_field_init_list func_list func func_signature interf_func_list interf_func named_typespec
 %type   <chr>		aug_assign unary_op
 
 %%
@@ -166,8 +166,7 @@ type_spec_opt
 	;
 
 type_spec
-	: var									{ $$ = $1; }
-	| var '<' type_arg_list '>'				{ $$ = make_node(KNEW, 2, $1, $3); }
+	: named_typespec						{ $$ = $1; }
 	| KSELF									{ $$ = make_node(KSELF, 0); }
 	| type_spec '*'							{ $$ = make_node('*', 1, $1); }
 	| type_spec KCONST						{ $$ = make_node(KCONST, 1, $1); }
@@ -285,6 +284,11 @@ struct_field_init_list
 	| struct_field_init ',' struct_field_init_list 	{ $$ = prepend_list($3, $1); }
 	;
 
+named_typespec
+	: var									{ $$ = $1; }
+    | var '<' type_arg_list '>'				{ $$ = make_node(KNEW, 2, $1, $3); }
+	;
+
 basic_expr
 	: NUMBER																{ $$ = make_number_sized($1.value, $1.size); }
 	| KSIZEOF '(' type_spec ')' 											{ $$ = make_node(KSIZEOF, 1, $3); }
@@ -296,8 +300,8 @@ basic_expr
     | KIF '(' expr_or_inline_decl ')' '{' expr '}' KELSE '{' expr '}'      	{ $$ = make_scope(make_node(KIF, 3, $3, $6, $10)); }
     | KLOOP '{' stmt_list '}'												{ $$ = make_node(KLOOP, 1, $3); }
     | KMATCH '(' expr_or_inline_decl ')' '{' pattern_list '}'				{ $$ = make_node(KMATCH, 2, $3, $6); }
-    | var '{' struct_field_init_list '}'									{ $$ = make_node(STRUCTLIT, 2, $1, $3); }
-    | var '{' arg_list '}'													{ $$ = make_node(STRUCTLIT, 3, $1, $3, NULL); }
+    | named_typespec '{' struct_field_init_list '}'							{ $$ = make_node(STRUCTLIT, 2, $1, $3); }
+    | named_typespec '{' arg_list '}'										{ $$ = make_node(STRUCTLIT, 3, $1, $3, NULL); }
 	;
 
 postfix_expr

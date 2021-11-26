@@ -155,7 +155,7 @@ void write_code(ast_node* n)
             code_n("%s", VAR_NAME(n));
             return;
         case k_number:
-            if (n->inferred_type->type == T_SCALAR)
+            if (n->inferred_type && n->inferred_type->type == T_SCALAR)
                 code_n("%du%d", NUMBER_VALUE(n), n->inferred_type->scalar_bits);
             else
                 code_n("%d", NUMBER_VALUE(n));// todo: type
@@ -381,15 +381,18 @@ void write_code(ast_node* n)
                     write_inline(op[0]);
                     code_n("(");
                     linked_list* lst = AST_LIST_HEAD(op[1]);
-                    if (AST_KIND(op[0]) == k_operator && OPER_OPERATOR(op[0]) == '.')
+                    if (lst)
                     {
-                        lst = lst->next;
-                    }
-                    for (; lst; lst = lst->next)
-                    {
-                        write_inline(lst->value);
-                        if (lst->next)
-                            code_n(", ");
+                        if (AST_KIND(op[0]) == k_operator && OPER_OPERATOR(op[0]) == '.')
+                        {
+                            lst = lst->next;
+                        }
+                        for (; lst; lst = lst->next)
+                        {
+                            write_inline(lst->value);
+                            if (lst->next)
+                                code_n(", ");
+                        }
                     }
                     code_n(")");
                     sci();

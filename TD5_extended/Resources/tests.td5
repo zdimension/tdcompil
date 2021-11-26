@@ -1,20 +1,58 @@
 {
-	type point<T> = struct { x: T; y: T; };
+	type even_filter<T> = struct { base_iter: T* global; };
 
-	impl point
+	impl even_filter
 	{
-		func truc(p: self*): void
+		func hasNext(iter: self*): bool
 		{
-			;
+			return (*iter).base_iter.hasNext();
+		}
+
+		func next(iter: self*): u8
+		{
+			var n = (*iter).base_iter.next();
+			while (n != ((n >> 1) << 1))
+			{
+				n = (*iter).base_iter.next();
+			}
+			return n;
 		}
 	}
 
-	type bidule = point<u16>;
-	var inst16 = bidule { 5, 6 };
-	inst16.truc();
+	type fibo_iter = struct { a: u8; b: u8; };
 
+	impl fibo_iter
+	{
+		func init(iter: fibo_iter*): void
+		{
+			(*iter).a = 0;
+			(*iter).b = 1;
+		}
 
-	type b32 = point<u32>;
-	var inst32 = b32 { 7, 8 };
-	inst32.truc();
+		func hasNext(iter: fibo_iter*): bool
+		{
+			return true;
+		}
+
+		func next(iter: fibo_iter*): u8
+		{
+			var a = (*iter).a;
+			var b = (*iter).b;
+			(*iter).a = b;
+			(*iter).b = a + b;
+			return a;
+		}
+	}
+
+	var iter: fibo_iter;
+	iter.init();
+
+	var iter2 = even_filter<fibo_iter>{&iter};
+
+	for (var val in iter2)
+	{
+		if (val > 50)
+			break;
+		print val;
+	}
 }
