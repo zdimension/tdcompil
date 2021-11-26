@@ -5,13 +5,16 @@
 	{
 		func truc(p: self*): T
 		{
-			return 5;
+			return (*p).x;
 		}
 	}
-	#type bidule = point<u16>;
-	#var y = bidule { 5, 6 };
-	#var x: typeof(y.truc());
+
+	type bidule = point<u16>;
+	var y = bidule { 5, 6 };
+	var x = y.truc();
+
+
 	type b32 = point<u32>;
-	var z = b32 { 5, 6 };
-	var w: typeof(z.truc());
+	var z = b32 { 7, 8 };
+	var w = z.truc();
 }

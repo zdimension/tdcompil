@@ -158,5 +158,8 @@ void error_msg(ast_node* node, const char* format, ...);        // Display an er
 void info_msg(ast_node* node, const char* format, ...);        // Display an info message
 void free_node(ast_node* p);                    // Freeing a node
 
+ast_node* ast_copy(ast_node* n);
+
+ast_node* set_inferred_type(ast_node* n, struct type_list_s const* type);
 
 #endif /* _CALC_H_ */

@@ -108,7 +108,7 @@ bool type_compatible(type_list const** given, type_list const* wanted)
     {
         if ((gtype)->scalar_bits == 0)
         {
-            gtype = make_scalar_type(wanted->scalar_bits);
+            *given = make_scalar_type(wanted->scalar_bits);
             return true;
         }
     }
@@ -490,9 +490,9 @@ type_list const* decode_spec(ast_node* spec, stack_frame* frame)
                     };
                     for (linked_list* lst = generic->generic.methods; lst; lst = lst->next)
                     {
-                        ast_node* method = lst->value;
+                        ast_node* method = ast_copy(lst->value);
 
-                        analysis(&method, temp_frame, false);
+                        analysis(&method, temp_frame, true);
                     }
                 }
                 return res;
@@ -660,12 +660,6 @@ var_list* check_add_var(const char* name, stack_frame* frame, type_list const* t
 #define RETURN_VAL(x) do{*n = x; return;}while(0)
 #define SET_TYPE(type) do {AST_INFERRED(*n) = type; return;}while(0)
 #define RETURN_LVALUE(x) do {*n = make_node(DEREF, 1, x); analysis(n, frame, true); return;}while(0)
-
-ast_node* set_inferred_type(ast_node* n, type_list const* type)
-{
-    AST_INFERRED(n) = type;
-    return n;
-}
 
 #define ALWAYS_ZERO() info_msg(*n, "Value is always zero\n")
 

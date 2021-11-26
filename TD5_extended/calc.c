@@ -139,8 +139,7 @@ void display_code(ast_node* node)
     bool has_node = node && node->info.code;
     int left = (has_node ? node->info.col : yylloc.first_column);
     char* ptr = (has_node ? node->info.code : yylloc.code);
-    for (; *ptr == ' ' || *ptr == '\t'; ptr++, left--)
-        ;
+    for (; *ptr == ' ' || *ptr == '\t'; ptr++, left--);
     fprintf(stderr, "\t%s\n\t%*s^\n", ptr, left - 1, "");
 }
 
@@ -197,4 +196,52 @@ ast_node* prepend_list(ast_node* node, ast_node* value)
     ptr->next = list->list;
     list->list = ptr;
     return (ast_node*) list;
+}
+
+ast_node* set_inferred_type(ast_node* n, struct type_list_s const* type)
+{
+    AST_INFERRED(n) = type;
+    return n;
+}
+
+ast_node* ast_copy_internal(ast_node* n)
+{
+    switch (n->kind)
+    {
+        case k_ident:
+            return make_ident(VAR_NAME(n));
+        case k_number:
+            return make_number(NUMBER_VALUE(n));
+        case k_operator:
+        {
+            size_t ops_size = OPER_ARITY(n) * sizeof(ast_node*);
+            ast_node* p = allocate_node(sizeof(ast_operator) + ops_size);
+            initialize_header(p, k_operator);
+            OPER_OPERATOR(p) = OPER_OPERATOR(n);
+            OPER_ARITY(p) = OPER_ARITY(n);
+            memcpy(OPER_OPERANDS(p), OPER_OPERANDS(n), ops_size);
+            return p;
+        }
+        case k_list:
+        {
+            linked_list* list = NULL;
+            linked_list** end = &list;
+            for (linked_list* ptr = AST_LIST_HEAD(n); ptr; ptr = ptr->next)
+            {
+                linked_list* new_item = make_list_item(ast_copy(ptr->value));
+                *end = new_item;
+                end = &new_item->next;
+            }
+            return make_node_from_list(list);
+        }
+        case k_scope:
+            return make_scope(SC_CODE(n));
+    }
+}
+
+ast_node* ast_copy(ast_node* n)
+{
+    if (!n)
+        return NULL;
+    return set_inferred_type(ast_copy_internal(n), AST_INFERRED(n));
 }

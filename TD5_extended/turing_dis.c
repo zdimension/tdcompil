@@ -155,7 +155,10 @@ void write_code(ast_node* n)
             code_n("%s", VAR_NAME(n));
             return;
         case k_number:
-            code_n("%d", NUMBER_VALUE(n));// todo: type
+            if (n->inferred_type->type == T_SCALAR)
+                code_n("%du%d", NUMBER_VALUE(n), n->inferred_type->scalar_bits);
+            else
+                code_n("%d", NUMBER_VALUE(n));// todo: type
             return;
         case k_operator:
         {
