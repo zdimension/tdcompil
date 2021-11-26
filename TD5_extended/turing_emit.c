@@ -1513,22 +1513,37 @@ void exec(ast_node* n, stack_frame* frame)
     }
 }
 
+void emit_function(func_list* ptr)
+{
+    if (ptr->is_generic)
+    {
+        for (func_list* inst = ptr->instances; ptr; ptr = (func_list*)ptr->header.next)
+        {
+            emit_function(inst);
+        }
+        return;
+    }
+
+    if (!ptr->callsites)
+        return;
+
+    instr("# %s %s (F%d)", ptr->return_type == VOID_TYPE ? "procedure" : "function", ptr->header.name,
+          ptr->header.id);
+    instr("FROM @F%d", ptr->header.id);
+    instr("'[,'/|'[,'_,'_ S,S,S,S @%d", label + 1);
+    BLOCK("function code",
+          {
+              exec(SC_CODE(ptr->code), &ptr->frame);
+          });
+    instr("FROM @%d", ++label);
+    instr("'[,'/|'[,'_,'_ S,S,S,S @F%dret", ptr->header.id);
+}
+
 void emit_functions()
 {
     for (func_list* ptr = funcs_head; ptr; ptr = (func_list*) ptr->header.next)
     {
-        if (!ptr->callsites)
-            continue;
-        instr("# %s %s (F%d)", ptr->return_type == VOID_TYPE ? "procedure" : "function", ptr->header.name,
-              ptr->header.id);
-        instr("FROM @F%d", ptr->header.id);
-        instr("'[,'/|'[,'_,'_ S,S,S,S @%d", label + 1);
-        BLOCK("function code",
-              {
-                  exec(SC_CODE(ptr->code), &ptr->frame);
-              });
-        instr("FROM @%d", ++label);
-        instr("'[,'/|'[,'_,'_ S,S,S,S @F%dret", ptr->header.id);
+        emit_function(ptr);
     }
 }
 

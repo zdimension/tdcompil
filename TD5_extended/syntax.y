@@ -99,7 +99,7 @@ stmt
     ;
 
 func_signature
-	: KFUNC var '(' param_list ')' ':' type_spec											{ $$ = make_node(KFUNC, 4, $2, $4, NULL, $7); }
+	: KFUNC var type_params '(' param_list ')' ':' type_spec								{ $$ = make_node(KFUNC, 5, $2, $5, NULL, $8, $3); }
     ;
 
 func
@@ -301,12 +301,12 @@ basic_expr
 	;
 
 postfix_expr
-    : basic_expr							{ $$ = $1; }
-    | postfix_expr INC              		{ $$ = make_node(INC, 2, $1, NULL); }
-    | postfix_expr DEC              		{ $$ = make_node(DEC, 2, $1, NULL); }
-    | postfix_expr '[' expr ']'   			{ $$ = make_node(DEREF, 1, make_node('+', 2, $1, $3)); }
-    | postfix_expr '.' var					{ $$ = make_node('.', 2, $1, $3); }
-    | postfix_expr '(' arg_list ')'			{ $$ = make_node('(', 2, $1, $3); }
+    : basic_expr										{ $$ = $1; }
+    | postfix_expr INC              					{ $$ = make_node(INC, 2, $1, NULL); }
+    | postfix_expr DEC              					{ $$ = make_node(DEC, 2, $1, NULL); }
+    | postfix_expr '[' expr ']'   						{ $$ = make_node(DEREF, 1, make_node('+', 2, $1, $3)); }
+    | postfix_expr '.' var								{ $$ = make_node('.', 2, $1, $3); }
+    | postfix_expr type_params '(' arg_list ')'			{ $$ = make_node('(', 3, $1, $4, $2); }
     ;
 
 unary_expr

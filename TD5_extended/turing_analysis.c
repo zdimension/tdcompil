@@ -1114,78 +1114,91 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
                     }
                     newNode->header.name = VAR_NAME(op[0]);
                     newNode->header.owner = NULL;
-                    newNode->return_type = decode_spec(op[3], frame);
-                    AST_DATA(op[0]) = (void*) newNode->return_type;
                     newNode->arglist = AST_LIST_HEAD(op[1]);
-                    newNode->callsites = NULL;
-                    newNode->frame = (stack_frame) {
-                            .function = newNode,
-                            .loop = NULL,
-                            .is_root = true,
-                            .vars = {NULL, NULL},
-                            .parent = frame
-                    };
-                    if (!op[2])
+
+                    ast_node* type_params = op[4];
+                    stack_frame* fct_def_frame = frame;
+                    if (type_params) // function is generic
                     {
-                        newNode->code = NULL;
+                        newNode->is_generic = true;
+                        newNode->type_params = AST_LIST_HEAD(type_params);
+                        newNode->fct_def = *n;
+                        newNode->instances = NULL;
                     }
                     else
                     {
-                        newNode->code = make_scope(op[2]);
-                        SC_SCOPE(newNode->code) = &newNode->frame;
-                        for (linked_list* ptr = newNode->arglist; ptr; ptr = ptr->next)
+                        newNode->return_type = decode_spec(op[3], frame);
+                        AST_DATA(op[0]) = (void*) newNode->return_type;
+                        newNode->callsites = NULL;
+                        newNode->frame = (stack_frame) {
+                                .function = newNode,
+                                .loop = NULL,
+                                .is_root = true,
+                                .vars = {NULL, NULL},
+                                .parent = frame
+                        };
+                        if (!op[2])
                         {
-                            ast_node* argname = OPER_OPERANDS(ptr->value)[0];
-                            const type_list* spec = decode_spec(OPER_OPERANDS(ptr->value)[1], frame);
-                            spec = make_pointer_global_if(spec, ptr == newNode->arglist && spec->type == T_POINTER);
-                            AST_INFERRED(argname) = spec;
-                            check_add_var(VAR_NAME(argname), &newNode->frame, spec);
+                            newNode->code = NULL;
                         }
-                        analysis(&newNode->code, &newNode->frame, false);
-
-                        // tail recursion
-
-                        ast_node** code = &newNode->code;
-                        stack_frame* c_frame = NULL;
-                        while (AST_KIND(*code) == k_scope)
+                        else
                         {
-                            c_frame = SC_SCOPE(*code);
-                            code = &SC_CODE(*code);
-                        }
-                        if (AST_KIND(*code) == k_operator && OPER_OPERATOR(*code) == ';' && OPER_ARITY(*code) == 2)
-                        {
-                            ast_node* second = OPER_OPERANDS(*code)[1];
-                            if (AST_KIND(second) == k_operator &&
-                                OPER_OPERATOR(second) == KRETURN) // if last statement is return
+                            newNode->code = make_scope(op[2]);
+                            SC_SCOPE(newNode->code) = &newNode->frame;
+                            for (linked_list* ptr = newNode->arglist; ptr; ptr = ptr->next)
                             {
-                                ast_node* returned = OPER_OPERANDS(second)[0];
-                                if (AST_KIND(returned) == k_operator &&
-                                    OPER_OPERATOR(returned) == '(') // which is a function call
+                                ast_node* argname = OPER_OPERANDS(ptr->value)[0];
+                                const type_list* spec = decode_spec(OPER_OPERANDS(ptr->value)[1], frame);
+                                spec = make_pointer_global_if(spec, ptr == newNode->arglist && spec->type == T_POINTER);
+                                AST_INFERRED(argname) = spec;
+                                check_add_var(VAR_NAME(argname), &newNode->frame, spec);
+                            }
+                            analysis(&newNode->code, &newNode->frame, false);
+
+                            // tail recursion
+
+                            ast_node** code = &newNode->code;
+                            stack_frame* c_frame = NULL;
+                            while (AST_KIND(*code) == k_scope)
+                            {
+                                c_frame = SC_SCOPE(*code);
+                                code = &SC_CODE(*code);
+                            }
+                            if (AST_KIND(*code) == k_operator && OPER_OPERATOR(*code) == ';' && OPER_ARITY(*code) == 2)
+                            {
+                                ast_node* second = OPER_OPERANDS(*code)[1];
+                                if (AST_KIND(second) == k_operator &&
+                                    OPER_OPERATOR(second) == KRETURN) // if last statement is return
                                 {
-                                    ast_node* function = OPER_OPERANDS(returned)[0];
-                                    if (AST_KIND(function) == k_ident &&
-                                        !strcmp(VAR_NAME(function), newNode->header.name)) // of the function itself
+                                    ast_node* returned = OPER_OPERANDS(second)[0];
+                                    if (AST_KIND(returned) == k_operator &&
+                                        OPER_OPERATOR(returned) == '(') // which is a function call
                                     {
-                                        // tail recursive call
-                                        ast_node* list = make_list(OPER_OPERANDS(newNode->arglist->value)[0]);
-                                        for (linked_list* ptr = newNode->arglist->next, * target = ((ast_linked_list*) list)->list; ptr; ptr = ptr->next, target = target->next)
+                                        ast_node* function = OPER_OPERANDS(returned)[0];
+                                        if (AST_KIND(function) == k_ident &&
+                                            !strcmp(VAR_NAME(function), newNode->header.name)) // of the function itself
                                         {
-                                            target->next = malloc(sizeof(linked_list));
-                                            target->next->value = OPER_OPERANDS(ptr->value)[0];
-                                            target->next->next = NULL;
+                                            // tail recursive call
+                                            ast_node* list = make_list(OPER_OPERANDS(newNode->arglist->value)[0]);
+                                            for (linked_list* ptr = newNode->arglist->next, * target = ((ast_linked_list*) list)->list; ptr; ptr = ptr->next, target = target->next)
+                                            {
+                                                target->next = malloc(sizeof(linked_list));
+                                                target->next->value = OPER_OPERANDS(ptr->value)[0];
+                                                target->next->next = NULL;
+                                            }
+                                            ast_node* assignment = make_node(TUPLEASSIGN, 2, list,
+                                                                             OPER_OPERANDS(returned)[1]);
+                                            AST_CLEAN_STACK(assignment) = true;
+                                            ast_node* loop_code = (make_node(';', 2, OPER_OPERANDS(*code)[0],
+                                                                             assignment));
+                                            *code = make_node(KLOOP, 1, loop_code);
+                                            analysis(code, c_frame, false);
+                                            AST_CLEAN_STACK(*code) = true;
                                         }
-                                        ast_node* assignment = make_node(TUPLEASSIGN, 2, list,
-                                                                         OPER_OPERANDS(returned)[1]);
-                                        AST_CLEAN_STACK(assignment) = true;
-                                        ast_node* loop_code = (make_node(';', 2, OPER_OPERANDS(*code)[0], assignment));
-                                        *code = make_node(KLOOP, 1, loop_code);
-                                        analysis(code, c_frame, false);
-                                        AST_CLEAN_STACK(*code) = true;
                                     }
                                 }
                             }
                         }
-
                     }
                     SET_TYPE(VOID_TYPE);
                 }
@@ -1239,7 +1252,61 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
                             exit(1);
                         }
 
-                        linked_list* list = AST_LIST_HEAD(op[1]), * flist;
+                        linked_list* list, * flist;
+
+                        if (func->is_generic)
+                        {
+                            stack_frame* sc_frame = malloc(sizeof(*sc_frame));
+                            *sc_frame = (stack_frame)
+                                    {
+                                            .is_root = false,
+                                            .vars = {.head = NULL, .tail = NULL},
+                                            .parent = frame
+                                    };
+                            typedef struct type_param_list_s
+                            {
+                                const char* name;
+                                type_list const* type;
+                                struct type_param_list_s* next;
+                            } type_param_list;
+                            type_param_list* tpl = NULL;
+                            for (linked_list* tptr = func->type_params; tptr; tptr = tptr->next)
+                            {
+                                type_list* tty = ADD_SYM(type_list, &sc_frame->types.head, &sc_frame->types.tail);
+                                tty->header.name = VAR_NAME(tptr->value);
+                                tty->type = T_GENERIC_VARIABLE;
+                            }
+
+                            type_list* fargs;
+                            int i = 1;
+                            for (flist = func->arglist, list = AST_LIST_HEAD(op[1]);
+                                 list && flist;
+                                 list = list->next, flist = flist->next, i++)
+                            {
+                                analysis(&list->value, frame, false);
+                                ast_node* typenode = OPER_OPERANDS(flist->value)[1];
+                                /*
+                                type_list const* argtype = decode_spec(, sc_frame);
+                                if (argtype->type == T_GENERIC_VARIABLE)
+                                {
+
+                                }*/
+                             /*   if (!type_compatible(&AST_INFERRED(list->value), fargs->type))
+                                {
+                                    error_msg(list->value,
+                                              "Type mismatch for argument %d in call to '%s'; expected '%s', got '%s'\n",
+                                              i, func->header.name, type_display(fargs->type),
+                                              type_display(infer_type(list->value)));
+                                    exit(1);
+                                }*/
+                            }
+
+                            func_list* newNode = ADD_SYM(func_list, &funcs_head, &funcs_tail);
+                            newNode->header.name = "";
+                            newNode->header.owner = NULL;
+                        }
+
+                        list = AST_LIST_HEAD(op[1]);
 
                         if (member)
                         {
@@ -1250,7 +1317,8 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
                             }
 
                             linked_list* nlist = malloc(sizeof(linked_list));
-                            if (func->frame.vars.head->type->type == T_POINTER && infer_type(*member)->type != T_POINTER)
+                            if (func->frame.vars.head->type->type == T_POINTER &&
+                                infer_type(*member)->type != T_POINTER)
                             {
                                 *member = make_node(REF, 1, *member);
                                 analysis(member, frame, false);

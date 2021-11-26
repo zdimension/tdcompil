@@ -99,7 +99,7 @@ int eval(ast_node* n, int* label)
                 {
                     int block = KEYWORD("func");
                     linkl(block, op0, "name");
-                    //linkl(block, op1, "params");
+                    //linkl(block, op1, "type_params");
                     linkl(block, op3, "type");
                     linkl(block, op2, "code");
                     return block;

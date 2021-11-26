@@ -74,11 +74,24 @@ extern stack_frame global_frame;
 typedef struct func_list_s
 {
     linked_list_header header;
-    struct type_list_s const* return_type;
     linked_list* arglist;
-    ast_node* code;
-    call_site_list* callsites;
-    stack_frame frame;
+    bool is_generic;
+    union
+    {
+        struct
+        {
+            linked_list* type_params;
+            ast_node* fct_def;
+            struct func_list_s* instances;
+        };
+        struct
+        {
+            struct type_list_s const* return_type;
+            ast_node* code;
+            call_site_list* callsites;
+            stack_frame frame;
+        };
+    };
 } func_list;
 extern func_list* funcs_head, * funcs_tail;
 
@@ -90,6 +103,7 @@ typedef enum
     T_POINTER,
     T_COMPOSITE,
     T_GENERIC,
+    T_GENERIC_VARIABLE,
     T_INTERFACE
 } type_type;
 
