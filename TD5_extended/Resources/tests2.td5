@@ -1,61 +1,30 @@
 {
-	type fibo_iter = struct { a: u16; b: u16; };
+	type range = struct { from: u16; to: u16; current: u16; };
 
-	impl fibo_iter
+	impl range
 	{
-		func init(iter: fibo_iter*): void
-		{
-			(*iter).a = 0;
-			(*iter).b = 1;
-		}
+		func `(`(from: u16, to: u16): range { return range { from: from, to: to, current: from }; }
+
+		func hasNext(iter: range*): bool { return iter.current < iter.to; }
+
+		func next(iter: range*): u16 { return iter.current++; }
 	}
 
-	impl fibo_iter
-    {
-		func hasNext(iter: fibo_iter*): bool
-		{
-			return true;
-		}
+	type square<T> = struct { iterator: T* global; };
 
-		func next(iter: fibo_iter*): u16
-		{
-			var a = (*iter).a;
-			var b = (*iter).b;
-			(*iter).a = b;
-			(*iter).b = a + b;
-			return a;
-		}
+	impl square
+	{
+		func `(`(iterator: T*): self { return self { iterator: iterator }; }
+
+		func hasNext(sq: self*): bool { return sq.iterator.hasNext(); }
+
+		func next(sq: self*): u16 { var item = sq.iterator.next(); return item * item; }
 	}
 
-	type even_filter = struct { base_iter: fibo_iter* global; };
+	var x = range(1, 10);
 
-	impl even_filter
+	for (var n in square<range>(&x))
 	{
-		func hasNext(iter: even_filter*): bool
-		{
-			return (*iter).base_iter.hasNext();
-		}
-
-		func next(iter: even_filter*): u16
-		{
-			var n = (*iter).base_iter.next();
-			while (n != ((n >> 1) << 1))
-			{
-				n = (*iter).base_iter.next();
-			}
-			return n;
-		}
-	}
-
-	var iter: fibo_iter;
-	iter.init();
-
-	var iter2 = even_filter{&iter};
-
-	for (var val in iter2)
-	{
-		if (val > 50)
-			break;
-		print val;
+		print n;
 	}
 }

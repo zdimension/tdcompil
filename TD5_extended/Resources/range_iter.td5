@@ -3,23 +3,27 @@
 
 	impl range
 	{
-		func `(`(from: u16, to: u16): range
-		{
-			return range { from: from, to: to, current: from };
-		}
+		func `(`(from: u16, to: u16): range { return range { from: from, to: to, current: from }; }
 
-		func hasNext(iter: range*): bool
-		{
-			return (*iter).current < (*iter).to;
-		}
+		func hasNext(iter: range*): bool { return iter.current < iter.to; }
 
-		func next(iter: range*): u16
-		{
-			return (*iter).current++;
-		}
+		func next(iter: range*): u16 { return iter.current++; }
 	}
 
-	for (var n in range(1, 10))
+	type square<T> = struct { iterator: T; };
+
+	impl square
+	{
+		func `(`(iterator: T*): self { return self { iterator: iterator }; }
+
+		func hasNext(sq: self*): bool { return sq.iterator.hasNext(); }
+
+		func next(sq: self*): u16 { var item = sq.iterator.next(); return item * item; }
+	}
+
+	var x = range(1, 10);
+
+	for (var n in square<range>(&x))
 	{
 		print n;
 	}

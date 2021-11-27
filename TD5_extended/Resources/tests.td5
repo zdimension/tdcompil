@@ -10,15 +10,15 @@
 		func next(iter: range*): u16 { return iter.current++; }
 	}
 
-	type square<T> = struct { iterator: T* global; };
+	type square<T> = struct { iterator: T; };
 
 	impl square
 	{
 		func `(`(iterator: T*): self { return self { iterator: iterator }; }
 
-		func hasNext(sq: self*): bool { return (*sq).iterator.hasNext(); }
+		func hasNext(sq: self*): bool { return sq.iterator.hasNext(); }
 
-        func next(sq: self*): u16 { var item = (*sq).iterator.next(); return item * item; }
+		func next(sq: self*): u16 { var item = sq.iterator.next(); return item * item; }
 	}
 
 	var x = range(1, 10);
