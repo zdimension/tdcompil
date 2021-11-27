@@ -159,6 +159,8 @@ typedef struct type_list_s
 } type_list;
 //extern type_list* types_head, * types_tail;
 extern type_list const* VOID_TYPE;
+extern type_list const* FUNC_TYPE;
+extern type_list const* TYPE_TYPE;
 extern type_list const* WORD_TYPE;
 extern type_list const* BOOL_TYPE;
 
@@ -190,6 +192,8 @@ void analysis(ast_node** n, stack_frame* frame, bool force);
 var_list* get_var_id(ast_node* node, stack_frame* frame, find_flags flags);
 
 type_list* get_type(ast_node* node, stack_frame* frame);
+
+type_list* get_type_or_null(ast_node* node, stack_frame* frame);
 
 #define FIND_SYM(type, list, name) ((type*)find_symbol(&((list)->header), name))
 

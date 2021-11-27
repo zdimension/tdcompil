@@ -1380,7 +1380,7 @@ void exec(ast_node* n, stack_frame* frame)
                     func_list* fct = call_site->function;
 
                     instr("# call %s", fct->header.name);
-                    linked_list* args = AST_LIST_HEAD(op[1]);
+                    linked_list* args = AST_LIST_HEAD(op[2]);
 
                     int right_heap;
                     if (args)

@@ -58,7 +58,7 @@ void yyerror(const char *s);
 %type	<node> 		l_and_expr l_or_expr stmt_list_opt expr_discard expr_discard_opt scalar_var_init type_arg_list tuple_assign_left tuple_assign_right
 %type 	<node>		param_list param_list_ne arg_list arg_list_ne var_decl var_decl_list type_spec_opt type_spec type_decl type_decl_list type_params type_param_list
 %type	<node>		struct_field struct_field_list var_typed stmt_braced expr_discard_or_inline_decl_opt expr_or_inline_decl pattern pattern_list pattern_branch pattern_basic
-%type	<node>		struct_field_init struct_field_init_list func_list func func_signature interf_func_list interf_func named_typespec
+%type	<node>		struct_field_init struct_field_init_list func_list func func_signature interf_func_list interf_func named_typespec struct_field_list_ne
 %type   <chr>		aug_assign unary_op
 
 %%
@@ -191,8 +191,12 @@ struct_field
 	;
 
 struct_field_list
+	:									{ $$ = make_empty_list(); }
+	| struct_field_list_ne				{ $$ = $1; }
+
+struct_field_list_ne
 	: struct_field						{ $$ = make_list($1); }
-	| struct_field struct_field_list 	{ $$ = prepend_list($2, $1); }
+	| struct_field struct_field_list_ne	{ $$ = prepend_list($2, $1); }
 	;
 
 interf_func
@@ -310,7 +314,7 @@ postfix_expr
     | postfix_expr DEC              					{ $$ = make_node(DEC, 2, $1, NULL); }
     | postfix_expr '[' expr ']'   						{ $$ = make_node(DEREF, 1, make_node('+', 2, $1, $3)); }
     | postfix_expr '.' var								{ $$ = make_node('.', 2, $1, $3); }
-    | postfix_expr type_params '(' arg_list ')'			{ $$ = make_node('(', 3, $1, $4, $2); }
+    | postfix_expr '(' arg_list ')'						{ $$ = make_node('(', 3, $1, NULL, $3); }	 /* todo: type params */
     ;
 
 unary_expr

@@ -47,6 +47,8 @@ func_list* funcs_head = NULL, * funcs_tail = NULL;
 type_list* types_head = NULL, * types_tail = NULL;
 
 type_list const* VOID_TYPE;
+type_list const* FUNC_TYPE;
+type_list const* TYPE_TYPE;
 type_list const* WORD_TYPE;
 type_list const* BOOL_TYPE;
 
@@ -94,12 +96,7 @@ linked_list_header* find_symbol(linked_list_header* list, ast_node* node)
     return sym;
 }
 
-/**
- * Searches for a type recursively
- * @return the type, if found
- * @throws exit The type was not found
- */
-type_list* get_type(ast_node* node, stack_frame* frame)
+type_list* get_type_or_null(ast_node* node, stack_frame* frame)
 {
     const char* name = VAR_NAME(node);
     for (linked_list_header* ptr = &frame->types.head->header; ptr; ptr = ptr->next)
@@ -110,8 +107,23 @@ type_list* get_type(ast_node* node, stack_frame* frame)
         }
     }
     if (frame->parent)
-        return get_type(node, frame->parent);
-    missing_symbol(node, name);
+        return get_type_or_null(node, frame->parent);
+    return NULL;
+}
+
+/**
+ * Searches for a type recursively
+ * @return the type, if found
+ * @throws exit The type was not found
+ */
+type_list* get_type(ast_node* node, stack_frame* frame)
+{
+    type_list* sym = get_type_or_null(node, frame);
+    if (!sym)
+    {
+        missing_symbol(node, VAR_NAME(node));
+    }
+    return sym;
 }
 
 /**

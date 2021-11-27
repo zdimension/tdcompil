@@ -152,7 +152,7 @@ void write_code(ast_node* n)
     switch (AST_KIND(n))
     {
         case k_ident:
-            code_n("%s", VAR_NAME(n));
+            code_n("`%s`", VAR_NAME(n));
             return;
         case k_number:
             if (n->inferred_type && n->inferred_type->type == T_SCALAR)

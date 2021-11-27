@@ -174,6 +174,11 @@ ast_node* make_node_from_list(linked_list* value)
     return (ast_node*) ptr;
 }
 
+ast_node* make_empty_list()
+{
+    return make_node_from_list(NULL);
+}
+
 ast_node* make_list(ast_node* value)
 {
     ast_node* ptr = make_node_from_list(NULL);
