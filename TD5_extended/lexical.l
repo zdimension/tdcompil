@@ -53,6 +53,8 @@
 \'[^\']\' { yylval.number.value = yytext[1]; yylval.number.size = 0; return NUMBER; }
 \"[^\"]*\" { yylval.var = strndup(yytext + 1, strlen(yytext) - 2); return STRING; }
 
+"__LINE__" { yylval.number.value = yylineno; yylval.number.size = 0; return NUMBER; }
+
 
 	/* ---- Single char tokens ---- */
 

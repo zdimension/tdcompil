@@ -1,4 +1,6 @@
 {
+	var y = __LINE__;
+
 	func square(x: u16): u16
 	{
         return x * x;
@@ -6,7 +8,7 @@
 
     func is_even(x: u16): bool
     {
-        return (x >> 1) << 1 == x;
+        return x >> 1 << 1 == x;
     }
 
     var x = 5u16;
