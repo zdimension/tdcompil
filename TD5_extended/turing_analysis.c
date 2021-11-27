@@ -1082,7 +1082,7 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
                 case KNEW:
                 {
                     type_list const* type = decode_spec(op[0], frame);
-                    SET_TYPE(make_pointer(type));
+                    SET_TYPE(make_pointer_global_if(make_pointer(type), frame->function == NULL));
                 }
                 case KCONST:
                 {

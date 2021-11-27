@@ -18,10 +18,12 @@
 
 		func hasNext(sq: self*): bool { return (*sq).iterator.hasNext(); }
 
-        func next(sq: self*): u16 { return (*sq).iterator.next(); }
+        func next(sq: self*): u16 { var item = (*sq).iterator.next(); return item * item; }
 	}
 
-	for (var n in range(1, 10))
+	var x = range(1, 10);
+
+	for (var n in square<range>(&x))
 	{
 		print n;
 	}
