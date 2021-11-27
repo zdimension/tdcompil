@@ -22,7 +22,9 @@
       <change beforePath="$PROJECT_DIR$/Resources/range_iter.td5" beforeDir="false" afterPath="$PROJECT_DIR$/Resources/range_iter.td5" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Resources/tests.am" beforeDir="false" afterPath="$PROJECT_DIR$/Resources/tests.am" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Resources/tests.td5" beforeDir="false" afterPath="$PROJECT_DIR$/Resources/tests.td5" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Resources/tests2.td5" beforeDir="false" afterPath="$PROJECT_DIR$/Resources/tests2.td5" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lexical.l" beforeDir="false" afterPath="$PROJECT_DIR$/lexical.l" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/syntax.y" beforeDir="false" afterPath="$PROJECT_DIR$/syntax.y" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/turing_analysis.c" beforeDir="false" afterPath="$PROJECT_DIR$/turing_analysis.c" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -103,7 +105,7 @@
         <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
       </method>
     </configuration>
-    <configuration name="turing" type="CMakeRunConfiguration" factoryName="Application" PROGRAM_PARAMS="Resources/tests.td5" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" WORKING_DIR="file://$ContentRoot$" PASS_PARENT_ENVS_2="true" PROJECT_NAME="TD5_extended" TARGET_NAME="turing" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="TD5_extended" RUN_TARGET_NAME="turing">
+    <configuration name="turing" type="CMakeRunConfiguration" factoryName="Application" PROGRAM_PARAMS="Resources/tests.td5 -c" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" WORKING_DIR="file://$ContentRoot$" PASS_PARENT_ENVS_2="true" PROJECT_NAME="TD5_extended" TARGET_NAME="turing" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="TD5_extended" RUN_TARGET_NAME="turing">
       <method v="2">
         <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
       </method>
@@ -206,6 +208,11 @@
           <url>file://$PROJECT_DIR$/turing_analysis.c</url>
           <line>2072</line>
           <option name="timeStamp" value="210" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
+          <url>file://$PROJECT_DIR$/turing_dis.c</url>
+          <line>383</line>
+          <option name="timeStamp" value="211" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>

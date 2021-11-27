@@ -2060,7 +2060,7 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
                 }
                 case GENINST:
                 {
-                    AST_DATA(*n) = decode_spec(*n, frame);
+                    AST_DATA(*n) = (void*)decode_spec(*n, frame);
                     SET_TYPE(TYPE_TYPE);
                 }
                 case DEREF:

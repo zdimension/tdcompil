@@ -1,30 +1,14 @@
 {
-	type range = struct { from: u16; to: u16; current: u16; };
-
-	impl range
+	func square(x: u16): u16
 	{
-		func `(`(from: u16, to: u16): range { return range { from: from, to: to, current: from }; }
+        return x * x;
+    }
 
-		func hasNext(iter: range*): bool { return iter.current < iter.to; }
+    func is_even(x: u16): bool
+    {
+        return (x >> 1) << 1 == x;
+    }
 
-		func next(iter: range*): u16 { return iter.current++; }
-	}
-
-	type square<T> = struct { iterator: T; };
-
-	impl square
-	{
-		func `(`(iterator: T*): self { return self { iterator: iterator }; }
-
-		func hasNext(sq: self*): bool { return sq.iterator.hasNext(); }
-
-		func next(sq: self*): u16 { var item = sq.iterator.next(); return item * item; }
-	}
-
-	var x = range(1, 10);
-
-	for (var n in square<range>(&x))
-	{
-		print n;
-	}
+    var x = 5u16;
+    print x |> square |> is_even;
 }

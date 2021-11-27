@@ -380,7 +380,7 @@ void write_code(ast_node* n)
                 case '(':
                     write_inline(op[0]);
                     code_n("(");
-                    linked_list* lst = AST_LIST_HEAD(op[1]);
+                    linked_list* lst = AST_LIST_HEAD(op[2]);
                     if (lst)
                     {
                         if (AST_KIND(op[0]) == k_operator && OPER_OPERATOR(op[0]) == '.')

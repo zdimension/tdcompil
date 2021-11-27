@@ -43,7 +43,7 @@ void yyerror(const char *s);
 %token                  KWHILE KIF KPRINT KELSE KREAD KFOR KDO KVAR KFUNC KRETURN KBREAK KCONTINUE KCONST KTYPE KTYPEOF
 %token					KSIZEOF KSTRUCT KBITSOF KNEW KASSERT KLOOP KMATCH KIS RANGE IRANGE KGLOBAL KIMPL KIN KFOREACH
 %token					KINTERFACE KSELF
-%token '+' '-' '*' '/' GE LE EQ NE '>' '<' REF DEREF APL AMN AML ADV INC DEC AND OR SHL SHR ARROW STRUCTLIT GENINST
+%token '+' '-' '*' '/' GE LE EQ NE '>' '<' REF DEREF APL AMN AML ADV INC DEC AND OR SHL SHR ARROW STRUCTLIT GENINST PIPELINE
 %token UMINUS VDECL SCOPE TUPLEASSIGN
 //                       Precedence rules
 %left '+'
@@ -59,6 +59,7 @@ void yyerror(const char *s);
 %type 	<node>		param_list param_list_ne arg_list arg_list_ne var_decl var_decl_list type_spec_opt type_spec type_decl type_decl_list type_params type_param_list
 %type	<node>		struct_field struct_field_list var_typed stmt_braced expr_discard_or_inline_decl_opt expr_or_inline_decl pattern pattern_list pattern_branch pattern_basic
 %type	<node>		struct_field_init struct_field_init_list func_list func func_signature interf_func_list interf_func named_typespec struct_field_list_ne
+%type	<node>		pipe_expr
 %type   <chr>		aug_assign unary_op
 
 %%
@@ -372,8 +373,13 @@ l_or_expr
     | l_or_expr OR l_and_expr		{ $$ = make_node(OR, 2, $1, $3); }
     ;
 
-is_expr
+pipe_expr
 	: l_or_expr						{ $$ = $1; }
+	| pipe_expr PIPELINE l_or_expr	{ $$ = make_node('(', 3, $3, NULL, make_list($1)); }
+	;
+
+is_expr
+	: pipe_expr						{ $$ = $1; }
 	| is_expr KIS pattern			{ $$ = make_node(KIS, 2, $1, $3); }
 	;
 

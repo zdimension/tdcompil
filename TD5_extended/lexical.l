@@ -76,6 +76,7 @@
 "=>" { return ARROW; }
 ".." { return RANGE; }
 "..=" { return IRANGE; }
+"|>" { return PIPELINE; }
 
 "print"         		{ return KPRINT; }
 "while" { return KWHILE; }
