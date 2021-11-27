@@ -1,27 +1,27 @@
 {
-	type range_iter = struct { from: u16; to: u16; current: u16; };
+	type range = struct { from: u16; to: u16; current: u16; };
 
-	impl range_iter
+	impl range
 	{
-		func `(`(from: u16, to: u16): range_iter
-		{
-			return range_iter { from: from, to: to, current: from };
-		}
+		func `(`(from: u16, to: u16): range { return range { from: from, to: to, current: from }; }
 
-		func hasNext(iter: range_iter*): bool
-		{
-			return (*iter).current < (*iter).to;
-		}
+		func hasNext(iter: range*): bool { return iter.current < iter.to; }
 
-		func next(iter: range_iter*): u16
-		{
-			return (*iter).current++;
-		}
+		func next(iter: range*): u16 { return iter.current++; }
 	}
 
-	var x = range_iter(1, 10);
+	type square<T> = struct { iterator: T* global; };
 
-	for (var n in x)
+	impl square
+	{
+		func `(`(iterator: T*): self { return self { iterator: iterator }; }
+
+		func hasNext(sq: self*): bool { return (*sq).iterator.hasNext(); }
+
+        func next(sq: self*): u16 { return (*sq).iterator.next(); }
+	}
+
+	for (var n in range(1, 10))
 	{
 		print n;
 	}

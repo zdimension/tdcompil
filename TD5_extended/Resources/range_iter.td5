@@ -1,0 +1,26 @@
+{
+	type range = struct { from: u16; to: u16; current: u16; };
+
+	impl range
+	{
+		func `(`(from: u16, to: u16): range
+		{
+			return range { from: from, to: to, current: from };
+		}
+
+		func hasNext(iter: range*): bool
+		{
+			return (*iter).current < (*iter).to;
+		}
+
+		func next(iter: range*): u16
+		{
+			return (*iter).current++;
+		}
+	}
+
+	for (var n in range(1, 10))
+	{
+		print n;
+	}
+}

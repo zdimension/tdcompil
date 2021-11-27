@@ -463,7 +463,7 @@ type_list const* decode_spec(ast_node* spec, stack_frame* frame)
                 scalar_infer_auto(op[0]);
                 return infer_type(op[0]);
             }
-            case KNEW:
+            case GENINST:
             {
                 type_list* generic = get_type(op[0], frame);
                 stack_frame* sc_frame = make_child_frame(frame);
@@ -1038,11 +1038,21 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
                 {
                     analysis(&op[0], frame, false);
                     type_list const* ltype = infer_type(op[0]);
+                    ast_node* lhs_ptr = NULL;
                     if (ltype == TYPE_TYPE)
                     {
                         ltype = AST_DATA(op[0]);
                     }
-                    if (ltype->type != T_COMPOSITE)
+                    else if (ltype->type == T_POINTER && ltype->pointer_target->type == T_COMPOSITE)
+                    {
+                        lhs_ptr = op[0];
+                        ltype = ltype->pointer_target;
+                    }
+                    else if (ltype->type == T_COMPOSITE)
+                    {
+                        lhs_ptr = get_position(op[0]);
+                    }
+                    else
                     {
                         error_msg(*n, "Member access on non-composite type\n");
                         exit(1);
@@ -1053,7 +1063,6 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
                         member = FIND_SYM(var_list, ltype->composite_methods.head, op[1]);
                         SET_TYPE(FUNC_TYPE);
                     }
-                    ast_node* lhs_ptr = get_position(op[0]);
                     set_inferred_type(lhs_ptr, make_pointer_global_if(make_pointer(member->type),
                                                                       lhs_ptr->inferred_type->pointer_is_global)); // convert to pointer to member
                     ast_node* ret = make_node('+', 2, lhs_ptr, make_number(member->position));
@@ -2048,6 +2057,11 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
                     }
 
                     SET_TYPE(VOID_TYPE);
+                }
+                case GENINST:
+                {
+                    AST_DATA(*n) = decode_spec(*n, frame);
+                    SET_TYPE(TYPE_TYPE);
                 }
                 case DEREF:
                 {

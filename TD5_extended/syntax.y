@@ -43,7 +43,7 @@ void yyerror(const char *s);
 %token                  KWHILE KIF KPRINT KELSE KREAD KFOR KDO KVAR KFUNC KRETURN KBREAK KCONTINUE KCONST KTYPE KTYPEOF
 %token					KSIZEOF KSTRUCT KBITSOF KNEW KASSERT KLOOP KMATCH KIS RANGE IRANGE KGLOBAL KIMPL KIN KFOREACH
 %token					KINTERFACE KSELF
-%token '+' '-' '*' '/' GE LE EQ NE '>' '<' REF DEREF APL AMN AML ADV INC DEC AND OR SHL SHR ARROW STRUCTLIT
+%token '+' '-' '*' '/' GE LE EQ NE '>' '<' REF DEREF APL AMN AML ADV INC DEC AND OR SHL SHR ARROW STRUCTLIT GENINST
 %token UMINUS VDECL SCOPE TUPLEASSIGN
 //                       Precedence rules
 %left '+'
@@ -167,7 +167,6 @@ type_spec_opt
 
 type_spec
 	: named_typespec						{ $$ = $1; }
-	| KSELF									{ $$ = make_node(KSELF, 0); }
 	| type_spec '*'							{ $$ = make_node('*', 1, $1); }
 	| type_spec KCONST						{ $$ = make_node(KCONST, 1, $1); }
 	| type_spec KGLOBAL						{ $$ = make_node(KGLOBAL, 1, $1); }
@@ -290,7 +289,8 @@ struct_field_init_list
 
 named_typespec
 	: var									{ $$ = $1; }
-    | var '<' type_arg_list '>'				{ $$ = make_node(KNEW, 2, $1, $3); }
+	| KSELF									{ $$ = make_node(KSELF, 0); }
+    | var '<' type_arg_list '>'				{ $$ = make_node(GENINST, 2, $1, $3); }
 	;
 
 basic_expr
@@ -298,7 +298,7 @@ basic_expr
 	| KSIZEOF '(' type_spec ')' 											{ $$ = make_node(KSIZEOF, 1, $3); }
 	| KBITSOF '(' type_spec ')' 											{ $$ = make_node(KBITSOF, 1, $3); }
 	| KNEW '(' type_spec ')' 												{ $$ = make_node(KNEW, 1, $3); }
-	| var																	{ $$ = $1; }
+	| named_typespec														{ $$ = $1; }
 	| '(' expr ')'															{ $$ = $2; }
 	| '{' stmt_list expr '}'												{ $$ = make_scope(make_node('{', 2, $2, $3)); }
     | KIF '(' expr_or_inline_decl ')' '{' expr '}' KELSE '{' expr '}'      	{ $$ = make_scope(make_node(KIF, 3, $3, $6, $10)); }
