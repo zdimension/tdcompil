@@ -1229,13 +1229,14 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
                     stack_frame* fct_def_frame = frame;
                     if (type_params) // function is generic
                     {
-                        newNode->is_generic = true;
+                        newNode->kind = F_GENERIC;
                         newNode->type_params = AST_LIST_HEAD(type_params);
                         newNode->fct_def = *n;
                         newNode->instances = NULL;
                     }
                     else
                     {
+                        newNode->kind = F_NORMAL;
                         newNode->return_type = decode_spec(op[3], frame);
                         AST_DATA(op[0]) = (void*) newNode->return_type;
                         newNode->callsites = NULL;
@@ -1526,7 +1527,7 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
 
                         linked_list* list, * flist;
 
-                        if (func->is_generic)
+                        if (func->kind == F_GENERIC)
                         {
                             stack_frame* sc_frame = malloc(sizeof(*sc_frame));
                             *sc_frame = (stack_frame)

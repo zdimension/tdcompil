@@ -73,11 +73,18 @@ typedef struct stack_frame_s
 } stack_frame;
 extern stack_frame global_frame;
 
+typedef enum
+{
+    F_NORMAL,
+    F_GENERIC,
+    F_BUILTIN
+} func_kind;
+
 typedef struct func_list_s
 {
     linked_list_header header;
     linked_list* arglist;
-    bool is_generic;
+    func_kind kind;
     union
     {
         struct

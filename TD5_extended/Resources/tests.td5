@@ -1,16 +1,20 @@
 {
-	var y = __LINE__;
+	var x[] = "Bonjour", y;
+	for (var i = x; i != &y; i++)
+		print *i;
 
-	func square(x: u16): u16
-	{
-        return x * x;
-    }
-
-    func is_even(x: u16): bool
-    {
-        return x >> 1 << 1 == x;
-    }
-
-    var x = 5u16;
-    print x |> square |> is_even;
+	#var y = __LINE__;
+#
+	#func square(x: u16): u16
+	#{
+    #    return x * x;
+    #}
+#
+    #func is_even(x: u16): bool
+    #{
+    #    return x >> 1 << 1 == x;
+    #}
+#
+    #var x = 5u16;
+    #print x |> square |> is_even;
 }

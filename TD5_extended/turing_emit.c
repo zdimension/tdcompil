@@ -4,6 +4,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <ctype.h>
 #include "turing.h"
 
 #define LABEL(n)     printf("#L%03d:\n", n);            // output a label
@@ -181,55 +182,6 @@ void free_scope(stack_frame* frame)
         instr("FROM @%d", ++label);
         instr("'/|'0|'1,'_,'_,'_ L,S,S,S");
         instr("'[,'_,'_,'_ S,L,S,S @%d", label + 1);
-    }
-}
-
-void emit_functions_epilogues()
-{
-    for (func_list* ptr = funcs_head; ptr; ptr = (func_list*) ptr->header.next)
-    {
-        if (!ptr->callsites)
-            continue;
-
-        for (call_site_list* call = ptr->callsites; call; call = call->next)
-        {
-            BLOCK("call site ID writing",
-                  {
-                      instr("FROM @F%dC%d", ptr->header.id, call->id); // site id alloc
-                      int i;
-                      // todo: O(n) -> O(1) ?
-                      for (i = 0; i < ptr->callsites->id; i++)
-                      {
-                          instr("'_,'/|'[,'_,'_ '%d,'/|'[,'_,'_ R,S,S,S @%d", call->id == i ? 1 : 0, ++label);
-                          instr("FROM @%d", label);
-                      }
-                      instr("'_,'/|'[,'_,'_ '%d,'/|'[,'_,'_ R,S,S,S @%d", call->id == i ? 1 : 0,
-                            call->argalloc_address);
-                  });
-            PROD0("begin call site ID check");
-            BLOCK("call site ID check",
-                  {
-                      instr("FROM @F%dC%dcheck", ptr->header.id, call->id);
-                      instr("'1,'_,'_,'_ '_,'_,'_,'_ L,S,S,S @%d", ++label); // ok
-                      if (call->next)
-                          instr("'0,'_,'_,'_ '_,'_,'_,'_ L,S,S,S @F%dC%dcheck", ptr->header.id, call->id - 1);
-                      instr("FROM @%d", label);
-                      instr("'0,'_,'_,'_ '_,'_,'_,'_ L,S,S,S");
-                      instr("'[,'_,'_,'_ '_,'_,'_,'_ L,S,S,S @%d", ++label);
-                      instr("FROM @%d", label);
-                      instr("'/|'0|'1,'_,'_,'_ L,S,S,S");
-                      instr("'[,'_,'_,'_ S,L,S,S @%d", call->return_address);
-                  });
-        }
-
-        BLOCK("function epilogue",
-              {
-                  instr("FROM @F%dret", ptr->header.id); // clean heap
-                  instr("'[,'/|'[,'_,'_ '[,'/|'[,'_,'_ R,R,S,S");
-                  instr("'0|'1|'/,'_,'_,'_ '_,'_,'_,'_ R,S,S,S");
-                  instr("'_,'_,'_,'_ L,S,S,S");
-                  instr("'[,'_,'_,'_ '_,'_,'_,'_ L,S,S,S @F%dC%dcheck", ptr->header.id, ptr->callsites->id);
-              });
     }
 }
 
@@ -418,6 +370,34 @@ void eval(ast_node* n, stack_frame* frame)
 
 #define USELESS() do{info_msg(n, "Line has no effect\n");return;}while(0)
 
+void write_print(int bit, int state, int end_state, int number)
+{
+    instr("# write_print %d", number);
+    instr("FROM @%d", state);
+
+    if (bit > 255)
+    {
+        instr("'[,'0|'1,'_,'_ S,R,S,S");
+        instr("'[,'/,'_,'_ '[,'_,'_,'_ S,L,S,S @%d", ++label);
+        instr("FROM @%d", label);
+        instr("'[,'_|'0|'1,'_,'_ '[,'_,'_,'_ S,L,S,S");
+        // check if the char 'number' is in the ASCII printable range
+        instr("'[,'/|'[,'_,'_ '[,'/|'[,'_,'%c S,S,S,R @%d", (isalnum(number)) ? number : '?', ++label);
+        instr("FROM @%d", label);
+        instr("'[,'/|'[,'_,'_ '[,'/|'[,'_,'. S,S,S,R @%d", end_state);
+    }
+    else
+    {
+        int bit_0 = ++label;
+        int bit_1 = ++label;
+
+        instr("'[,'0,'_,'_ S,R,S,S @%d", bit_0);
+        instr("'[,'1,'_,'_ S,R,S,S @%d", bit_1);
+
+        write_print(bit << 1, bit_0, end_state, number);
+        write_print(bit << 1, bit_1, end_state, number | bit);
+    }
+}
 
 /**
  * Emits the code for the specified node.
@@ -693,47 +673,48 @@ void exec(ast_node* n, stack_frame* frame)
                         USELESS();
                     }
                     instr("FROM @%d", ++label);
-                    instr("'[,'/,'_,'_ '[,'_,'_,'_ S,L,S,S @%d", ++label);
+                    instr("'[,'/,'_,'_ '[,'_,'_,'_ S,L,S,R @%d", ++label);
                     instr("FROM @%d", label);
                     instr("'[,'0|'1,'_,'_ '[,'_,'0|'1,'_ S,L,L,S");
                     instr("'[,'/,'_,'_ S,L,S,S @%d", ++label);
                     instr("FROM @%d", label);
-                    instr("'[,'0|'1,'_,'_ '[,'0,'_,'0|'1 S,L,S,L");
-                    instr("'[,'/|'[,'_,'_ S,R,R,R @%d", ++label);
+                    instr("'[,'0|'1,'_,'_ '[,'0,'_,'0|'1 S,L,S,R");
+                    instr("'[,'/|'[,'_,'_ S,R,R,L @%d", ++label);
                     int loop = label;
                     int no_carry = ++label;
                     int carry = ++label;
                     int next = ++label;
                     int end = label + 1;
                     instr("FROM @%d", loop);
-                    instr("'[,'0,'1|'0,'0 '[,'0,'1|'0,'# S,R,S,R");
-                    instr("'[,'1,'1|'0,'0 '[,'1,'1|'0,'# S,R,S,R");
+                    instr("'[,'0,'1|'0,'0 '[,'0,'1|'0,'# S,R,S,L");
+                    instr("'[,'1,'1|'0,'0 '[,'1,'1|'0,'# S,R,S,L");
                     instr("'[,'0,'1|'0,'1 '[,'0,'1|'0,'# S,S,S,S @%d", no_carry);
                     instr("'[,'1,'1|'0,'1 '[,'1,'1|'0,'# S,S,S,S @%d", no_carry);
-                    instr("'[,'0,'1|'0,'# S,R,S,R");
-                    instr("'[,'1,'1|'0,'# S,R,S,R");
-                    instr("'[,'/,'0|'1,'_ '[,'/,'_,'_ S,S,R,L");
-                    instr("'[,'/,'0|'1,'# '[,'/,'_,'_ S,S,R,L");
-                    instr("'[,'/,'_,'# '[,'/,'_,'_ S,S,R,L");
-                    instr("'[,'/,'_,'_ S,S,R,L @%d", end);
+                    instr("'[,'0,'1|'0,'# S,R,S,L");
+                    instr("'[,'1,'1|'0,'# S,R,S,L");
+                    instr("'[,'/,'0|'1,'_ '[,'/,'_,'_ S,S,S,R");
+                    instr("'[,'/,'0|'1,'# '[,'/,'_,'_ S,S,R,R");
+                    instr("'[,'/,'_,'# '[,'/,'_,'_ S,S,R,R");
+                    instr("'[,'/,'_,'_ S,S,S,L");
+                    instr("'[,'/,'_,'. S,S,L,R @%d", end);
                     instr("FROM @%d", no_carry);
                     instr("'[,'0,'0,'# '[,'0,'0,'# S,R,R,S");
                     instr("'[,'0|'1,'1|'0,'# '[,'1,'1|'0,'# S,R,R,S");
                     instr("'[,'1,'1,'# '[,'0,'1,'# S,R,R,S @%d", carry);
-                    instr("'[,'/,'0|'1|'_,'# S,L,L,L @%d", next);
+                    instr("'[,'/,'0|'1|'_,'# S,L,L,R @%d", next);
                     instr("FROM @%d", carry);
                     instr("'[,'0,'0,'# '[,'1,'0,'# S,R,R,S @%d", no_carry);
                     instr("'[,'0|'1,'1|'0,'# '[,'0,'1|'0,'# S,R,R,S");
                     instr("'[,'1,'1,'# '[,'1,'1,'# S,R,R,S");
-                    instr("'[,'/,'0|'1,'# S,L,L,L @%d", next);
+                    instr("'[,'/,'0|'1,'# S,L,L,R @%d", next);
                     instr("FROM @%d", next);
-                    instr("'[,'0|'1,'0,'# S,L,L,L");
-                    instr("'[,'0|'1,'1,'# S,L,L,L");
+                    instr("'[,'0|'1,'0,'# S,L,L,R");
+                    instr("'[,'0|'1,'1,'# S,L,L,R");
                     instr("'[,'0|'1,'0,'_ S,L,L,S");
                     instr("'[,'0|'1,'1,'_ S,L,L,S");
                     instr("'[,'0|'1,'_,'_ S,L,S,S");
-                    instr("'[,'0|'1,'_,'# S,L,S,L");
-                    instr("'[,'/|'[,'_,'_ S,R,R,R @%d", loop);
+                    instr("'[,'0|'1,'_,'# S,L,S,R");
+                    instr("'[,'/|'[,'_,'_ S,R,R,L @%d", loop);
                     return;
                 }
                 case '/':
@@ -1085,6 +1066,15 @@ void exec(ast_node* n, stack_frame* frame)
                 case KPRINT:
                     PROD0("print");
                     eval(op[0], frame);
+                    instr("FROM @%d", ++label);
+                    instr("'[,'/,'_,'_ S,L,S,L @%d", ++label);
+                    instr("FROM @%d", label);
+                    instr("'[,'0|'1,'_,'. S,L,S,S");
+                    instr("'[,'/|'[,'_,'. '[,'/|'[,'_,'_ S,R,S,S @%d", label + 2);
+                    int end_state = ++label;
+                    write_print(1, ++label, end_state, 0);
+                    instr("FROM @%d", end_state);
+                    instr("'[,'/|'[,'_,'_ S,S,S,S @%d", label + 1);
                     return;
                 case KBREAK:
                     PROD0("break");
@@ -1525,7 +1515,12 @@ void exec(ast_node* n, stack_frame* frame)
 
 void emit_function(func_list* ptr)
 {
-    if (ptr->is_generic)
+    if (ptr->kind == F_BUILTIN)
+    {
+        return;
+    }
+
+    if (ptr->kind == F_GENERIC)
     {
         for (func_list* inst = ptr->instances; ptr; ptr = (func_list*)ptr->header.next)
         {
@@ -1547,6 +1542,46 @@ void emit_function(func_list* ptr)
           });
     instr("FROM @%d", ++label);
     instr("'[,'/|'[,'_,'_ S,S,S,S @F%dret", ptr->header.id);
+
+    for (call_site_list* call = ptr->callsites; call; call = call->next)
+    {
+        BLOCK("call site ID writing",
+              {
+                  instr("FROM @F%dC%d", ptr->header.id, call->id); // site id alloc
+                  int i;
+                  // todo: O(n) -> O(1) ?
+                  for (i = 0; i < ptr->callsites->id; i++)
+                  {
+                      instr("'_,'/|'[,'_,'_ '%d,'/|'[,'_,'_ R,S,S,S @%d", call->id == i ? 1 : 0, ++label);
+                      instr("FROM @%d", label);
+                  }
+                  instr("'_,'/|'[,'_,'_ '%d,'/|'[,'_,'_ R,S,S,S @%d", call->id == i ? 1 : 0,
+                        call->argalloc_address);
+              });
+        PROD0("begin call site ID check");
+        BLOCK("call site ID check",
+              {
+                  instr("FROM @F%dC%dcheck", ptr->header.id, call->id);
+                  instr("'1,'_,'_,'_ '_,'_,'_,'_ L,S,S,S @%d", ++label); // ok
+                  if (call->next)
+                      instr("'0,'_,'_,'_ '_,'_,'_,'_ L,S,S,S @F%dC%dcheck", ptr->header.id, call->id - 1);
+                  instr("FROM @%d", label);
+                  instr("'0,'_,'_,'_ '_,'_,'_,'_ L,S,S,S");
+                  instr("'[,'_,'_,'_ '_,'_,'_,'_ L,S,S,S @%d", ++label);
+                  instr("FROM @%d", label);
+                  instr("'/|'0|'1,'_,'_,'_ L,S,S,S");
+                  instr("'[,'_,'_,'_ S,L,S,S @%d", call->return_address);
+              });
+    }
+
+    BLOCK("function epilogue",
+          {
+              instr("FROM @F%dret", ptr->header.id); // clean heap
+              instr("'[,'/|'[,'_,'_ '[,'/|'[,'_,'_ R,R,S,S");
+              instr("'0|'1|'/,'_,'_,'_ '_,'_,'_,'_ R,S,S,S");
+              instr("'_,'_,'_,'_ L,S,S,S");
+              instr("'[,'_,'_,'_ '_,'_,'_,'_ L,S,S,S @F%dC%dcheck", ptr->header.id, ptr->callsites->id);
+          });
 }
 
 void emit_functions()
@@ -1565,7 +1600,7 @@ void emit_main(ast_node* n)
     instr("END @DEFAULT \"default option\"");
 
     instr("FROM @INIT");
-    instr("'_,'_,'_,'_ '[,'[,'_,'_ S,S,S,S @1");
+    instr("'_,'_,'_,'_ '[,'[,'_,'. S,S,S,R @1");
 
     allocate_scope(&global_frame);
 

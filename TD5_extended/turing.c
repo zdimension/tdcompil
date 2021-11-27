@@ -16,7 +16,8 @@
 #include "turing.h"
 
 
-stack_frame global_frame = {.function = NULL, .loop = NULL, .is_root = true, .size = 0, .vars = {NULL, NULL}, .parent = NULL};
+stack_frame global_frame = {.function = NULL, .loop = NULL, .is_root = true, .size = 0, .vars = {NULL,
+                                                                                                 NULL}, .parent = NULL};
 
 /**
  * @return the position in memory of the beginning of a call frame
@@ -103,7 +104,7 @@ type_list* get_type_or_null(ast_node* node, stack_frame* frame)
     {
         if (!strcmp(ptr->name, name))
         {
-            return (type_list *) ptr;
+            return (type_list*) ptr;
         }
     }
     if (frame->parent)
@@ -159,11 +160,6 @@ var_list* get_var_id(ast_node* node, stack_frame* frame, find_flags flags)
 void emit_functions();
 
 /**
- * Emits the call site handling and epilogue code for all declared functions
- */
-void emit_functions_epilogues();
-
-/**
  * Emits the code for the specified main program
  */
 void emit_main(ast_node* n);
@@ -196,9 +192,7 @@ void produce_code(ast_node* n)
     {
         emit_main(n);
 
-         emit_functions();
-
-         emit_functions_epilogues();
+        emit_functions();
     }
 }
 
