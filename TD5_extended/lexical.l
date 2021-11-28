@@ -29,9 +29,15 @@
 %}
 
 %option yylineno
-
+%x C_COMMENT
 
 %%
+
+"/*"            { BEGIN(C_COMMENT); }
+<C_COMMENT>"*/" { BEGIN(INITIAL); }
+<C_COMMENT>.    { }
+<C_COMMENT>\n   { }
+
 
 	/* ---- Numbers ---- */
 
@@ -119,7 +125,7 @@
 \n        		{ yylloc.code[0] = 0 ; }
 
 	/* ---- Comments ---- */
-#.*$				{ ; }
+\/\/.*$				{ ; }
 
 
 	/* ---- Other characters ---- */
