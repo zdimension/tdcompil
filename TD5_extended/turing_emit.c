@@ -554,12 +554,12 @@ void exec(ast_node* n, stack_frame* frame)
                         USELESS();
                     }
                     instr("FROM @%d", ++label);
-                    instr("'[,'/,'_,'_ '[,'_,'_,'_ S,L,S,S @%d", ++label);
+                    instr("'[,'/,'_,'_ '[,'_,'_,'_ S,L,S,R @%d", ++label);
                     instr("FROM @%d", label);
                     instr("'[,'0|'1,'_,'_ '[,'_,'0|'1,'_ S,L,L,S");
                     instr("'[,'/,'_,'_ S,L,S,S @%d", ++label);
                     instr("FROM @%d", label);
-                    instr("'[,'0|'1,'_,'_ '[,'_,'_,'0|'1 S,L,S,L");
+                    instr("'[,'0|'1,'_,'_ '[,'_,'_,'0|'1 S,L,S,R");
                     instr("'[,'/|'[,'_,'_ S,R,R,S @%d", ++label);
                     int no_carry = label;
                     int carry = ++label;
@@ -570,15 +570,16 @@ void exec(ast_node* n, stack_frame* frame)
                     instr("FROM @%d", carry);
                     instr("'[,'_,'1,'_ '[,'0,'0,'_ S,R,L,S @%d", ++label);
                     instr("'[,'_,'0,'_ '[,'_,'1,'_ S,S,R,S");
-                    instr("'[,'_,'_,'_ S,S,L,R @%d", copy);
+                    instr("'[,'_,'_,'_ S,S,L,L @%d", copy);
                     instr("FROM @%d", label);
                     instr("'[,'_,'0|'1,'_ S,S,L,S");
                     instr("'[,'_,'_,'_ S,S,R,S @%d", no_carry);
                     instr("FROM @%d", copy);
-                    instr("'[,'_,'1,'0|'1 '[,'0|'1,'_,'_ S,R,L,R");
-                    instr("'[,'_,'_,'0|'1 '[,'0|'1,'_,'_ S,R,S,R");
-                    instr("'[,'/,'1,'0|'1 '[,'/,'_,'_ S,S,L,R");
-                    instr("'[,'/,'_,'0|'1 '[,'/,'_,'_ S,S,S,R");
+                    instr("'[,'_,'1,'0|'1 '[,'0|'1,'_,'_ S,R,L,L");
+                    instr("'[,'_,'_,'0|'1 '[,'0|'1,'_,'_ S,R,S,L");
+                    instr("'[,'/,'1,'0|'1 '[,'/,'_,'_ S,S,L,L");
+                    instr("'[,'/,'_,'0|'1 '[,'/,'_,'_ S,S,S,L");
+                    instr("'[,'/,'1,'_ '[,'/,'_,'_ S,S,L,S");
                     instr("'[,'/,'_,'_ S,S,S,S @%d", label + 1);
                     return;
                 }
@@ -593,32 +594,32 @@ void exec(ast_node* n, stack_frame* frame)
                         USELESS();
                     }
                     instr("FROM @%d", ++label);
-                    instr("'[,'/,'_,'_ '[,'_,'_,'_ S,L,S,S @%d", ++label);
+                    instr("'[,'/,'_,'_ '[,'_,'_,'_ S,L,S,R @%d", ++label);
                     instr("FROM @%d", label);
                     instr("'[,'0|'1,'_,'_ '[,'_,'0|'1,'_ S,L,L,S");
                     instr("'[,'/,'_,'_ S,L,S,S @%d", ++label);
                     instr("FROM @%d", label);
-                    instr("'[,'0|'1,'_,'_ '[,'_,'_,'0|'1 S,L,S,L");
-                    instr("'[,'/|'[,'_,'_ S,R,R,R @%d", ++label);
+                    instr("'[,'0|'1,'_,'_ '[,'_,'_,'0|'1 S,L,S,R");
+                    instr("'[,'/|'[,'_,'_ S,R,R,L @%d", ++label);
                     int no_carry = label;
                     int carry = ++label;
                     int copy = ++label;
                     instr("FROM @%d", no_carry);
-                    instr("'[,'_,'1,'0|'1 '[,'_,'0,'_ S,S,S,R");
+                    instr("'[,'_,'1,'0|'1 '[,'_,'0,'_ S,S,S,L");
                     instr("'[,'_,'0,'0|'1 '[,'_,'1,'0|'1 S,S,R,S @%d", carry);
                     instr("FROM @%d", carry);
                     instr("'[,'_,'1,'0|'1 '[,'_,'0,'_ S,S,L,S @%d", ++label);
                     instr("'[,'_,'0,'0|'1 '[,'_,'1,'0|'1 S,S,R,S");
-                    instr("'[,'_,'_,'0|'1 '[,'0|'1,'_,'_ S,R,L,R @%d", copy);
+                    instr("'[,'_,'_,'0|'1 '[,'0|'1,'_,'_ S,R,L,L @%d", copy);
                     instr("FROM @%d", label);
                     instr("'[,'_,'0|'1,'_ S,S,L,S");
-                    instr("'[,'_,'_,'_ S,S,R,R @%d", no_carry);
+                    instr("'[,'_,'_,'_ S,S,R,L @%d", no_carry);
                     instr("FROM @%d", copy);
-                    instr("'[,'_,'1,'0|'1 '[,'0|'1,'_,'_ S,R,L,R");
-                    instr("'[,'_,'_,'0|'1 '[,'0|'1,'_,'_ S,R,S,R");
+                    instr("'[,'_,'1,'0|'1 '[,'0|'1,'_,'_ S,R,L,L");
+                    instr("'[,'_,'_,'0|'1 '[,'0|'1,'_,'_ S,R,S,L");
                     instr("'[,'_,'1,'_ '[,'0,'_,'_ S,R,L,S");
                     instr("'[,'_,'_,'_ '[,'0,'_,'_ S,R,S,S");
-                    instr("'[,'/,'1,'_ '[,'/,'_,'_ S,S,L,S @%d", label + 1);
+                    instr("'[,'/,'1,'_ '[,'/,'_,'_ S,S,L,S");
                     instr("'[,'/,'_,'_ S,S,S,S @%d", label + 1);
                     return;
                 }
