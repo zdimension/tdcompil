@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <assert.h>
+#include <stdarg.h>
 
 #define NEW_TYPE() (calloc(1, sizeof(type_list)))
 
@@ -1611,18 +1612,17 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
                             list = nlist;
                         }
 
-                        var_list* fargs;
                         int i = 1;
-                        for (flist = func->arglist, fargs = func->frame.vars.head;
+                        for (flist = func->arglist;
                              list && flist;
-                             list = list->next, flist = flist->next, fargs = (var_list*) fargs->header.next, i++)
+                             list = list->next, flist = flist->next, i++)
                         {
                             analysis(&list->value, frame, false);
-                            if (!type_compatible(&AST_INFERRED(list->value), fargs->type))
+                            if (!type_compatible(&AST_INFERRED(list->value), AST_INFERRED(OPER_OPERANDS(flist->value)[0])))
                             {
                                 error_msg(list->value,
                                           "Type mismatch for argument %d in call to '%s'; expected '%s', got '%s'\n",
-                                          i, func->header.name, type_display(fargs->type),
+                                          i, func->header.name, type_display(AST_INFERRED(OPER_OPERANDS(flist->value)[0])),
                                           type_display(infer_type(list->value)));
                                 exit(1);
                             }
@@ -2276,10 +2276,31 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
 #undef RETURN
 #undef SET_TYPE
 
+void add_builtin(const char* name, type_list const* return_type, ...)
+{
+    func_list* builtin = ADD_SYM(func_list, &funcs_head, &funcs_tail);
+    builtin->header.name = name;
+    builtin->kind = F_BUILTIN;
+    builtin->return_type = return_type;
+    linked_list** next = &builtin->arglist;
+    va_list va;
+    va_start(va, return_type);
+    while (true)
+    {
+        char* arg = va_arg(va, char*);
+        if (!arg)
+            break;
+        type_list const* type = va_arg(va, type_list const*);
+        *next = make_list_item(make_node(':', 2, set_inferred_type(make_ident(arg), type), NULL));
+        next = &(*next)->next;
+    }
+    va_end(va);
+}
+
 /**
- * Initialize builtin types (void and u*)
+ * Initialize builtin types and functions
  */
-void init_builtin_types()
+void init_builtins()
 {
     type_list* void_type = ADD_SYM(type_list, &global_frame.types.head, &global_frame.types.tail);
     void_type->header.name = "void";
@@ -2307,4 +2328,8 @@ void init_builtin_types()
     bool_type->type = T_SCALAR;
     bool_type->scalar_bits = 1;
     BOOL_TYPE = bool_type;
+
+    add_builtin("putc", VOID_TYPE, "char", WORD_TYPE, NULL);
+    add_builtin("puts", VOID_TYPE, "string", make_pointer_global_if(make_pointer(WORD_TYPE), true), NULL);
 }
+

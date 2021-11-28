@@ -79,6 +79,11 @@ typedef enum
     F_GENERIC,
     F_BUILTIN
 } func_kind;
+typedef struct func_data_s
+{
+    struct func_list_s* function;
+    call_site_list* site;
+} func_data;
 
 typedef struct func_list_s
 {
@@ -171,12 +176,6 @@ extern type_list const* TYPE_TYPE;
 extern type_list const* WORD_TYPE;
 extern type_list const* BOOL_TYPE;
 
-typedef struct
-{
-    func_list* function;
-    call_site_list* site;
-} func_data;
-
 extern int label;
 extern bool write_c;
 
@@ -214,7 +213,7 @@ _Noreturn void missing_symbol(ast_node* node, const char* name);
 
 int var_position(var_list* var);
 
-void init_builtin_types();
+void init_builtins();
 
 int type_size_bits(type_list const* type);
 

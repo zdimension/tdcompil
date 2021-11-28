@@ -1,7 +1,8 @@
 {
-	var x[] = "Bonjour", y;
-	for (var i = x; i != &y; i++)
-		print *i;
+	var x[] = "Abc", y;
+	#for (var i = x; i != &y; i++)
+	#	putc(*i);
+	puts(x);
 
 	#var y = __LINE__;
 #

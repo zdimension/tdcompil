@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
+#include <string.h>
 #include "turing.h"
 
 #define LABEL(n)     printf("#L%03d:\n", n);            // output a label
@@ -370,9 +371,9 @@ void eval(ast_node* n, stack_frame* frame)
 
 #define USELESS() do{info_msg(n, "Line has no effect\n");return;}while(0)
 
-void write_print(int bit, int state, int end_state, int number)
+void write_char(int bit, int state, int end_state, int number)
 {
-    instr("# write_print %d", number);
+    instr("# write_char %d", number);
     instr("FROM @%d", state);
 
     if (bit > 255)
@@ -381,7 +382,6 @@ void write_print(int bit, int state, int end_state, int number)
         instr("'[,'/,'_,'_ '[,'_,'_,'_ S,L,S,S @%d", ++label);
         instr("FROM @%d", label);
         instr("'[,'_|'0|'1,'_,'_ '[,'_,'_,'_ S,L,S,S");
-        // check if the char 'number' is in the ASCII printable range
         instr("'[,'/|'[,'_,'_ '[,'/|'[,'_,'%c S,S,S,R @%d", (isalnum(number)) ? number : '?', ++label);
         instr("FROM @%d", label);
         instr("'[,'/|'[,'_,'_ '[,'/|'[,'_,'. S,S,S,R @%d", end_state);
@@ -394,8 +394,39 @@ void write_print(int bit, int state, int end_state, int number)
         instr("'[,'0,'_,'_ S,R,S,S @%d", bit_0);
         instr("'[,'1,'_,'_ S,R,S,S @%d", bit_1);
 
-        write_print(bit << 1, bit_0, end_state, number);
-        write_print(bit << 1, bit_1, end_state, number | bit);
+        write_char(bit << 1, bit_0, end_state, number);
+        write_char(bit << 1, bit_1, end_state, number | bit);
+    }
+}
+
+void write_string(int bit, int state, int start_state, int end_state, int number)
+{
+    instr("# write_string %d", number);
+    instr("FROM @%d", state);
+
+    if (bit > 255)
+    {
+        if (number == 0)
+        {
+            instr("'1|'0|'/,'_,'_,'_ '1|'0|'/,'_,'_,'. L,S,S,R @%d", end_state);
+        }
+        else
+        {
+            instr("'1|'0,'_,'_,'_ R,S,S,S");
+            instr("'/,'_,'_,'_ '/,'_,'_,'%c R,S,S,R @%d", (isalnum(number)) ? number : '?', start_state);
+        }
+
+    }
+    else
+    {
+        int bit_0 = ++label;
+        int bit_1 = ++label;
+
+        instr("'0,'_,'_,'_ R,S,S,S @%d", bit_0);
+        instr("'1,'_,'_,'_ R,S,S,S @%d", bit_1);
+
+        write_string(bit << 1, bit_0, start_state, end_state, number);
+        write_string(bit << 1, bit_1, start_state, end_state, number | bit);
     }
 }
 
@@ -1066,15 +1097,6 @@ void exec(ast_node* n, stack_frame* frame)
                 case KPRINT:
                     PROD0("print");
                     eval(op[0], frame);
-                    instr("FROM @%d", ++label);
-                    instr("'[,'/,'_,'_ S,L,S,L @%d", ++label);
-                    instr("FROM @%d", label);
-                    instr("'[,'0|'1,'_,'. S,L,S,S");
-                    instr("'[,'/|'[,'_,'. '[,'/|'[,'_,'_ S,R,S,S @%d", label + 2);
-                    int end_state = ++label;
-                    write_print(1, ++label, end_state, 0);
-                    instr("FROM @%d", end_state);
-                    instr("'[,'/|'[,'_,'_ S,S,S,S @%d", label + 1);
                     return;
                 case KBREAK:
                     PROD0("break");
@@ -1371,6 +1393,44 @@ void exec(ast_node* n, stack_frame* frame)
 
                     instr("# call %s", fct->header.name);
                     linked_list* args = AST_LIST_HEAD(op[2]);
+
+                    if (fct->kind == F_BUILTIN)
+                    {
+                        if (!strcmp(fct->header.name, "putc"))
+                        {
+                            eval(args->value, frame);
+                            instr("FROM @%d", ++label);
+                            instr("'[,'/,'_,'_ S,L,S,L @%d", ++label);
+                            instr("FROM @%d", label);
+                            instr("'[,'0|'1,'_,'. S,L,S,S");
+                            instr("'[,'/|'[,'_,'. '[,'/|'[,'_,'_ S,R,S,S @%d", label + 2);
+                            int end_state = ++label;
+                            write_char(1, ++label, end_state, 0);
+                            instr("FROM @%d", end_state);
+                            instr("'[,'/|'[,'_,'_ S,S,S,S @%d", label + 1);
+                        }
+                        else if (!strcmp(fct->header.name, "puts"))
+                        {
+                            void (*back)() = nav_to_var(make_node(DEREF, 1, args->value), frame);
+                            instr("FROM @%d", ++label);
+                            instr("'[,'/|'[,'_,'_ S,R,S,L @%d", ++label);
+                            instr("'/,'/|'[,'_,'_ S,R,S,L @%d", label);
+                            instr("FROM @%d", label);
+                            instr("'/|'[,'_,'_,'. '/|'[,'_,'_,'_ R,S,S,S @%d", label + 2);
+                            int end_state = ++label;
+                            int start_state = ++label;
+                            write_string(1, start_state, start_state, end_state, 0);
+                            instr("FROM @%d", end_state);
+                            instr("'1|'0|'/,'_,'_,'_ L,L,S,S @%d", label + 1);
+                            back();
+                        }
+                        else
+                        {
+                            error_msg(n, "Builtin function '%s' not implemented\n", fct->header.name);
+                            exit(1);
+                        }
+                        return;
+                    }
 
                     int right_heap;
                     if (args)

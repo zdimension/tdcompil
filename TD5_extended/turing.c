@@ -171,7 +171,7 @@ void emit_main(ast_node* n);
 // ---------------------------------------------------------------------
 void produce_code(ast_node* n)
 {
-    init_builtin_types();
+    init_builtins();
 
     analysis(&n, &global_frame, false);
 
