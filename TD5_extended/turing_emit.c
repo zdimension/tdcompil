@@ -1574,82 +1574,93 @@ void exec(ast_node* n, stack_frame* frame)
     }
 }
 
-void emit_function(func_list* ptr)
+bool function_emittable(func_list* ptr)
 {
     if (ptr->kind == F_BUILTIN)
     {
-        return;
+        return false;
     }
 
     if (ptr->kind == F_GENERIC)
     {
-        for (func_list* inst = ptr->instances; ptr; ptr = (func_list*)ptr->header.next)
-        {
-            emit_function(inst);
-        }
-        return;
+        info_msg(NULL, "What?\n");
+        return false;
     }
 
     if (!ptr->callsites)
-        return;
+        return false;
 
-    instr("# %s %s (F%d)", ptr->return_type == VOID_TYPE ? "procedure" : "function", ptr->header.name,
-          ptr->header.id);
-    instr("FROM @F%d", ptr->header.id);
-    instr("'[,'/|'[,'_,'_ S,S,S,S @%d", label + 1);
-    BLOCK("function code",
-          {
-              exec(SC_CODE(ptr->code), &ptr->frame);
-          });
-    instr("FROM @%d", ++label);
-    instr("'[,'/|'[,'_,'_ S,S,S,S @F%dret", ptr->header.id);
-
-    for (call_site_list* call = ptr->callsites; call; call = call->next)
-    {
-        BLOCK("call site ID writing",
-              {
-                  instr("FROM @F%dC%d", ptr->header.id, call->id); // site id alloc
-                  int i;
-                  // todo: O(n) -> O(1) ?
-                  for (i = 0; i < ptr->callsites->id; i++)
-                  {
-                      instr("'_,'/|'[,'_,'_ '%d,'/|'[,'_,'_ R,S,S,S @%d", call->id == i ? 1 : 0, ++label);
-                      instr("FROM @%d", label);
-                  }
-                  instr("'_,'/|'[,'_,'_ '%d,'/|'[,'_,'_ R,S,S,S @%d", call->id == i ? 1 : 0,
-                        call->argalloc_address);
-              });
-        PROD0("begin call site ID check");
-        BLOCK("call site ID check",
-              {
-                  instr("FROM @F%dC%dcheck", ptr->header.id, call->id);
-                  instr("'1,'_,'_,'_ '_,'_,'_,'_ L,S,S,S @%d", ++label); // ok
-                  if (call->next)
-                      instr("'0,'_,'_,'_ '_,'_,'_,'_ L,S,S,S @F%dC%dcheck", ptr->header.id, call->id - 1);
-                  instr("FROM @%d", label);
-                  instr("'0,'_,'_,'_ '_,'_,'_,'_ L,S,S,S");
-                  instr("'[,'_,'_,'_ '_,'_,'_,'_ L,S,S,S @%d", ++label);
-                  instr("FROM @%d", label);
-                  instr("'/|'0|'1,'_,'_,'_ L,S,S,S");
-                  instr("'[,'_,'_,'_ S,L,S,S @%d", call->return_address);
-              });
-    }
-
-    BLOCK("function epilogue",
-          {
-              instr("FROM @F%dret", ptr->header.id); // clean heap
-              instr("'[,'/|'[,'_,'_ '[,'/|'[,'_,'_ R,R,S,S");
-              instr("'0|'1|'/,'_,'_,'_ '_,'_,'_,'_ R,S,S,S");
-              instr("'_,'_,'_,'_ L,S,S,S");
-              instr("'[,'_,'_,'_ '_,'_,'_,'_ L,S,S,S @F%dC%dcheck", ptr->header.id, ptr->callsites->id);
-          });
+    return true;
 }
 
 void emit_functions()
 {
     for (func_list* ptr = funcs_head; ptr; ptr = (func_list*) ptr->header.next)
     {
-        emit_function(ptr);
+       if (!function_emittable(ptr))
+           continue;
+
+        instr("# %s %s (F%d)", ptr->return_type == VOID_TYPE ? "procedure" : "function", ptr->header.name,
+              ptr->header.id);
+        instr("FROM @F%d", ptr->header.id);
+        instr("'[,'/|'[,'_,'_ S,S,S,S @%d", label + 1);
+        BLOCK("function code",
+              {
+                  exec(SC_CODE(ptr->code), &ptr->frame);
+              });
+        instr("FROM @%d", ++label);
+        instr("'[,'/|'[,'_,'_ S,S,S,S @F%dret", ptr->header.id);
+    }
+
+    for (func_list* ptr = funcs_head; ptr; ptr = (func_list*) ptr->header.next)
+    {
+        if (!function_emittable(ptr))
+            continue;
+
+        for (call_site_list* call = ptr->callsites; call; call = call->next)
+        {
+            if (call->argalloc_address == -1)
+            {
+                error_msg(ptr->fct_def, "Internal error: call site has no argalloc address\n");
+                exit(1);
+            }
+            BLOCK("call site ID writing",
+                  {
+                      instr("FROM @F%dC%d", ptr->header.id, call->id); // site id alloc
+                      int i;
+                      // todo: O(n) -> O(1) ?
+                      for (i = 0; i < ptr->callsites->id; i++)
+                      {
+                          instr("'_,'/|'[,'_,'_ '%d,'/|'[,'_,'_ R,S,S,S @%d", call->id == i ? 1 : 0, ++label);
+                          instr("FROM @%d", label);
+                      }
+                      instr("'_,'/|'[,'_,'_ '%d,'/|'[,'_,'_ R,S,S,S @%d", call->id == i ? 1 : 0,
+                            call->argalloc_address);
+                  });
+            PROD0("begin call site ID check");
+            BLOCK("call site ID check",
+                  {
+                      instr("FROM @F%dC%dcheck", ptr->header.id, call->id);
+                      instr("'1,'_,'_,'_ '_,'_,'_,'_ L,S,S,S @%d", ++label); // ok
+                      if (call->next)
+                          instr("'0,'_,'_,'_ '_,'_,'_,'_ L,S,S,S @F%dC%dcheck", ptr->header.id, call->id - 1);
+                      instr("FROM @%d", label);
+                      instr("'0,'_,'_,'_ '_,'_,'_,'_ L,S,S,S");
+                      instr("'[,'_,'_,'_ '_,'_,'_,'_ L,S,S,S @%d", ++label);
+                      instr("FROM @%d", label);
+                      instr("'/|'0|'1,'_,'_,'_ L,S,S,S");
+                      instr("'[,'_,'_,'_ S,L,S,S @%d", call->return_address);
+                  });
+        }
+
+        BLOCK("function epilogue",
+              {
+                  instr("FROM @F%dret", ptr->header.id); // clean heap
+                  instr("'[,'/|'[,'_,'_ '[,'/|'[,'_,'_ R,R,S,S");
+                  instr("'0|'1|'/,'_,'_,'_ '_,'_,'_,'_ R,S,S,S");
+                  instr("'_,'_,'_,'_ L,S,S,S");
+                  instr("'[,'_,'_,'_ '_,'_,'_,'_ L,S,S,S @F%dC%dcheck", ptr->header.id, ptr->callsites->id);
+              });
     }
 }
 

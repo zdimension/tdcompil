@@ -312,7 +312,7 @@ type_list const* infer_type(ast_node* n)
         return NULL;
 
     if (AST_INFERRED(n))
-        return AST_INFERRED(n);
+        return unalias(AST_INFERRED(n));
 
     error_msg(n, "Node without type\n");
     exit(1);
@@ -380,12 +380,43 @@ loop_info* new_loop_info(ast_node* node)
     return res;
 }
 
+const type_list* make_pointer_global_if(const type_list* type, bool global)
+{
+    if (!global)
+        return type;
+
+    assert(type->type == T_POINTER);
+
+    if (type->pointer_is_global)
+        return type;
+
+    type_list* ret = NEW_TYPE();
+    *ret = *type;
+    memset(&ret->header, 0, sizeof(ret->header));
+    ret->pointer_is_global = true;
+    return ret;
+}
+
 type_list const* unalias(type_list const* type)
 {
-    while (type->type == T_ALIAS)
-        type = type->alias_target;
-
-    return type;
+    switch(type->type)
+    {
+        case T_ARRAY:
+        {
+            type_list* res = NEW_TYPE();
+            res->type = T_ARRAY;
+            res->is_const = res->is_const;
+            res->array_target = unalias(type->array_target);
+            res->array_count = type->array_count;
+            return res;
+        }
+        case T_POINTER:
+            return make_pointer_global_if(make_pointer(unalias(type->pointer_target)), type->pointer_is_global);
+        case T_ALIAS:
+            return unalias(type->alias_target);
+        default:
+            return type;
+    }
 }
 
 /**
@@ -578,23 +609,6 @@ type_list const* decode_spec(ast_node* spec, stack_frame* frame)
     exit(1);
 }
 
-const type_list* make_pointer_global_if(const type_list* type, bool global)
-{
-    if (!global)
-        return type;
-
-    assert(type->type == T_POINTER);
-
-    if (type->pointer_is_global)
-        return type;
-
-    type_list* ret = NEW_TYPE();
-    *ret = *type;
-    memset(&ret->header, 0, sizeof(ret->header));
-    ret->pointer_is_global = true;
-    return ret;
-}
-
 
 /**
  * @return A new type instance with the specified name, or NULL if a type with the same name already exists
@@ -775,7 +789,7 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
             type_list* type = get_type_or_null(*n, frame);
             if (type)
             {
-                AST_DATA(*n) = type;
+                AST_DATA(*n) = (void*) unalias(type);
                 SET_TYPE(TYPE_TYPE);
             }
             var_list* ptr = get_var_id(*n, frame, F_NULLABLE);
@@ -1042,7 +1056,7 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
                     ast_node* lhs_ptr = NULL;
                     if (ltype == TYPE_TYPE)
                     {
-                        ltype = AST_DATA(op[0]);
+                        ltype = unalias(AST_DATA(op[0]));
                     }
                     else if (ltype->type == T_POINTER && ltype->pointer_target->type == T_COMPOSITE)
                     {
@@ -1440,10 +1454,10 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
 
             if (op[0] && TLEFT)
             {
-                type_list const* tleft = TLEFT;
+                type_list const* tleft = unalias(TLEFT);
                 if (tleft == TYPE_TYPE && ((type_list*)AST_DATA(op[0]))->type == T_COMPOSITE)
                 {
-                    tleft = ((type_list*)AST_DATA(op[0]));
+                    tleft = (AST_DATA(op[0]));
                 }
                 const char* op_str = stringify_operator_or_null(OPER_OPERATOR(*n));
                 if (op_str)
@@ -1512,7 +1526,7 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
                             }
                             else if (member_type == TYPE_TYPE)
                             {
-                                func = FIND_SYM(func_list, ((type_list*)AST_DATA(*left))->composite_methods.head, right);
+                                func = FIND_SYM(func_list, unalias(AST_DATA(*left))->composite_methods.head, right);
                             }
                             else
                             {
@@ -1635,6 +1649,7 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
                         func_data* call_site = malloc(sizeof(*call_site));
                         call_site->function = func;
                         call_site->site = add_call_site(&func->callsites);
+                        *(call_site->site) = (call_site_list){.return_address = -1, .argalloc_address = -1};
                         AST_DATA(*n) = call_site;
                         SET_TYPE(func->return_type);
                     }

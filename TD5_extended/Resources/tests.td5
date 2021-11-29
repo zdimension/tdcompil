@@ -1,17 +1,21 @@
 {
-	/*func square(x: u16): u16
-	{
-        return x * x;
-    }
-
-    func is_even(x: u16): bool
+	type square_impl = struct { };
+	impl square_impl
     {
-        return x >> 1 << 1 == x;
+        func `(`(x: u16): u16
+        {
+            return x * x;
+        }
     }
 
-    var x = 5u16;
-    print x |> square |> is_even;*/
+    type applier<T> = struct { };
+    impl applier
+    {
+    	func `(`(x: u16): u16
+    	{
+    		return T(x);
+    	}
+    }
 
-    var x = 5u5;
-    var y = x >> 1;
+	print applier<square_impl>(5);
 }
