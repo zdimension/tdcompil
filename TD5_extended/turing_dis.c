@@ -36,7 +36,7 @@ const char* stringify_operator_or_null(enum yytokentype op)
         return res;
     }
 
-    switch(op)
+    switch (op)
     {
         case GE:
             return ">=";
@@ -330,7 +330,7 @@ void write_code(ast_node* n)
                     tab();
                     code_n("{\n");
                     indent++;
-                    for(linked_list* lst = AST_LIST_HEAD(op[1]); lst; lst = lst->next)
+                    for (linked_list* lst = AST_LIST_HEAD(op[1]); lst; lst = lst->next)
                     {
                         tab();
                         write_code(lst->value);
@@ -378,6 +378,7 @@ void write_code(ast_node* n)
                     sci();
                     return;
                 case '(':
+                {
                     write_inline(op[0]);
                     code_n("(");
                     linked_list* lst = AST_LIST_HEAD(op[2]);
@@ -397,6 +398,7 @@ void write_code(ast_node* n)
                     code_n(")");
                     sci();
                     return;
+                }
                 case '{':
                     code_n("{");
                     write_inline(op[0]);
@@ -404,6 +406,37 @@ void write_code(ast_node* n)
                     code_n("}");
                     sci();
                     return;
+                case CAST:
+                    code_n("cast!(");
+                    write_inline(op[0]);
+                    code_n(")(");
+                    write_inline(op[1]);
+                    code_n(")");
+                    sci();
+                    return;
+                case KSCALAROF:
+                    code_n("scalarof(");
+                    write_inline(op[0]);
+                    code_n(")");
+                    sci();
+                    return;
+                case GENINST:
+                {
+                    write_inline(op[0]);
+                    code_n("!(");
+                    for (linked_list* lst = AST_LIST_HEAD(op[1]); lst; lst = lst->next)
+                    {
+                        write_inline(lst->value);
+                        if (lst->next)
+                            code_n(", ");
+                    }
+                    code_n(")");
+                    sci();
+                    return;
+                }
+                default:
+                    error_msg(n, "unhandled kind %d\n", OPER_OPERATOR(n));
+                    exit(1);
             }
             return;
         }

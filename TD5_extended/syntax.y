@@ -42,7 +42,7 @@ void yyerror(const char *s);
 %token  <var>           IDENT STRING
 %token                  KWHILE KIF KPRINT KELSE KREAD KFOR KDO KVAR KFUNC KRETURN KBREAK KCONTINUE KCONST KTYPE KTYPEOF
 %token					KSIZEOF KSTRUCT KBITSOF KNEW KASSERT KLOOP KMATCH KIS RANGE IRANGE KGLOBAL KIMPL KIN KFOREACH
-%token					KINTERFACE KSELF
+%token					KINTERFACE KSELF KSCALAROF
 %token '+' '-' '*' '/' GE LE EQ NE '>' '<' REF DEREF APL AMN AML ADV INC DEC AND OR SHL SHR ARROW STRUCTLIT GENINST PIPELINE CAST
 %token UMINUS VDECL SCOPE TUPLEASSIGN
 //                       Precedence rules
@@ -65,13 +65,8 @@ void yyerror(const char *s);
 %%
 
 session
-    : stmts                   	{ fprintf(stderr, "Bye.\n");  exit(0); }
-        ;
-
-stmts
-    : stmts stmt            	{ produce_code($2); free_node($2); }
-        | /* empty */
-        ;
+    : stmt_list_opt                   	{ produce_code($1); fprintf(stderr, "Bye.\n");  exit(0); }
+    ;
 
 stmt
     : ';'                               													{ $$ = make_node(';', 0); }
@@ -177,6 +172,7 @@ complex_typespec
 	| type_spec KGLOBAL						{ $$ = make_node(KGLOBAL, 1, $1); }
 	| type_spec '[' expr ']'				{ $$ = make_node('[', 2, $1, $3); }
 	| KTYPEOF '(' expr ')'					{ $$ = make_node(KTYPEOF, 1, $3); }
+	| KSCALAROF '(' expr ')'				{ $$ = make_node(KSCALAROF, 1, $3); }
 	| KSTRUCT '{' struct_field_list '}'		{ $$ = make_node(KSTRUCT, 1, $3); }
 	| KINTERFACE '{' interf_func_list '}'	{ $$ = make_node(KINTERFACE, 1, $3); }
 	;
@@ -295,7 +291,7 @@ struct_field_init_list
 named_typespec
 	: var									{ $$ = $1; }
 	| KSELF									{ $$ = make_node(KSELF, 0); }
-    | var '!' '(' type_arg_list ')'				{ $$ = make_node(GENINST, 2, $1, $4); }
+    | var '!' '<' type_arg_list '>'				{ $$ = make_node(GENINST, 2, $1, $4); }
 	;
 
 basic_expr

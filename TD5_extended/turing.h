@@ -122,10 +122,11 @@ typedef enum
     T_ALIAS
 } type_type;
 
-typedef struct
+typedef struct generic_cache_s
 {
-
+    const char* name;
     struct type_list_s const* instance;
+    struct generic_cache_s* next;
 } generic_cache;
 
 typedef struct type_list_s
@@ -162,6 +163,7 @@ typedef struct type_list_s
             linked_list* params;
             ast_node* spec;
             linked_list* methods;
+            struct generic_cache_s* cache;
         } generic;
         struct
         {

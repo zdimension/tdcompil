@@ -114,6 +114,7 @@
 "in" { return KIN; }
 "interface" { return KINTERFACE; }
 "self" { return KSELF; }
+"scalarof" { return KSCALAROF; }
 
 	/* ---- Idents ---- */
 [a-zA-Z_][a-zA-Z0-9_]*			{ yylval.var = strdup(yytext); return IDENT; }

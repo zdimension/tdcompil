@@ -649,10 +649,13 @@ void exec(ast_node* n, stack_frame* frame)
                     instr("'[,'0,'0,'_ '[,'0,'_,'_ S,R,R,S");
                     instr("'[,'0|'1,'1|'0,'_ '[,'1,'_,'_ S,R,R,S");
                     instr("'[,'1,'1,'_ '[,'0,'_,'_ S,R,R,S @%d", carry);
+                    instr("'[,'0|'1,'_,'_ S,R,S,S");
                     instr("'[,'/,'_,'_ S,S,S,S @%d", end);
                     instr("FROM @%d", carry);
                     instr("'[,'0,'0,'_ '[,'1,'_,'_ S,R,R,S @%d", no_carry);
+                    instr("'[,'0,'_,'_ '[,'1,'_,'_ S,R,S,S @%d", no_carry);
                     instr("'[,'0|'1,'1|'0,'_ '[,'0,'_,'_ S,R,R,S");
+                    instr("'[,'1,'_,'_ '[,'0,'_,'_ S,R,S,S");
                     instr("'[,'1,'1,'_ '[,'1,'_,'_ S,R,R,S");
                     instr("'[,'/,'_,'_ S,S,S,S @%d", end);
                     instr("FROM @%d", end);
@@ -682,12 +685,15 @@ void exec(ast_node* n, stack_frame* frame)
                     int carry = ++label;
                     instr("FROM @%d", no_carry);
                     instr("'[,'0|'1,'0,'_ '[,'0|'1,'_,'_ S,R,R,S");
+                    instr("'[,'0|'1,'_,'_ S,R,S,S");
                     instr("'[,'0,'1,'_ '[,'1,'_,'_ S,R,R,S @%d", carry);
                     instr("'[,'1,'1,'_ '[,'0,'_,'_ S,R,R,S");
                     instr("'[,'/,'_,'_ S,S,S,S @%d", end);
                     instr("FROM @%d", carry);
                     instr("'[,'0|'1,'0|'1,'_ '[,'1,'_,'_ S,R,R,S");
+                    instr("'[,'0,'_,'_ '[,'1,'_,'_ S,R,S,S");
                     instr("'[,'1,'0,'_ '[,'0,'_,'_ S,R,R,S @%d", no_carry);
+                    instr("'[,'1,'_,'_ '[,'0,'_,'_ S,R,S,S @%d", no_carry);
                     instr("'[,'0,'1,'_ '[,'0,'_,'_ S,R,R,S");
                     instr("'[,'/,'_,'_ S,S,S,S @%d", end);
                     instr("FROM @%d", end);
@@ -1396,7 +1402,31 @@ void exec(ast_node* n, stack_frame* frame)
                     PROD0("cast");
                     type_list const* type = AST_DATA(op[0]);
                     eval(op[1], frame);
+                    int diff = type_size_bits(infer_type(op[1])) - type_size_bits(type);
+                    if (diff > 0)
+                    {
+                        while (diff--)
+                        {
+                            instr("FROM @%d", ++label);
+                            instr("'[,'/|'0|'1,'_,'_ '[,'_,'_,'_ S,L,S,S @%d", label + 1);
+                        }
+                        instr("FROM @%d", ++label);
+                        instr("'[,'0|'1,'_,'_ '[,'/,'_,'_ S,S,S,S @%d", label + 1);
+                    }
+                    else if (diff < 0)
+                    {
+                        while (diff++)
+                        {
+                            instr("FROM @%d", ++label);
+                            instr("'[,'/|'_,'_,'_ '[,'0,'_,'_ S,R,S,S @%d", label + 1);
+                        }
+                        instr("FROM @%d", ++label);
+                        instr("'[,'_,'_,'_ '[,'/,'_,'_ S,S,S,S @%d", label + 1);
+                    }
+                    else
+                    {
 
+                    }
                     return;
                 }
                 case '(':

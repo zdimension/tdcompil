@@ -509,6 +509,10 @@ type_list const* decode_spec(ast_node* spec, stack_frame* frame)
                 scalar_infer_auto(op[0]);
                 return infer_type(op[0]);
             }
+            case KSCALAROF:
+            {
+                return make_scalar_type(static_eval(&op[0], frame));
+            }
             case GENINST:
             {
                 type_list* generic = get_type(op[0], frame);
@@ -532,9 +536,21 @@ type_list const* decode_spec(ast_node* spec, stack_frame* frame)
                     error_msg(spec, "Invalid number of arguments in instanciation of generic type\n");
                     exit(1);
                 }
-                type_list* res = (type_list*) decode_spec(generic->generic.spec, sc_frame);
                 strcat(end, ">");
+                for (generic_cache* cache = generic->generic.cache; cache; cache = cache->next)
+                {
+                    if (!strcmp(cache->instance->header.name, namebuf))
+                    {
+                        return cache->instance;
+                    }
+                }
+                type_list* res = (type_list*) decode_spec(generic->generic.spec, sc_frame);
                 res->header.name = namebuf;
+                generic_cache* cachecell = malloc(sizeof(generic_cache));
+                cachecell->name = namebuf;
+                cachecell->instance = res;
+                cachecell->next = generic->generic.cache;
+                generic->generic.cache = cachecell;
                 if (res->type == T_GENERIC)
                 {
                     res->generic.methods = generic->generic.methods;
@@ -790,7 +806,8 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
             }
             else
             {
-                NUMBER_VALUE(*n) &= (1L << size) - 1;
+                if (size < 64)
+                NUMBER_VALUE(*n) &= (1UL << size) - 1;
                 SET_TYPE(make_scalar_type(size));
             }
         }
@@ -1123,8 +1140,11 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
                         error_msg(*n, "Cannot redeclare constant '%s'\n", VAR_NAME(op[0]));
                         exit(1);
                     }
+
+                    analysis(&op[1], frame, false);
                     type_list* type = NEW_TYPE();
-                    *type = *WORD_TYPE;
+                    *type = *AST_INFERRED(op[1]);
+                    memset(&type->header, 0, sizeof(type->header));
                     type->is_const = true;
                     var->type = type;
                     var->value = static_eval(&op[1], frame);
@@ -1551,7 +1571,15 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
             {
                 case CAST:
                 {
-                    SET_TYPE(AST_DATA(op[0]));
+                    analysis(&op[1], frame, false);
+                    type_list const* newtype = AST_DATA(op[0]);
+                    if (AST_KIND(op[1]) == k_number)
+                    {
+                        if (newtype->scalar_bits < 64)
+                            NUMBER_VALUE(op[1]) &= (1UL << newtype->scalar_bits) - 1;
+                        RETURN(op[1], AST_DATA(op[0]));
+                    }
+                    SET_TYPE(newtype);
                 }
                 case '(':
                 {
@@ -1747,6 +1775,7 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
                                   type_display(TLEFT), type_display(TRIGHT));
                         exit(1);
                     }
+                    scalar_infer_auto(op[0]);
                     scalar_infer_auto(op[1]);
                     if (o[0].is_num && o[0].value == 0 || o[1].is_num && o[1].value >= type_size_bits(TLEFT))
                     {
@@ -2152,6 +2181,9 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
                     SET_TYPE(VOID_TYPE);
                 }
                 case GENINST:
+                case KTYPEOF:
+                case KSCALAROF:
+                case KSTRUCT:
                 {
                     AST_DATA(*n) = (void*)decode_spec(*n, frame);
                     SET_TYPE(TYPE_TYPE);
