@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <assert.h>
 #include <stdarg.h>
+#include <stdint.h>
 
 #define NEW_TYPE() (calloc(1, sizeof(type_list)))
 
@@ -399,6 +400,9 @@ const type_list* make_pointer_global_if(const type_list* type, bool global)
 
 type_list const* unalias(type_list const* type)
 {
+    if (!type)
+        return type;
+
     switch(type->type)
     {
         case T_ARRAY:
@@ -419,6 +423,21 @@ type_list const* unalias(type_list const* type)
     }
 }
 
+type_list const* decode_type_name_or_null(ast_node* spec, stack_frame* frame)
+{
+    const char* name = VAR_NAME(spec);
+    if (name[0] == 'u')
+    {
+        char* end = NULL;
+        int size = (int) strtol(name + 1, &end, 10);
+        if (!*end)
+        {
+            return make_scalar_type(size);
+        }
+    }
+    return unalias(get_type_or_null(spec, frame));
+}
+
 /**
  * @return A type instance corresponding to the specified type specification node
  * @throws exit If the node is invalid
@@ -427,17 +446,12 @@ type_list const* decode_spec(ast_node* spec, stack_frame* frame)
 {
     if (AST_KIND(spec) == k_ident)
     {
-        const char* name = VAR_NAME(spec);
-        if (name[0] == 'u')
+        type_list const* type = decode_type_name_or_null(spec, frame);
+        if (!type)
         {
-            char* end = NULL;
-            int size = (int) strtol(name + 1, &end, 10);
-            if (!*end)
-            {
-                return make_scalar_type(size);
-            }
+            missing_symbol(spec, VAR_NAME(spec));
         }
-        return unalias(get_type(spec, frame));
+        return type;
     }
     else
     {
@@ -709,6 +723,8 @@ call_site_list* add_call_site(call_site_list** list)
 {
     call_site_list* newNode = malloc(sizeof(call_site_list));
     newNode->next = *list;
+    newNode->argalloc_address = -1;
+    newNode->return_address = -1;
     if (*list)
         newNode->id = (*list)->id + 1;
     else
@@ -786,10 +802,10 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
                 AST_DATA(*n) = func;
                 SET_TYPE(FUNC_TYPE);
             }
-            type_list* type = get_type_or_null(*n, frame);
+            type_list const* type = decode_type_name_or_null(*n, frame);
             if (type)
             {
-                AST_DATA(*n) = (void*) unalias(type);
+                AST_DATA(*n) = (void*) type;
                 SET_TYPE(TYPE_TYPE);
             }
             var_list* ptr = get_var_id(*n, frame, F_NULLABLE);
@@ -1667,7 +1683,6 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
                         func_data* call_site = malloc(sizeof(*call_site));
                         call_site->function = func;
                         call_site->site = add_call_site(&func->callsites);
-                        *(call_site->site) = (call_site_list){.return_address = -1, .argalloc_address = -1};
                         AST_DATA(*n) = call_site;
                         SET_TYPE(func->return_type);
                     }
@@ -1960,6 +1975,29 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
                             *n = make_node(SHR, 2, op[0], make_number(highest_set_bit(o[1].value)));
                             analysis(n, frame, false);
                             return;
+                        }
+                        else
+                        {
+                            /*uint8_t ilogd = ilog(o[1].value);
+                            if (o[1].value >= (1U<<31))
+                            {
+                                abort(); // Not supported
+                            }
+                            uint8_t shift1 = 1;
+                            uint8_t shift2 = ilogd;
+                            uint32_t mult = (1ULL<<(32+shift1+shift2)) / o[1].value + 1;
+
+                            ast_node* op = make_node('*', 2,
+                                                     make_node(CAST, 2, make_scalar_type(64), op[0]),
+                                                     make_number(mult));
+                            op = make_node(SHR, 2, op, make_number(32));
+                            op = make_node('-', 2, op[0], )
+                            uint64_t edxeax = ((uint64_t)eax) * mult;
+                            uint32_t edx = edxeax>>32;
+                            eax -= edx;
+                            eax >>= (ctx->shift1);
+                            eax += edx;
+                            eax >>= (ctx->shift2);*/
                         }
                     }
                     SET_TYPE(TLEFT);

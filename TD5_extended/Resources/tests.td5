@@ -27,32 +27,18 @@
 	puts(x);*/
 
 	// generate primes using AKS
-	const n = 10;
+	var c[100];
+	var i, j;
 
-	var primes[n];
-	var is_prime[n];
-	for (var i = 0; 0 ==(i >= n); i++)
-	{
-		is_prime[i] = true;
-	}
-	for (var i = 2; (i >= n) == 0; i++)
-	{
-		if (is_prime[i])
-		{
-			primes[0] = i;
-			var j = 0;
-			while (0 == (primes[j] * i >= n))
-			{
-				is_prime[primes[j] * i] = false;
-				j++;
-			}
-		}
-	}
+        	for (c[i=0] = 1; i < n; c[0] = -c[0], i++)
+        		for (c[1 + (j=i)] = 1; j > 0; j--)
+        			c[j] = c[j-1] - c[j];
 
 	// display x in base 10
 	func disp(x: u8): void
 	{
-		var n = cast<u8>((103u16 * x) >> 10);
+		var x16 = cast<u16>(x);
+		var n = cast<u8>((103u16 * x16) >> 10);
 		if (n)
 		{
 			disp(n);
@@ -65,6 +51,8 @@
 		if (is_prime[i])
 		{
 			print(i);
+			disp(i);
+			putc('.');
 		}
 	}
 }
