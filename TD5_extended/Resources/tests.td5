@@ -44,4 +44,6 @@
 	{
 		return sizeof(T);
 	}
+
+	print getsize!(u8)();
 }

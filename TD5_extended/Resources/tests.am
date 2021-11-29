@@ -1,3 +1,4 @@
+# getsize     <generic type>
 # Types
 # NAME        VALUE
 NEW "generated" 4		# line 1681
@@ -14,9 +15,107 @@ FROM @INIT		# line 1686
 #	** begin
 #	** end
 # KIND = 2 (k_operator)		# line 448
-#	func
+#	; first
+#	** begin
+#	** end
+# KIND = 2 (k_operator)		# line 448
+#	; first
+#	** begin
+#	** end
+# KIND = 2 (k_operator)		# line 448
+#	type
+#	; second
+#	** begin
+#	** end
+# KIND = 2 (k_operator)		# line 448
+#	impl
+#	; second
+#	** begin
+#	** end
+# KIND = 2 (k_operator)		# line 448
+#	print
+#	** begin
+#	** end
+# KIND = 2 (k_operator)		# line 448
+# call (		# line 1407
+#	go to right of heap
+FROM @1		# line 1479
+'/|'0|'1|'[,'/,'_,'_ R,S,S,S		# line 1480
+'/|'0|'1|'[,'[,'_,'_ R,S,S,S		# line 1481
+'_,'/|'[,'_,'_ '[,'/|'[,'_,'_ R,S,S,S @F2C0		# line 1483
+FROM @2		# line 1495
+'/|'0|'1,'_,'_,'_ L,L,S,S		# line 1496
+'/|'0|'1,'/,'_,'_ L,S,S,S		# line 1497
+'/|'0|'1,'[,'_,'_ L,S,S,S		# line 1498
+'[,'/|'[,'_,'_ S,S,S,S @F2		# line 1499
+'_,'/|'[,'_,'_ '[,'/|'[,'_,'_ S,S,S,S @F2		# line 1500
 #	; exiting scope
 #	------ END: program
-FROM @1		# line 1695
+FROM @3		# line 1695
 '[,'/,'_,'_ S,S,S,S @END		# line 1696
 '[,'[,'_,'_ S,S,S,S @END		# line 1697
+# function ( (F2)		# line 1615
+FROM @F2		# line 1617
+'[,'/|'[,'_,'_ S,S,S,S @4		# line 1618
+#	------ BEGIN: function code
+#	** begin
+#	** end
+# KIND = 4 (k_scope)		# line 448
+#	; entering scope
+#	** begin
+#	** end
+# KIND = 2 (k_operator)		# line 448
+#	return
+#	** begin
+#	** end
+# KIND = 1 (k_number)		# line 448
+#	push	1
+FROM @4		# line 347
+'/|'[,'[,'_,'_ S,R,S,S @5		# line 348
+'/|'[,'/,'_,'_ S,R,S,S @5		# line 349
+FROM @5		# line 350
+'/|'[,'_,'_,'_ '/|'[,'1,'_,'_ S,R,S,S @6		# line 353
+FROM @6		# line 354
+'/|'[,'_,'_,'_ '/|'[,'0,'_,'_ S,R,S,S @7		# line 353
+FROM @7		# line 354
+'/|'[,'_,'_,'_ '/|'[,'0,'_,'_ S,R,S,S @8		# line 353
+FROM @8		# line 354
+'/|'[,'_,'_,'_ '/|'[,'0,'_,'_ S,R,S,S @9		# line 353
+FROM @9		# line 354
+'/|'[,'_,'_,'_ '/|'[,'0,'_,'_ S,R,S,S @10		# line 353
+FROM @10		# line 354
+'/|'[,'_,'_,'_ '/|'[,'0,'_,'_ S,R,S,S @11		# line 353
+FROM @11		# line 354
+'/|'[,'_,'_,'_ '/|'[,'0,'_,'_ S,R,S,S @12		# line 353
+FROM @12		# line 354
+'/|'[,'_,'_,'_ '/|'[,'0,'_,'_ S,R,S,S @13		# line 353
+FROM @13		# line 354
+'/|'[,'_,'_,'_ '/|'[,'/,'_,'_ S,S,S,S @14		# line 356
+FROM @14		# line 1390
+'[,'/|'[,'_,'_ S,S,S,S @F2ret		# line 1391
+#	; exiting scope
+#	------ END: function code
+FROM @15		# line 1623
+'[,'/|'[,'_,'_ S,S,S,S @F2ret		# line 1624
+#	------ BEGIN: call site ID writing
+FROM @F2C0		# line 1641
+'_,'/|'[,'_,'_ '1,'/|'[,'_,'_ R,S,S,S @2		# line 1649
+#	------ END: call site ID writing
+#	begin call site ID check
+#	------ BEGIN: call site ID check
+FROM @F2C0check		# line 1655
+'1,'_,'_,'_ '_,'_,'_,'_ L,S,S,S @16		# line 1656
+FROM @16		# line 1659
+'0,'_,'_,'_ '_,'_,'_,'_ L,S,S,S		# line 1660
+'[,'_,'_,'_ '_,'_,'_,'_ L,S,S,S @17		# line 1661
+FROM @17		# line 1662
+'/|'0|'1,'_,'_,'_ L,S,S,S		# line 1663
+'[,'_,'_,'_ S,L,S,S @3		# line 1664
+#	------ END: call site ID check
+#	------ BEGIN: function epilogue
+FROM @F2ret		# line 1670
+'[,'/|'[,'_,'_ '[,'/|'[,'_,'_ R,R,S,S		# line 1671
+'0|'1|'/,'_,'_,'_ '_,'_,'_,'_ R,S,S,S		# line 1672
+'_,'_,'_,'_ L,S,S,S		# line 1673
+'[,'_,'_,'_ '_,'_,'_,'_ L,S,S,S @F2C0check		# line 1674
+#	------ END: function epilogue

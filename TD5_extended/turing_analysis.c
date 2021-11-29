@@ -1236,13 +1236,19 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
                 case KFUNC:
                 {
                     func_list* newNode;
+                    ast_node* type_params = op[4];
                     if (frame->impl_parent)
                     {
-                        /*if (!AST_LIST_HEAD(op[1]))
+                        if (type_params)
                         {
-                            error_msg(*n, "Method '%s' missing instance parameter\n", VAR_NAME(op[0]));
+                            error_msg(*n, "Cannot declare generic function in implementation\n");
                             exit(1);
-                        }*/
+                        }
+                            /*if (!AST_LIST_HEAD(op[1]))
+                            {
+                                error_msg(*n, "Method '%s' missing instance parameter\n", VAR_NAME(op[0]));
+                                exit(1);
+                            }*/
                         newNode = ADD_SYM(func_list, &frame->impl_parent->composite_methods.head,
                                           &frame->impl_parent->composite_methods.tail);
                         add_symbol_existing((linked_list_header**) &funcs_head, (linked_list_header**) &funcs_tail,
@@ -1250,16 +1256,31 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
                     }
                     else
                     {
+                        if (type_params)
+                        {
+                            ast_node* tdef = make_node(KTYPE, 3,
+                                                       op[0],
+                                                       make_node(KSTRUCT, 1, make_empty_list()),
+                                                       type_params);
+                            ast_node* newfunc = make_node(KFUNC, 5, make_ident("("), op[1], op[2], op[3], NULL);
+                            ast_node* timpl = make_node(KIMPL, 2, op[0], make_list(newfunc));
+                            *n = make_node(';', 2, tdef, timpl);
+                            analysis(n, frame, false);
+                            return;
+                        }
+
+
                         newNode = ADD_SYM(func_list, &funcs_head, &funcs_tail);
                     }
                     newNode->header.name = VAR_NAME(op[0]);
                     newNode->header.owner = NULL;
                     newNode->arglist = AST_LIST_HEAD(op[1]);
 
-                    ast_node* type_params = op[4];
+
                     stack_frame* fct_def_frame = frame;
                     if (type_params) // function is generic
                     {
+                        //*n = make_node(KTYPE, 3, )
                         newNode->kind = F_GENERIC;
                         newNode->type_params = AST_LIST_HEAD(type_params);
                         newNode->fct_def = *n;
