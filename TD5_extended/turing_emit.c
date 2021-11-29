@@ -1327,12 +1327,14 @@ void exec(ast_node* n, stack_frame* frame)
                             instr("'0|'1,'0,'_,'_ '0,'_,'_,'_ R,R,S,S");
                             instr("'0|'1,'1,'_,'_ '1,'_,'_,'_ R,R,S,S");
                             instr("'0|'1,'/,'_,'_ '0,'/,'_,'_ R,S,S,S");
+                            instr("'/,'0|'1,'_,'_ '/,'_,'_,'_ S,R,S,S");
                             instr("'/,'/,'_,'_ '/,'_,'_,'_ R,R,S,S @%d", ++label);
                         }
                         instr("FROM @%d", label);
                         instr("'0|'1,'0,'_,'_ '0,'_,'_,'_ R,R,S,S");
                         instr("'0|'1,'1,'_,'_ '1,'_,'_,'_ R,R,S,S");
                         instr("'0|'1,'/,'_,'_ '0,'/,'_,'_ R,S,S,S");
+                        instr("'/,'0|'1,'_,'_ '/,'_,'_,'_ S,R,S,S");
                         instr("'/,'/,'_,'_ '/,'_,'_,'_ L,L,S,S @%d", ++label);
                         instr("FROM @%d", label);
                         instr("'/|'0|'1|'[,'_,'_,'_ L,L,S,S");
@@ -1349,12 +1351,14 @@ void exec(ast_node* n, stack_frame* frame)
                             instr("'0|'1,'0,'_,'_ '0,'0,'_,'_ R,R,S,S");
                             instr("'0|'1,'1,'_,'_ '1,'1,'_,'_ R,R,S,S");
                             instr("'0|'1,'/,'_,'_ '0,'/,'_,'_ R,S,S,S");
+                            instr("'/,'0|'1,'_,'_ S,R,S,S");
                             instr("'/,'/,'_,'_ R,R,S,S @%d", ++label);
                         }
                         instr("FROM @%d", label);
                         instr("'0|'1,'0,'_,'_ '0,'0,'_,'_ R,R,S,S");
                         instr("'0|'1,'1,'_,'_ '1,'1,'_,'_ R,R,S,S");
                         instr("'0|'1,'/,'_,'_ '0,'/,'_,'_ R,S,S,S");
+                        instr("'/,'0|'1,'_,'_ S,R,S,S");
                         instr("'/,'/,'_,'_ L,S,S,S @%d", label + 1);
 
                         back();
@@ -1385,6 +1389,14 @@ void exec(ast_node* n, stack_frame* frame)
                     eval(op[0], frame);
                     instr("FROM @%d", ++label);
                     instr("'[,'/|'[,'_,'_ S,S,S,S @F%dret", frame->function->header.id);
+                    return;
+                }
+                case CAST:
+                {
+                    PROD0("cast");
+                    type_list const* type = AST_DATA(op[0]);
+                    eval(op[1], frame);
+
                     return;
                 }
                 case '(':

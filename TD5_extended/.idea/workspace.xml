@@ -21,6 +21,7 @@
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Resources/tests.am" beforeDir="false" afterPath="$PROJECT_DIR$/Resources/tests.am" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Resources/tests.td5" beforeDir="false" afterPath="$PROJECT_DIR$/Resources/tests.td5" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/syntax.y" beforeDir="false" afterPath="$PROJECT_DIR$/syntax.y" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/turing_analysis.c" beforeDir="false" afterPath="$PROJECT_DIR$/turing_analysis.c" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/turing_emit.c" beforeDir="false" afterPath="$PROJECT_DIR$/turing_emit.c" afterDir="false" />
     </list>
@@ -43,6 +44,9 @@
       <filtered-out-file-type name="TAG" />
       <filtered-out-file-type name="COMMIT_BY_MESSAGE" />
     </file-type-list>
+  </component>
+  <component name="HighlightingSettingsPerFile">
+    <setting file="cidr-memory-view://6" root0="FORCE_HIGHLIGHTING" />
   </component>
   <component name="MacroExpansionManager">
     <option name="directoryName" value="irptljy5" />
@@ -81,11 +85,6 @@
     <configuration default="true" type="CLionExternalRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" PASS_PARENT_ENVS_2="true">
       <method v="2">
         <option name="CLION.EXTERNAL.BUILD" enabled="true" />
-      </method>
-    </configuration>
-    <configuration default="true" type="CMakeRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" PASS_PARENT_ENVS_2="true">
-      <method v="2">
-        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
       </method>
     </configuration>
     <configuration name="calc1" type="CMakeRunConfiguration" factoryName="Application" PROGRAM_PARAMS="Resources/tests.in" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" WORKING_DIR="file://$ContentRoot$" PASS_PARENT_ENVS_2="true" PROJECT_NAME="TD5_extended" TARGET_NAME="calc1" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="TD5_extended" RUN_TARGET_NAME="calc1">
@@ -194,7 +193,7 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
           <url>file://$PROJECT_DIR$/turing_analysis.c</url>
-          <line>2088</line>
+          <line>2106</line>
           <option name="timeStamp" value="210" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
@@ -204,14 +203,13 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
           <url>file://$PROJECT_DIR$/turing_emit.c</url>
-          <line>1391</line>
+          <line>1399</line>
           <option name="timeStamp" value="220" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
-          <condition expression="OPER_OPERATOR(*n) == '('" language="ObjectiveC" />
-          <url>file://$PROJECT_DIR$/turing_analysis.c</url>
-          <line>1454</line>
-          <option name="timeStamp" value="221" />
+          <url>file://$PROJECT_DIR$/turing_emit.c</url>
+          <line>1391</line>
+          <option name="timeStamp" value="222" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
@@ -224,9 +222,6 @@
         <watch expression="VAR_NAME(op[0])" language="ObjectiveC" />
         <watch expression="SC_CODE(*n)" language="ObjectiveC" />
         <watch expression="NUMBER_VALUE(n)" language="ObjectiveC" />
-        <watch expression="(stack_frame **)0x8039e50" language="ObjectiveC" />
-        <watch expression="((ast_scope*) ((ast_scope*)newNode-&gt;code)-&gt;code)-&gt;scope" language="ObjectiveC" />
-        <watch expression="VAR_NAME(op[1])" language="ObjectiveC" />
       </configuration>
     </watches-manager>
   </component>

@@ -1436,6 +1436,20 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
                     }
                     SET_TYPE(infer_type(op[0]));
                 }
+                case '(':
+                {
+                    if (AST_KIND(op[0]) == k_operator && OPER_OPERATOR(op[0]) == GENINST)
+                    {
+                        ast_node* left = op[0];
+                        if (AST_KIND(OPER_OPERANDS(left)[0]) == k_ident && !strcmp("cast", VAR_NAME(OPER_OPERANDS(left)[0])))
+                        {
+                            *n = make_node(CAST, 2, AST_LIST_HEAD(OPER_OPERANDS(left)[1])->value, AST_LIST_HEAD(op[2])->value);
+                            analysis(n, frame, false);
+                            return;
+                        }
+                    }
+                    break;
+                }
             }
 
             struct
@@ -1498,6 +1512,10 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
 
             switch (OPER_OPERATOR(*n))
             {
+                case CAST:
+                {
+                    SET_TYPE(AST_DATA(op[0]));
+                }
                 case '(':
                 {
                     if (!AST_DATA(*n))
