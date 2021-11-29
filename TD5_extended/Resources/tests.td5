@@ -26,19 +26,11 @@
 	}
 	puts(x);*/
 
-	// generate primes using AKS
-	var c[100];
-	var i, j;
-
-        	for (c[i=0] = 1; i < n; c[0] = -c[0], i++)
-        		for (c[1 + (j=i)] = 1; j > 0; j--)
-        			c[j] = c[j-1] - c[j];
-
 	// display x in base 10
-	func disp(x: u8): void
+	/*func disp(x: u8): void
 	{
-		var x16 = cast<u16>(x);
-		var n = cast<u8>((103u16 * x16) >> 10);
+		var x16 = cast!(u16)(x);
+		var n = cast!(u8)((103u16 * x16) >> 10);
 		if (n)
 		{
 			disp(n);
@@ -46,13 +38,10 @@
 		putc((x - n * 10) + '0');
 	}
 
-	for (var i = 0; (i >= n) == 0; i++)
+	disp(57);*/
+
+	func getsize<T>(): u8
 	{
-		if (is_prime[i])
-		{
-			print(i);
-			disp(i);
-			putc('.');
-		}
+		return sizeof(T);
 	}
 }

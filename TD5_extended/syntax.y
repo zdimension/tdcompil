@@ -59,7 +59,7 @@ void yyerror(const char *s);
 %type 	<node>		param_list param_list_ne arg_list arg_list_ne var_decl var_decl_list type_spec_opt type_spec type_decl type_decl_list type_params type_param_list
 %type	<node>		struct_field struct_field_list var_typed stmt_braced expr_discard_or_inline_decl_opt expr_or_inline_decl pattern pattern_list pattern_branch pattern_basic
 %type	<node>		struct_field_init struct_field_init_list func_list func func_signature interf_func_list interf_func named_typespec struct_field_list_ne
-%type	<node>		pipe_expr
+%type	<node>		pipe_expr complex_typespec
 %type   <chr>		aug_assign unary_op
 
 %%
@@ -168,7 +168,11 @@ type_spec_opt
 
 type_spec
 	: named_typespec						{ $$ = $1; }
-	| type_spec '*'							{ $$ = make_node('*', 1, $1); }
+	| complex_typespec						{ $$ = $1; }
+	;
+
+complex_typespec
+	: type_spec '*'							{ $$ = make_node('*', 1, $1); }
 	| type_spec KCONST						{ $$ = make_node(KCONST, 1, $1); }
 	| type_spec KGLOBAL						{ $$ = make_node(KGLOBAL, 1, $1); }
 	| type_spec '[' expr ']'				{ $$ = make_node('[', 2, $1, $3); }
@@ -291,7 +295,7 @@ struct_field_init_list
 named_typespec
 	: var									{ $$ = $1; }
 	| KSELF									{ $$ = make_node(KSELF, 0); }
-    | var '<' type_arg_list '>'				{ $$ = make_node(GENINST, 2, $1, $3); }
+    | var '!' '(' type_arg_list ')'				{ $$ = make_node(GENINST, 2, $1, $4); }
 	;
 
 basic_expr

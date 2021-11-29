@@ -64,7 +64,7 @@
 
 	/* ---- Single char tokens ---- */
 
-[-()\[\]<>=+*/;{}.&~,_:\|]			{ return *yytext; }
+[-()\[\]<>=+*/;{}.&~,_:\|!]			{ return *yytext; }
 
 	/* ---- "complex" tokens ---- */
 ">="				{ return GE; }
