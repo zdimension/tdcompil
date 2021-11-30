@@ -23,7 +23,7 @@
 
 	var x = range(1, 10);
 
-	for (var n in square<range>(&x))
+	for (var n in square!<range>(&x))
 	{
 		print n;
 	}

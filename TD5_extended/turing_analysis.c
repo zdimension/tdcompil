@@ -348,7 +348,8 @@ stack_frame* make_child_frame(stack_frame* frame)
                     .loop = frame->loop,
                     .is_root = false,
                     .vars = {.head = NULL, .tail = NULL},
-                    .parent = frame
+                    .parent = frame,
+                    .is_typeof = frame->is_typeof
             };
     return sc_frame;
 }
@@ -444,6 +445,8 @@ type_list const* decode_type_name_or_null(ast_node* spec, stack_frame* frame)
  */
 type_list const* decode_spec(ast_node* spec, stack_frame* frame)
 {
+    frame = make_child_frame(frame);
+    frame->is_root = false;
     if (AST_KIND(spec) == k_ident)
     {
         type_list const* type = decode_type_name_or_null(spec, frame);
@@ -557,15 +560,11 @@ type_list const* decode_spec(ast_node* spec, stack_frame* frame)
                 }
                 else if (res->type == T_COMPOSITE)
                 {
-                    stack_frame* temp_frame = malloc(sizeof(stack_frame));
-                    *temp_frame = (stack_frame) {
-                            .function = NULL,
-                            .loop = NULL,
-                            .is_root = true,
-                            .vars = {NULL, NULL},
-                            .impl_parent = res,
-                            .parent = sc_frame
-                    };
+                    stack_frame* temp_frame = make_child_frame(sc_frame);
+                    temp_frame->function = NULL;
+                    temp_frame->loop = NULL;
+                    temp_frame->is_root = true;
+                    temp_frame->impl_parent = res;
                     for (linked_list* lst = generic->generic.methods; lst; lst = lst->next)
                     {
                         ast_node* method = ast_copy(lst->value);
@@ -579,15 +578,11 @@ type_list const* decode_spec(ast_node* spec, stack_frame* frame)
             {
                 type_list* ret = NEW_TYPE();
                 ret->type = T_INTERFACE;
-                stack_frame* temp_frame = malloc(sizeof(stack_frame));
-                *temp_frame = (stack_frame) {
-                        .function = NULL,
-                        .loop = NULL,
-                        .is_root = true,
-                        .vars = {NULL, NULL},
-                        .impl_parent = ret,
-                        .parent = frame
-                };
+                stack_frame* temp_frame = make_child_frame(frame);
+                temp_frame->function = NULL;
+                temp_frame->loop = NULL;
+                temp_frame->is_root = true;
+                temp_frame->impl_parent = ret;
                 for (linked_list* lst = AST_LIST_HEAD(op[0]); lst; lst = lst->next)
                 {
                     ast_node* method = lst->value;
@@ -627,7 +622,7 @@ type_list const* decode_spec(ast_node* spec, stack_frame* frame)
                     new->header.name = name;
                     new->header.owner = NULL;
                     new->position = pos;
-                    new->initial = NULL;
+                    new->array_initial = NULL;
                     new->type = type;
                 }
                 return ret;
@@ -707,7 +702,7 @@ var_list* check_add_var(const char* name, stack_frame* frame, type_list const* t
         newNode->header.name = name;
         newNode->header.owner = frame;
         newNode->position = i;
-        newNode->initial = NULL;
+        newNode->array_initial = NULL;
         newNode->type = type;
         if (type)
             frame->size += type_size_cells(type);
@@ -733,6 +728,15 @@ ast_node* get_position(ast_node* n)
     }
 
     return OPER_OPERANDS(n)[0];
+}
+
+void remove_call_site(func_list* newNode, call_site_list* callsite)
+{
+    call_site_list* next = callsite->next;
+    if (callsite->prev)
+        callsite->prev->next = next;
+    else
+        newNode->callsites = next;
 }
 
 call_site_list* add_call_site(call_site_list** list)
@@ -891,16 +895,14 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
                                 ast_node* temp, * init;
                                 if (is_pure_var(op[0]))
                                 {
-                                    temp = make_node(DEREF, 1, make_number(NUMBER_VALUE(get_position(op[0]))));
-                                    AST_INFERRED(temp) = AST_INFERRED(op[0]);
+                                    temp = op[0];
+                                    //AST_INFERRED(temp) = AST_INFERRED(op[0]);
                                     init = make_node(';', 0);
                                 }
                                 else
                                 {
                                     temp = make_ident("$");
-                                    init = make_node(';', 2,
-                                                     make_node(KVAR, 2, temp, lit_type),
-                                                     clean_stack(make_node('=', 2, temp, op[0])));
+                                    init = make_node(KVAR, 4, temp, lit_type, op[0], NULL);
                                 }
                                 ast_node* res = make_scope(
                                         make_node('{', 2,
@@ -961,12 +963,9 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
                                     else
                                     {
                                         res = make_scope(make_node('{', 2,
-                                                                   make_node(';', 2,
-                                                                             make_node(KVAR, 2, make_ident("$"),
-                                                                                       make_node(KTYPEOF, 1, op[0])),
-                                                                             clean_stack(
-                                                                                     make_node('=', 2, make_ident("$"),
-                                                                                               op[0]))),
+                                                                   make_node(KVAR, 4, make_ident("$"),
+                                                                             NULL,
+                                                                             op[0], NULL),
                                                                    make_node(AND, 2,
                                                                              make_node(GE, 2, make_ident("$"), left),
                                                                              make_node(AST_DATA(op[1]) ? LE : '<', 2,
@@ -1014,7 +1013,7 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
                         temp = make_ident("$");
                         res = make_scope(make_node('{', 2,
                                                    make_node(';', 2,
-                                                             make_node(KVAR, 2, temp, op[0]),
+                                                             make_node(KVAR, 4, temp, op[0], NULL, NULL),
                                                              assignments),
                                                    temp));
                     }
@@ -1165,15 +1164,11 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
                     }
                     else
                     {
-                        stack_frame* temp_frame = malloc(sizeof(stack_frame));
-                        *temp_frame = (stack_frame) {
-                                .function = NULL,
-                                .loop = NULL,
-                                .is_root = true,
-                                .vars = {NULL, NULL},
-                                .impl_parent = type,
-                                .parent = frame
-                        };
+                        stack_frame* temp_frame = make_child_frame(frame);
+                        temp_frame->function = NULL;
+                        temp_frame->loop = NULL;
+                        temp_frame->is_root = true;
+                        temp_frame->impl_parent = type;
                         for (linked_list* lst = AST_LIST_HEAD(op[1]); lst; lst = lst->next)
                         {
                             ast_node* method = lst->value;
@@ -1222,9 +1217,14 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
                 {
                     switch (OPER_ARITY(*n))
                     {
-                        case 2:
+                        case 4:
                         {
-                            const type_list* type = op[1] ? decode_spec(op[1], frame) : WORD_TYPE;
+                            analysis(&op[2], frame, false);
+                            if (op[2])
+                            {
+                                scalar_infer_auto(op[2]);
+                            }
+                            const type_list* type = op[1] ? decode_spec(op[1], frame) : infer_type(op[2]);
                             AST_DATA(op[0]) = (void*) type;
                             var_list* var = check_add_var(VAR_NAME(op[0]), frame, type);
                             if (!var)
@@ -1232,6 +1232,13 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
                                 error_msg(*n, "Cannot redeclare variable '%s'\n", VAR_NAME(op[0]));
                                 exit(1);
                             }
+                            if (op[2])
+                            {
+                                expect_non_void(op[2]);
+                                analysis(&op[0], frame, false);
+                                check_assignment(op[0], op[2]);
+                            }
+                            var->var_initial = op[2];
                             SET_TYPE(VOID_TYPE);
                         }
                         case 3:
@@ -1250,9 +1257,14 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
                             ast_node* initial = op[2];
                             if (initial)
                             {
-                                var->initial = VAR_NAME(initial);
+                                var->array_initial = VAR_NAME(initial);
                             }
                             SET_TYPE(VOID_TYPE);
+                        }
+                        default:
+                        {
+                            error_msg(*n, "What?\n");
+                            exit(1);
                         }
                     }
                 }
@@ -1381,11 +1393,7 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
                                             AST_CLEAN_STACK(*code) = true;
 
                                             func_data* callsite = AST_DATA(returned);
-                                            call_site_list* next = callsite->site->next;
-                                            if (callsite->site->prev)
-                                                callsite->site->prev->next = next;
-                                            else
-                                                newNode->callsites = next;
+                                            remove_call_site(newNode, callsite->site);
                                         }
                                     }
                                 }
@@ -1464,16 +1472,14 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
                     if (!is_pure_var(iter))
                     {
                         ast_node* temp_name = make_ident("$iter");
-                        iter_decl = make_node(';', 2,
-                                              make_node(KVAR, 2, temp_name, make_node(KTYPEOF, 1, iter)),
-                                              clean_stack(make_node('=', 2, temp_name, iter)));
+                        iter_decl = make_node(KVAR, 4, temp_name, NULL, iter, NULL);
                         iter = temp_name;
                     }
                     ast_node* next_fct_call = make_node('(', 3, make_node('.', 2, iter, make_ident("next")), NULL, NULL);
                     ast_node* has_fct_call = make_node('(', 3, make_node('.', 2, iter, make_ident("hasNext")), NULL, NULL);
-                    *n = make_scope(make_node(KFOR, 4, make_node(';', 2, iter_decl, make_node(KVAR, 2, variable,
+                    *n = make_scope(make_node(KFOR, 4, make_node(';', 2, iter_decl, make_node(KVAR, 4, variable,
                                                                                               make_node(KTYPEOF, 1,
-                                                                                                        next_fct_call))),
+                                                                                                        next_fct_call), NULL, NULL)),
                                               has_fct_call,
                                               NULL,
                                               make_node(';', 2, clean_stack(make_node('=', 2, variable, next_fct_call)),
@@ -1558,7 +1564,7 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
                             {
                                 linked_list* list = NULL;
                                 linked_list** tail = &list;
-                                for (int i = 2; i < arity; i++)
+                                for (int i = 1; i < arity; i++)
                                 {
                                     linked_list* item = make_list_item(op[i]);
                                     *tail = item;
@@ -1568,6 +1574,8 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
                             }
                         }
 
+                        if (AST_DATA(*n))
+                            remove_call_site(func, ((func_data*)AST_DATA(*n))->site);
                         *n = make_node('(', 3, make_node('.', 2, op[0], func_name), NULL, args);
                         analysis(n, frame, false);
                         return;
@@ -1739,10 +1747,13 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
                             error_msg(*n, "Invalid number of arguments in call to '%s'\n", func->header.name);
                             exit(1);
                         }
-                        func_data* call_site = malloc(sizeof(*call_site));
-                        call_site->function = func;
-                        call_site->site = add_call_site(&func->callsites);
-                        AST_DATA(*n) = call_site;
+                        if (!frame->is_typeof)
+                        {
+                            func_data* call_site = malloc(sizeof(*call_site));
+                            call_site->function = func;
+                            call_site->site = add_call_site(&func->callsites);
+                            AST_DATA(*n) = call_site;
+                        }
                         SET_TYPE(func->return_type);
                     }
                     return;

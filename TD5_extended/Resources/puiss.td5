@@ -1,4 +1,4 @@
-# Calcul de a ^ b
+// Calcul de a ^ b
 
 {
   var a   = 22u32;
@@ -9,6 +9,6 @@
      b   = b - 1u32;
   }
 
-  # Valeur attendue 22**7 = 2494357888
+  // Valeur attendue 22**7 = 2494357888
   print res;
 }

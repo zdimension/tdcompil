@@ -76,6 +76,8 @@ const char* stringify_operator_or_null(enum yytokentype op)
             return "-";
         case KNEW:
             return "new";
+        case KIS:
+            return "is";
         default:
             return NULL;
     }
@@ -220,6 +222,7 @@ void write_code(ast_node* n)
                 case OR:
                 case SHL:
                 case SHR:
+                case KIS:
                     write_bin(stringify_operator(OPER_OPERATOR(n)));
                     sci();
                     return;

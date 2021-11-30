@@ -56,12 +56,59 @@ instr("FROM @%d", end);    \
 instr("'[,'_,'_,'_ '[,'/,'_,'_ S,S,S,S @%d", label + 1); \
 }
 
-void allocate_var(var_list* ptr)
+void eval(ast_node* n, stack_frame* frame);
+
+void (* nav_to_var(ast_node* op, stack_frame* frame))();
+
+void allocate_var(var_list* ptr, stack_frame* frame)
 {
     if (ptr->type->is_const)
         return;
     instr("# allocate variable %s (position %d, size %d)", ptr->header.name, ptr->position,
           type_size_cells(ptr->type));
+    switch (ptr->type->type)
+    {
+        case T_SCALAR:
+        case T_POINTER:
+        case T_COMPOSITE:
+            if (ptr->var_initial)
+            {
+                int size = type_size_cells(ptr->var_initial->inferred_type);
+                instr("FROM @%d", ++label);
+                instr("'_|'0|'1|'/,'_,'_,'_ L,S,S,S");
+                instr("'[,'_,'_,'_ S,L,S,S @%d", label + 1);
+                eval(ptr->var_initial, frame);
+                PROD0("navigating to initializating var");
+                ast_node* ref = make_ident(ptr->header.name);
+                analysis(&ref, frame, false);
+                nav_to_var(ref, frame);
+                PROD0("navigating to left of stack head");
+                instr("FROM @%d", ++label);
+                instr("'/|'[,'/,'_,'_ S,L,S,S @%d", ++label);
+                for (int i = 1; i < size; i++)
+                {
+                    instr("FROM @%d", label);
+                    instr("'/,'0|'1,'_,'_ S,L,S,S");
+                    instr("'[,'0|'1,'_,'_ S,L,S,S");
+                    instr("'/,'/|'[,'_,'_ S,L,S,S @%d", ++label);
+                    instr("'[,'/|'[,'_,'_ S,L,S,S @%d", label);
+                }
+                instr("FROM @%d", label);
+                instr("'/,'0|'1,'_,'_ S,L,S,S");
+                instr("'[,'0|'1,'_,'_ S,L,S,S");
+                instr("'/,'/|'[,'_,'_ R,R,S,S @%d", ++label);
+                instr("'[,'/|'[,'_,'_ R,R,S,S @%d", label);
+                instr("FROM @%d", label);
+                instr("'_,'0|'1|'/,'_,'_ '0|'1|'/,'_,'_,'_ R,R,S,S");
+                instr("'_,'_,'_,'_ S,L,S,S @%d", label + 1);
+                instr("FROM @%d", ++label);
+                instr("'_,'_,'_,'_ S,L,S,S");
+                instr("'_,'/|'[,'_,'_ S,R,S,S @%d", label + 1);
+                return;
+            }
+        default:
+            break;
+    }
     switch (ptr->type->type)
     {
         case T_SCALAR:
@@ -78,7 +125,7 @@ void allocate_var(var_list* ptr)
         }
         case T_ARRAY:
         {
-            const char* str = ptr->initial;
+            const char* str = ptr->array_initial;
             int cell_bits = type_size_bits(ptr->type->array_target);
             for (int j = 0; j < ptr->type->array_count; j++, (str && *str && str++))
             {
@@ -109,7 +156,7 @@ void allocate_var(var_list* ptr)
             PROD0("composite type, allocating fields:");
             for (var_list* member = ptr->type->composite_members.head; member; member = (var_list*) member->header.next)
             {
-                allocate_var(member);
+                allocate_var(member, frame);
             }
             break;
         }
@@ -147,7 +194,7 @@ void allocate_scope(stack_frame* frame)
     instr("'_,'/|'[,'_,'_ S,R,S,S @%d", label + 1);
     for (var_list* ptr = frame->vars.head; ptr; ptr = (var_list*) ptr->header.next)
     {
-        allocate_var(ptr);
+        allocate_var(ptr, frame);
     }
     instr("FROM @%d", ++label);
     instr("'_|'/|'0|'1,'_,'_,'_ L,S,S,S");
@@ -520,7 +567,7 @@ void exec(ast_node* n, stack_frame* frame)
                     PROD0("deref");
                     if (clean_stack)
                         USELESS();
-                    void (*back)() = nav_to_var(n, frame);
+                    void (* back)() = nav_to_var(n, frame);
                     instr("FROM @%d", ++label);
                     instr("'/|'[,'/,'_,'_ R,R,S,S @%d", ++label);
                     instr("'/|'[,'[,'_,'_ R,R,S,S @%d", label);
@@ -1270,7 +1317,7 @@ void exec(ast_node* n, stack_frame* frame)
                     PROD0("assigning values");
                     for (; left; left = left->next)
                     {
-                        void (*back)() = nav_to_var(left->value, frame);
+                        void (* back)() = nav_to_var(left->value, frame);
                         instr("FROM @%d", ++label);
                         instr("'/|'[,'/,'_,'_ R,R,S,S @%d", label + 1);
                         instr("'/|'[,'[,'_,'_ R,R,S,S @%d", label + 1);
@@ -1308,7 +1355,7 @@ void exec(ast_node* n, stack_frame* frame)
                     instr("FROM @%d", ++label);
                     instr("'0|'1|'/,'/,'_,'_ L,S,S,S");
                     instr("'[,'/,'_,'_ S,S,S,S @%d", label + 1);
-                    void (*back)() = nav_to_var(op[0], frame);
+                    void (* back)() = nav_to_var(op[0], frame);
                     PROD0("navigating to left of stack head");
                     instr("FROM @%d", ++label);
                     instr("'/|'[,'/,'_,'_ S,L,S,S @%d", ++label);
@@ -1454,7 +1501,7 @@ void exec(ast_node* n, stack_frame* frame)
                         }
                         else if (!strcmp(fct->header.name, "puts"))
                         {
-                            void (*back)() = nav_to_var(make_node(DEREF, 1, args->value), frame);
+                            void (* back)() = nav_to_var(make_node(DEREF, 1, args->value), frame);
                             instr("FROM @%d", ++label);
                             instr("'[,'/|'[,'_,'_ S,R,S,L @%d", ++label);
                             instr("'/,'/|'[,'_,'_ S,R,S,L @%d", label);
@@ -1586,7 +1633,7 @@ void exec(ast_node* n, stack_frame* frame)
                     var_list var = {0};
                     var.header.name = "<dynamic alloc>";
                     var.type = decode_spec(op[0], frame);
-                    allocate_var(&var);
+                    allocate_var(&var, frame);
                     instr("FROM @%d", ++label);
                     instr("'_,'_,'_,'_ L,L,S,S");
                     instr("'0|'1|'/,'/,'_,'_ L,S,S,S");
@@ -1639,8 +1686,8 @@ void emit_functions()
 {
     for (func_list* ptr = funcs_head; ptr; ptr = (func_list*) ptr->header.next)
     {
-       if (!function_emittable(ptr))
-           continue;
+        if (!function_emittable(ptr))
+            continue;
 
         instr("# %s %s (F%d)", ptr->return_type == VOID_TYPE ? "procedure" : "function", ptr->header.name,
               ptr->header.id);

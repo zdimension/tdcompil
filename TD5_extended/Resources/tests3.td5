@@ -9,12 +9,12 @@
 		}
 	}
 
-	type bidule = point<u16>;
+	type bidule = point!<u16>;
 	var inst16 = bidule { 5, 6 };
 	var res16 = inst16.truc();
 
 
-	type b32 = point<u32>;
+	type b32 = point!<u32>;
 	var inst32 = b32 { 7, 8 };
 	var res32 = inst32.truc();
 }

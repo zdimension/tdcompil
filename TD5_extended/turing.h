@@ -14,7 +14,7 @@ typedef struct call_site_list_s
 {
     int id;
     int return_address, argalloc_address;
-    struct call_site_list_s* next;
+    struct call_site_list_s* prev, *next;
 } call_site_list;
 
 typedef struct linked_list_header_s
@@ -34,9 +34,10 @@ typedef struct
         struct // var / array
         {
             int position; // in cells
-            struct // array
+            union
             {
-                const char* initial;
+                const char* array_initial;
+                ast_node* var_initial;
             };
         };
         struct // const
@@ -69,7 +70,7 @@ typedef struct stack_frame_s
     struct stack_frame_s* parent;
     struct type_list_s* impl_parent;
     struct ast_node_s* assign_target;
-    bool call_clean;
+    bool is_typeof;
 } stack_frame;
 extern stack_frame global_frame;
 
@@ -230,3 +231,5 @@ const char* stringify_operator_or_null(enum yytokentype op);
 type_list const* unalias(type_list const* type);
 
 type_list const* infer_type(ast_node* n);
+
+type_list const* make_pointer(type_list const* target);

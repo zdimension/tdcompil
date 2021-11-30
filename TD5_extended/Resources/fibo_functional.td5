@@ -11,7 +11,7 @@
 		func next(iter: self*): u8
 		{
 			var n = (*iter).base_iter.next();
-			while (n != ((n >> 1) << 1)) # j'ai pas encore de modulo
+			while (n != ((n >> 1) << 1)) // j'ai pas encore de modulo
 			{
 				n = (*iter).base_iter.next();
 			}
@@ -47,7 +47,7 @@
 	var iter: fibo_iter;
 	iter.init();
 
-	var iter2 = even_filter<fibo_iter>{&iter};
+	var iter2 = even_filter!<fibo_iter>{&iter};
 
 	for (var val in iter2)
 	{

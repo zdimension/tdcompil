@@ -1,4 +1,4 @@
-# Calcul de la factorielle de 12
+// Calcul de la factorielle de 12
 {
   var n = 12u32;
   var prod = 1u32;
@@ -7,7 +7,7 @@
       n = n - 1u32;
   }
 
-  # Valeur attendue: 479001600
+  // Valeur attendue: 479001600
   print prod;
 }
 

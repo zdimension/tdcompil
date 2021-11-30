@@ -1,4 +1,4 @@
-type square_impl = struct { };
+/*type square_impl = struct { };
 impl square_impl
 {
 	func `(`(x: u16): u16
@@ -24,7 +24,7 @@ for (var ptr = x; ptr != &y; ptr++)
 {
 	*ptr -= 32;
 }
-puts(x);
+puts(x);*/
 
 // display x in base 10
 /*func disp(x: u8): void
@@ -48,7 +48,7 @@ func disp16(x: u16): void
 	}
 	putc(cast!(u8)(x - n * 10) + '0');
 }*/
-
+/*
 type k = scalarof(12);
 
 func disp<T>(x: T): void
@@ -63,5 +63,14 @@ func disp<T>(x: T): void
 	}
 	putc(cast!<u8>(x - n * 10) + '0');
 }
-
+*/
 //disp!<u8>(25);
+type coord = u16;
+	type point = struct { x: coord; y: coord; };
+var p: point;
+match (p)
+{
+	point { x: 0 } => 1,
+	8 => 2,
+	_ => 3
+};

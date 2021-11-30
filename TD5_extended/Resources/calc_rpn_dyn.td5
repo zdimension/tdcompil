@@ -2,9 +2,9 @@
 	type stack = struct { value: u8; next: stack*; };
 
 	var cur, ptr: u8*, a, b, head: stack*,
-		num = 0, # is reading a number
+		num = 0, // is reading a number
 		n: stack*,
-		eq[] = "3 4 5 * 2 - +", # 3 + ((4 * 5) - 2) = 21 = 10101_2
+		eq[] = "3 4 5 * 2 - +", // 3 + ((4 * 5) - 2) = 21 = 10101_2
 		eq_end = 0;
 
 	for (ptr = eq; ptr != &eq_end; ptr++)

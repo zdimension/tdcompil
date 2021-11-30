@@ -131,12 +131,12 @@ stmt_braced
 	;
 
 scalar_var_init
-	: var type_spec_opt '=' expr													{ $$ = make_node(';', 2, make_node(KVAR, 2, $1, $2 ? $2 : make_node(KTYPEOF, 1, $4)), make_node('=', 2, $1, $4)); }
+	: var type_spec_opt '=' expr													{ $$ = make_node(KVAR, 4, $1, $2, $4, NULL); }
     ;
 
 var_decl
-    : var type_spec_opt																{ $$ = make_node(KVAR, 2, $1, $2); }
-    | scalar_var_init																{ $$ = $1; AST_CLEAN_STACK(OPER_OPERANDS($1)[1]) = true; }
+    : var type_spec_opt																{ $$ = make_node(KVAR, 4, $1, $2, NULL, NULL); }
+    | scalar_var_init																{ $$ = $1; }
     | var '[' expr ']'  															{ $$ = make_node(KVAR, 3, $1, $3, NULL); }
     | var '[' expr ']' '=' STRING 													{ $$ = make_node(KVAR, 3, $1, $3, make_ident($6)); }
     | var '[' ']' '=' STRING														{ $$ = make_node(KVAR, 3, $1, make_number(strlen($5)), make_ident($5)); }

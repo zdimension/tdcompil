@@ -1,0 +1,2 @@
+# point       <generic type>
+# bidule      struct { x: u16; y: u16; }

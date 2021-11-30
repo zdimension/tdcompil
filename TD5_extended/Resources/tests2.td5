@@ -1,4 +1,5 @@
 {
+	//var x = 5;
 	type range = struct { from: u16; to: u16; current: u16; };
 
 	impl range
@@ -23,7 +24,7 @@
 
 	var x = range(1, 10);
 
-	for (var n in square<range>(&x))
+	for (var n in square!<range>(&x))
 	{
 		print n;
 	}

@@ -1,7 +1,7 @@
 {
 	const x = 10;
 
-	func fn()
+	func fn(): u8
 	{
 		const y = x + 8;
 		return y;
