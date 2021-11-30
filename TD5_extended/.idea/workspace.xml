@@ -19,14 +19,9 @@
   <component name="ChangeListManager">
     <list default="true" id="a6805983-d57b-442f-a29f-dcb10bd9ca72" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Resources/tests.am" beforeDir="false" afterPath="$PROJECT_DIR$/Resources/tests.am" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Resources/tests.td5" beforeDir="false" afterPath="$PROJECT_DIR$/Resources/tests.td5" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/lexical.l" beforeDir="false" afterPath="$PROJECT_DIR$/lexical.l" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/syntax.y" beforeDir="false" afterPath="$PROJECT_DIR$/syntax.y" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/turing.h" beforeDir="false" afterPath="$PROJECT_DIR$/turing.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/turing_analysis.c" beforeDir="false" afterPath="$PROJECT_DIR$/turing_analysis.c" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/turing_dis.c" beforeDir="false" afterPath="$PROJECT_DIR$/turing_dis.c" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/turing_emit.c" beforeDir="false" afterPath="$PROJECT_DIR$/turing_emit.c" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -47,6 +42,9 @@
       <filtered-out-file-type name="TAG" />
       <filtered-out-file-type name="COMMIT_BY_MESSAGE" />
     </file-type-list>
+  </component>
+  <component name="HighlightingSettingsPerFile">
+    <setting file="cidr-memory-view://6" root0="FORCE_HIGHLIGHTING" />
   </component>
   <component name="MacroExpansionManager">
     <option name="directoryName" value="irptljy5" />
@@ -87,11 +85,6 @@
         <option name="CLION.EXTERNAL.BUILD" enabled="true" />
       </method>
     </configuration>
-    <configuration default="true" type="CMakeRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" PASS_PARENT_ENVS_2="true">
-      <method v="2">
-        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
-      </method>
-    </configuration>
     <configuration name="calc1" type="CMakeRunConfiguration" factoryName="Application" PROGRAM_PARAMS="Resources/tests.in" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" WORKING_DIR="file://$ContentRoot$" PASS_PARENT_ENVS_2="true" PROJECT_NAME="TD5_extended" TARGET_NAME="calc1" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="TD5_extended" RUN_TARGET_NAME="calc1">
       <method v="2">
         <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
@@ -110,6 +103,11 @@
     <configuration name="turing" type="CMakeRunConfiguration" factoryName="Application" PROGRAM_PARAMS="Resources/tests.td5" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" WORKING_DIR="file://$ContentRoot$" PASS_PARENT_ENVS_2="true" PROJECT_NAME="TD5_extended" TARGET_NAME="turing" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="TD5_extended" RUN_TARGET_NAME="turing">
       <method v="2">
         <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration default="true" type="GradleAppRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" PASS_PARENT_ENVS_2="true">
+      <method v="2">
+        <option name="com.jetbrains.cidr.cpp.gradle.execution.GradleNativeBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
       </method>
     </configuration>
     <list>
@@ -171,16 +169,6 @@
           <option name="timeStamp" value="175" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
-          <url>file://$PROJECT_DIR$/turing_analysis.c</url>
-          <line>147</line>
-          <option name="timeStamp" value="180" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
-          <url>file://$PROJECT_DIR$/turing_analysis.c</url>
-          <line>176</line>
-          <option name="timeStamp" value="181" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
           <url>file://$PROJECT_DIR$/turing_emit.c</url>
           <line>117</line>
           <option name="timeStamp" value="185" />
@@ -197,19 +185,9 @@
           <option name="timeStamp" value="209" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
-          <url>file://$PROJECT_DIR$/turing_analysis.c</url>
-          <line>2197</line>
-          <option name="timeStamp" value="210" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
           <url>file://$PROJECT_DIR$/turing.c</url>
           <line>61</line>
           <option name="timeStamp" value="214" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
-          <url>file://$PROJECT_DIR$/turing_analysis.c</url>
-          <line>2395</line>
-          <option name="timeStamp" value="227" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>

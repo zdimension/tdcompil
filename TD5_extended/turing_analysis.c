@@ -472,11 +472,11 @@ type_list const* decode_spec(ast_node* spec, stack_frame* frame)
                 }
                 return frame->impl_parent;
             }
-            case '*':
+            case POINTER:
             {
                 return make_pointer(decode_spec(op[0], frame));
             }
-            case KCONST:
+            case CONSTTYPE:
             {
                 type_list* ret = NEW_TYPE();
                 *ret = *decode_spec(op[0], frame);
@@ -495,7 +495,7 @@ type_list const* decode_spec(ast_node* spec, stack_frame* frame)
                 ret->pointer_is_global = true;
                 return ret;
             }
-            case '[':
+            case ARRTYPE:
             {
                 type_list* ret = NEW_TYPE();
                 ret->type = T_ARRAY;
@@ -2184,6 +2184,10 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
                 case KTYPEOF:
                 case KSCALAROF:
                 case KSTRUCT:
+                case CONSTTYPE:
+                case ARRTYPE:
+                case POINTER:
+                case KDELEGATE:
                 {
                     AST_DATA(*n) = (void*)decode_spec(*n, frame);
                     SET_TYPE(TYPE_TYPE);
