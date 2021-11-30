@@ -474,7 +474,7 @@ type_list const* decode_spec(ast_node* spec, stack_frame* frame)
             }
             case POINTER:
             {
-                return make_pointer(decode_spec(op[0], frame));
+                return make_pointer_global_if(make_pointer(decode_spec(op[0], frame)), frame->function == NULL);
             }
             case CONSTTYPE:
             {
