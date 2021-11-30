@@ -404,7 +404,7 @@ type_list const* unalias(type_list const* type)
     if (!type)
         return type;
 
-    switch(type->type)
+    switch (type->type)
     {
         case T_ARRAY:
         {
@@ -814,7 +814,7 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
             else
             {
                 if (size < 64)
-                NUMBER_VALUE(*n) &= (1UL << size) - 1;
+                    NUMBER_VALUE(*n) &= (1UL << size) - 1;
                 SET_TYPE(make_scalar_type(size));
             }
         }
@@ -1002,7 +1002,7 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
 
                     ast_node* assignments = make_node(';', 2, NULL, NULL);
                     AST_INFERRED(assignments) = VOID_TYPE;
-                    ast_node* temp, *res;
+                    ast_node* temp, * res;
                     if (frame->assign_target)
                     {
                         temp = frame->assign_target;
@@ -1114,7 +1114,8 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
                         SET_TYPE(FUNC_TYPE);
                     }
                     set_inferred_type(lhs_ptr, make_pointer_global_if(make_pointer(member->type),
-                                                                      infer_type(lhs_ptr)->pointer_is_global)); // convert to pointer to member
+                                                                      infer_type(
+                                                                              lhs_ptr)->pointer_is_global)); // convert to pointer to member
                     ast_node* ret = make_node('+', 2, lhs_ptr, make_number(member->position));
                     analysis(&ret, frame, false);
                     RETURN_LVALUE(ret);
@@ -1224,7 +1225,21 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
                             {
                                 scalar_infer_auto(op[2]);
                             }
-                            const type_list* type = op[1] ? decode_spec(op[1], frame) : infer_type(op[2]);
+                            const type_list* type;
+                            if (op[1])
+                            {
+                                type = decode_spec(op[1], frame);
+                            }
+                            else
+                            {
+                                if (op[2])
+                                    type = infer_type(op[2]);
+                                else
+                                {
+                                    error_msg(*n, "Cannot infer type of uninitialized variable '%s'\n", VAR_NAME(op[0]));
+                                    exit(1);
+                                }
+                            }
                             AST_DATA(op[0]) = (void*) type;
                             var_list* var = check_add_var(VAR_NAME(op[0]), frame, type);
                             if (!var)
@@ -1279,11 +1294,11 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
                             error_msg(*n, "Cannot declare generic function in implementation\n");
                             exit(1);
                         }
-                            /*if (!AST_LIST_HEAD(op[1]))
-                            {
-                                error_msg(*n, "Method '%s' missing instance parameter\n", VAR_NAME(op[0]));
-                                exit(1);
-                            }*/
+                        /*if (!AST_LIST_HEAD(op[1]))
+                        {
+                            error_msg(*n, "Method '%s' missing instance parameter\n", VAR_NAME(op[0]));
+                            exit(1);
+                        }*/
                         newNode = ADD_SYM(func_list, &frame->impl_parent->composite_methods.head,
                                           &frame->impl_parent->composite_methods.tail);
                         add_symbol_existing((linked_list_header**) &funcs_head, (linked_list_header**) &funcs_tail,
@@ -1475,11 +1490,14 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
                         iter_decl = make_node(KVAR, 4, temp_name, NULL, iter, NULL);
                         iter = temp_name;
                     }
-                    ast_node* next_fct_call = make_node('(', 3, make_node('.', 2, iter, make_ident("next")), NULL, NULL);
-                    ast_node* has_fct_call = make_node('(', 3, make_node('.', 2, iter, make_ident("hasNext")), NULL, NULL);
+                    ast_node* next_fct_call = make_node('(', 3, make_node('.', 2, iter, make_ident("next")), NULL,
+                                                        NULL);
+                    ast_node* has_fct_call = make_node('(', 3, make_node('.', 2, iter, make_ident("hasNext")), NULL,
+                                                       NULL);
                     *n = make_scope(make_node(KFOR, 4, make_node(';', 2, iter_decl, make_node(KVAR, 4, variable,
                                                                                               make_node(KTYPEOF, 1,
-                                                                                                        next_fct_call), NULL, NULL)),
+                                                                                                        next_fct_call),
+                                                                                              NULL, NULL)),
                                               has_fct_call,
                                               NULL,
                                               make_node(';', 2, clean_stack(make_node('=', 2, variable, next_fct_call)),
@@ -1514,9 +1532,11 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
                     if (AST_KIND(op[0]) == k_operator && OPER_OPERATOR(op[0]) == GENINST)
                     {
                         ast_node* left = op[0];
-                        if (AST_KIND(OPER_OPERANDS(left)[0]) == k_ident && !strcmp("cast", VAR_NAME(OPER_OPERANDS(left)[0])))
+                        if (AST_KIND(OPER_OPERANDS(left)[0]) == k_ident &&
+                            !strcmp("cast", VAR_NAME(OPER_OPERANDS(left)[0])))
                         {
-                            *n = make_node(CAST, 2, AST_LIST_HEAD(OPER_OPERANDS(left)[1])->value, AST_LIST_HEAD(op[2])->value);
+                            *n = make_node(CAST, 2, AST_LIST_HEAD(OPER_OPERANDS(left)[1])->value,
+                                           AST_LIST_HEAD(op[2])->value);
                             analysis(n, frame, false);
                             return;
                         }
@@ -1542,7 +1562,7 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
             if (op[0] && TLEFT)
             {
                 type_list const* tleft = unalias(TLEFT);
-                if (tleft == TYPE_TYPE && ((type_list*)AST_DATA(op[0]))->type == T_COMPOSITE)
+                if (tleft == TYPE_TYPE && ((type_list*) AST_DATA(op[0]))->type == T_COMPOSITE)
                 {
                     tleft = (AST_DATA(op[0]));
                 }
@@ -1575,7 +1595,7 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
                         }
 
                         if (AST_DATA(*n))
-                            remove_call_site(func, ((func_data*)AST_DATA(*n))->site);
+                            remove_call_site(func, ((func_data*) AST_DATA(*n))->site);
                         *n = make_node('(', 3, make_node('.', 2, op[0], func_name), NULL, args);
                         analysis(n, frame, false);
                         return;
@@ -1733,11 +1753,13 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
                              list = list->next, flist = flist->next, i++)
                         {
                             analysis(&list->value, frame, false);
-                            if (!type_compatible(&AST_INFERRED(list->value), AST_INFERRED(OPER_OPERANDS(flist->value)[0])))
+                            if (!type_compatible(&AST_INFERRED(list->value),
+                                                 AST_INFERRED(OPER_OPERANDS(flist->value)[0])))
                             {
                                 error_msg(list->value,
                                           "Type mismatch for argument %d in call to '%s'; expected '%s', got '%s'\n",
-                                          i, func->header.name, type_display(AST_INFERRED(OPER_OPERANDS(flist->value)[0])),
+                                          i, func->header.name,
+                                          type_display(AST_INFERRED(OPER_OPERANDS(flist->value)[0])),
                                           type_display(infer_type(list->value)));
                                 exit(1);
                             }
@@ -2210,7 +2232,7 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
                 case POINTER:
                 case KDELEGATE:
                 {
-                    AST_DATA(*n) = (void*)decode_spec(*n, frame);
+                    AST_DATA(*n) = (void*) decode_spec(*n, frame);
                     SET_TYPE(TYPE_TYPE);
                 }
                 case DEREF:
