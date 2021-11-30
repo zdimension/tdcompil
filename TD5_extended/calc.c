@@ -241,7 +241,7 @@ ast_node* ast_copy_internal(ast_node* n)
             return make_node_from_list(list);
         }
         case k_scope:
-            return make_scope(SC_CODE(n));
+            return make_scope(ast_copy(SC_CODE(n)));
     }
 }
 
