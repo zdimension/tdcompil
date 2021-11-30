@@ -1596,7 +1596,9 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
 
                         if (AST_DATA(*n))
                             remove_call_site(func, ((func_data*) AST_DATA(*n))->site);
-                        *n = make_node('(', 3, make_node('.', 2, op[0], func_name), NULL, args);
+                        ast_node* newcall = make_node('(', 3, make_node('.', 2, op[0], func_name), NULL, args);
+                        AST_CLEAN_STACK(newcall) = AST_CLEAN_STACK(*n);
+                        *n = newcall;
                         analysis(n, frame, false);
                         return;
                     }

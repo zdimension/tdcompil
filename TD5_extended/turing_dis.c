@@ -423,6 +423,12 @@ void write_code(ast_node* n)
                     code_n(")");
                     sci();
                     return;
+                case KBITSOF:
+                    code_n("bits(");
+                    write_inline(op[0]);
+                    code_n(")");
+                    sci();
+                    return;
                 case GENINST:
                 {
                     write_inline(op[0]);
@@ -435,6 +441,15 @@ void write_code(ast_node* n)
                     }
                     code_n(")");
                     sci();
+                    return;
+                }
+                case KCONST:
+                {
+                    code_n("const ");
+                    write_inline(op[0]);
+                    code_n(" = ");
+                    write_inline(op[1]);
+                    sc();
                     return;
                 }
                 default:

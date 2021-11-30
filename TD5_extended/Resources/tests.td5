@@ -26,51 +26,5 @@ for (var ptr = x; ptr != &y; ptr++)
 }
 puts(x);*/
 
-// display x in base 10
-/*func disp(x: u8): void
-{
-	var x16 = cast!(u16)(x);
-	var n = cast!(u8)((103u16 * x16) >> 10);
-	if (n)
-	{
-		disp(n);
-	}
-	putc((x - n * 10) + '0');
-}
 
-func disp16(x: u16): void
-{
-	var x32 = cast!(u32)(x);
-	var n = cast!(u16)((26215u32 * x32) >> 20);
-	if (n)
-	{
-		disp16(n);
-	}
-	putc(cast!(u8)(x - n * 10) + '0');
-}*/
-/*
-type k = scalarof(12);
-
-func disp<T>(x: T): void
-{
-	const bits = bitsof(T);
-	type dbl = scalarof(bits * 2);
-	const mul = (cast!<dbl>(1) << (bits + 2)) / 10 + 1;
-	var n = cast!<T>((cast!<dbl>(x) * mul) >> (bits + 2));
-	if (n)
-	{
-		disp!<T>(n);
-	}
-	putc(cast!<u8>(x - n * 10) + '0');
-}
-*/
-//disp!<u8>(25);
-type coord = u16;
-	type point = struct { x: coord; y: coord; };
-var p: point;
-match (p)
-{
-	point { x: 0 } => 1,
-	point { x: 8 } => 2,
-	_ => 3
-};
+disp!<u8>(25);

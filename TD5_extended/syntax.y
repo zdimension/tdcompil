@@ -6,6 +6,7 @@
 // Last file update: 17-Nov-2017 10:20 (eg)
 
 %{
+#define _GNU_SOURCE
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
@@ -411,6 +412,38 @@ var
 void yyerror(const char *s)     { error_msg(NULL, "%s\n",s); exit(1); }
 int  yywrap(void)               { return 1;          } // to avoid linking with -ldl
 bool write_c = false;
+
+typedef struct {
+  FILE* a;
+  FILE* b;
+} myCookie;
+
+ssize_t join_read(void* ptr, char *buf, size_t size) {
+  myCookie* cookie = (myCookie*)ptr;
+  size_t s = fread(buf, 1, size, cookie->a);
+
+  if (s < size)
+    s += fread(buf+s, 1, size-s, cookie->b);
+
+  return s;
+}
+
+int join_close(void* ptr) {
+  myCookie* cookie = (myCookie*)ptr;
+  return fclose(cookie->a) | fclose(cookie->b);
+}
+
+FILE * join (FILE * a, FILE * b) {
+  myCookie * cookie = malloc(sizeof(myCookie));
+  cookie->a = a;
+  cookie->b = b;
+  return fopencookie(cookie, "r", (cookie_io_functions_t)
+      { join_read
+      , NULL
+      , NULL
+      , join_close });
+}
+
 int  main(int argc, char* argv[]) {
   extern FILE *yyin;
   yyin = stdin;
@@ -427,5 +460,6 @@ int  main(int argc, char* argv[]) {
 	  }
     }
   }
+  yyin = join(fopen("prelude.td5", "r"), yyin);
   return yyparse();
 }

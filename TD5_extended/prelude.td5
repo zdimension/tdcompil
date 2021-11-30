@@ -1,0 +1,12 @@
+func disp<T>(x: T): void
+{
+	const bits = bitsof(T);
+	type dbl = scalarof(bits * 2);
+	const mul = (cast!<dbl>(1) << (bits + 2)) / 10 + 1;
+	var n = cast!<T>((cast!<dbl>(x) * mul) >> (bits + 2));
+	if (n)
+	{
+		disp!<T>(n);
+	}
+	putc(cast!<u8>(x - n * 10) + '0');
+}
