@@ -1821,7 +1821,7 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
                     {
                         if (AST_DATA(*n))
                         {
-                            if (o[0].value > o[1].is_num)
+                            if (o[0].value > o[1].value)
                             {
                                 error_msg(*n, "Invalid range: %d..=%d\n", o[0].value, o[1].value);
                                 exit(1);
@@ -1829,7 +1829,7 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
                         }
                         else
                         {
-                            if (o[0].value >= o[1].is_num)
+                            if (o[0].value >= o[1].value)
                             {
                                 error_msg(*n, "Invalid range: %d..%d\n", o[0].value, o[1].value);
                                 exit(1);
