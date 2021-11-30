@@ -742,7 +742,10 @@ call_site_list* add_call_site(call_site_list** list)
     newNode->argalloc_address = -1;
     newNode->return_address = -1;
     if (*list)
+    {
+        (*list)->prev = newNode;
         newNode->id = (*list)->id + 1;
+    }
     else
         newNode->id = 0;
     *list = newNode;
@@ -1376,6 +1379,13 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
                                             *code = make_node(KLOOP, 1, loop_code);
                                             analysis(code, c_frame, false);
                                             AST_CLEAN_STACK(*code) = true;
+
+                                            func_data* callsite = AST_DATA(returned);
+                                            call_site_list* next = callsite->site->next;
+                                            if (callsite->site->prev)
+                                                callsite->site->prev->next = next;
+                                            else
+                                                newNode->callsites = next;
                                         }
                                     }
                                 }
