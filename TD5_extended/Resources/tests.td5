@@ -71,6 +71,6 @@ var p: point;
 match (p)
 {
 	point { x: 0 } => 1,
-	8 => 2,
+	point { x: 8 } => 2,
 	_ => 3
 };

@@ -2574,29 +2574,25 @@ FROM @572		# line 1370
 '[,'0|'1,'_,'_ S,L,S,S		# line 1372
 '/,'/|'[,'_,'_ R,R,S,S @573		# line 1373
 '[,'/|'[,'_,'_ R,R,S,S @573		# line 1374
-FROM @573		# line 1386
-'0|'1,'0,'_,'_ '0,'_,'_,'_ R,R,S,S		# line 1387
-'0|'1,'1,'_,'_ '1,'_,'_,'_ R,R,S,S		# line 1388
-'0|'1,'/,'_,'_ '0,'/,'_,'_ R,S,S,S		# line 1389
-'/,'0|'1,'_,'_ '/,'_,'_,'_ S,R,S,S		# line 1390
-'/,'/,'_,'_ '/,'_,'_,'_ L,L,S,S @574		# line 1391
-FROM @574		# line 1392
-'/|'0|'1|'[,'_,'_,'_ L,L,S,S		# line 1393
-'/|'0|'1|'[,'/,'_,'_ S,S,S,S @575		# line 1394
-'/|'0|'1|'[,'[,'_,'_ S,S,S,S @575		# line 1395
+FROM @573		# line 1410
+'0|'1,'0,'_,'_ '0,'0,'_,'_ R,R,S,S		# line 1411
+'0|'1,'1,'_,'_ '1,'1,'_,'_ R,R,S,S		# line 1412
+'0|'1,'/,'_,'_ '0,'/,'_,'_ R,S,S,S		# line 1413
+'/,'0|'1,'_,'_ S,R,S,S		# line 1414
+'/,'/,'_,'_ L,S,S,S @574		# line 1415
 #	nav back local
-FROM @575		# line 296
+FROM @574		# line 296
 '0|'1|'/,'/,'_,'_ L,S,S,S		# line 297
 '0|'1|'/,'[,'_,'_ L,S,S,S		# line 298
-'[,'/|'[,'_,'_ S,S,S,S @576		# line 299
+'[,'/|'[,'_,'_ S,S,S,S @575		# line 299
 #	; exiting scope
 #	; exiting scope
 FROM @489_continue		# line 1229
-'[,'/|'[,'_,'_ S,S,S,S @576		# line 1230
-FROM @576		# line 1237
+'[,'/|'[,'_,'_ S,S,S,S @575		# line 1230
+FROM @575		# line 1237
 '[,'/|'[,'_,'_ S,S,S,S @489		# line 1238
 FROM @489_break		# line 1240
-'[,'/|'[,'_,'_ S,S,S,S @577		# line 1241
+'[,'/|'[,'_,'_ S,S,S,S @576		# line 1241
 #	; second
 #	** begin
 #	** end
@@ -2607,43 +2603,43 @@ FROM @489_break		# line 1240
 # KIND = 2 (k_operator)		# line 495
 #	deref
 # navigating to 1		# line 339
-FROM @577		# line 344
-'/|'[,'/,'_,'_ R,S,S,S @578		# line 345
-'/|'[,'[,'_,'_ R,S,S,S @578		# line 346
-FROM @578		# line 347
+FROM @576		# line 344
+'/|'[,'/,'_,'_ R,S,S,S @577		# line 345
+'/|'[,'[,'_,'_ R,S,S,S @577		# line 346
+FROM @577		# line 347
 '0|'1,'/,'_,'_ R,S,S,S		# line 348
 '0|'1,'[,'_,'_ R,S,S,S		# line 349
-'/,'/|'[,'_,'_ S,S,S,S @579		# line 350
-FROM @579		# line 571
-'/|'[,'/,'_,'_ R,R,S,S @580		# line 572
-'/|'[,'[,'_,'_ R,R,S,S @580		# line 573
-FROM @580		# line 581
+'/,'/|'[,'_,'_ S,S,S,S @578		# line 350
+FROM @578		# line 571
+'/|'[,'/,'_,'_ R,R,S,S @579		# line 572
+'/|'[,'[,'_,'_ R,R,S,S @579		# line 573
+FROM @579		# line 581
 '0|'1,'_,'_,'_ '0|'1,'0|'1,'_,'_ R,R,S,S		# line 582
-'/,'_,'_,'_ '/,'/,'_,'_ L,S,S,S @581		# line 583
+'/,'_,'_,'_ '/,'/,'_,'_ L,S,S,S @580		# line 583
 #	nav back local
-FROM @581		# line 296
+FROM @580		# line 296
 '0|'1|'/,'/,'_,'_ L,S,S,S		# line 297
 '0|'1|'/,'[,'_,'_ L,S,S,S		# line 298
-'[,'/|'[,'_,'_ S,S,S,S @582		# line 299
-FROM @582		# line 1443
+'[,'/|'[,'_,'_ S,S,S,S @581		# line 299
+FROM @581		# line 1443
 '[,'/|'[,'_,'_ S,S,S,S @F6ret		# line 1444
 #	; exiting scope
-FROM @583		# line 211
+FROM @582		# line 211
 '/|'0|'1|'[,'[,'_,'_ R,R,S,S		# line 212
 '/|'0|'1|'[,'/,'_,'_ R,R,S,S		# line 213
 '/|'0|'1|'[,'_,'_,'_ R,S,S,S		# line 214
-'_,'_,'_,'_ L,S,S,S @584		# line 215
-FROM @584		# line 224
-'/|'0|'1,'_,'_,'_ '_,'_,'_,'_ L,S,S,S @585		# line 225
-FROM @585		# line 226
+'_,'_,'_,'_ L,S,S,S @583		# line 215
+FROM @583		# line 224
+'/|'0|'1,'_,'_,'_ '_,'_,'_,'_ L,S,S,S @584		# line 225
+FROM @584		# line 226
 '0|'1,'_,'_,'_ '_,'_,'_,'_ L,S,S,S		# line 227
-'/,'_,'_,'_ L,S,S,S @586		# line 228
-'[,'_,'_,'_ S,L,S,S @587		# line 229
-FROM @586		# line 230
+'/,'_,'_,'_ L,S,S,S @585		# line 228
+'[,'_,'_,'_ S,L,S,S @586		# line 229
+FROM @585		# line 230
 '/|'0|'1,'_,'_,'_ L,S,S,S		# line 231
-'[,'_,'_,'_ S,L,S,S @587		# line 232
+'[,'_,'_,'_ S,L,S,S @586		# line 232
 #	------ END: function code
-FROM @587		# line 1700
+FROM @586		# line 1700
 '[,'/|'[,'_,'_ S,S,S,S @F6ret		# line 1701
 #	------ BEGIN: call site ID writing
 FROM @F2C0		# line 1718
@@ -2652,11 +2648,11 @@ FROM @F2C0		# line 1718
 #	begin call site ID check
 #	------ BEGIN: call site ID check
 FROM @F2C0check		# line 1732
-'1,'_,'_,'_ '_,'_,'_,'_ L,S,S,S @588		# line 1733
-FROM @588		# line 1736
+'1,'_,'_,'_ '_,'_,'_,'_ L,S,S,S @587		# line 1733
+FROM @587		# line 1736
 '0,'_,'_,'_ '_,'_,'_,'_ L,S,S,S		# line 1737
-'[,'_,'_,'_ '_,'_,'_,'_ L,S,S,S @589		# line 1738
-FROM @589		# line 1739
+'[,'_,'_,'_ '_,'_,'_,'_ L,S,S,S @588		# line 1738
+FROM @588		# line 1739
 '/|'0|'1,'_,'_,'_ L,S,S,S		# line 1740
 '[,'_,'_,'_ S,L,S,S @88		# line 1741
 #	------ END: call site ID check
@@ -2674,11 +2670,11 @@ FROM @F3C0		# line 1718
 #	begin call site ID check
 #	------ BEGIN: call site ID check
 FROM @F3C0check		# line 1732
-'1,'_,'_,'_ '_,'_,'_,'_ L,S,S,S @590		# line 1733
-FROM @590		# line 1736
+'1,'_,'_,'_ '_,'_,'_,'_ L,S,S,S @589		# line 1733
+FROM @589		# line 1736
 '0,'_,'_,'_ '_,'_,'_,'_ L,S,S,S		# line 1737
-'[,'_,'_,'_ '_,'_,'_,'_ L,S,S,S @591		# line 1738
-FROM @591		# line 1739
+'[,'_,'_,'_ '_,'_,'_,'_ L,S,S,S @590		# line 1738
+FROM @590		# line 1739
 '/|'0|'1,'_,'_,'_ L,S,S,S		# line 1740
 '[,'_,'_,'_ S,L,S,S @457		# line 1741
 #	------ END: call site ID check
@@ -2691,36 +2687,36 @@ FROM @F3ret		# line 1747
 #	------ END: function epilogue
 #	------ BEGIN: call site ID writing
 FROM @F4C1		# line 1718
-'_,'/|'[,'_,'_ '0,'/|'[,'_,'_ R,S,S,S @592		# line 1723
-FROM @592		# line 1724
+'_,'/|'[,'_,'_ '0,'/|'[,'_,'_ R,S,S,S @591		# line 1723
+FROM @591		# line 1724
 '_,'/|'[,'_,'_ '1,'/|'[,'_,'_ R,S,S,S @565		# line 1726
 #	------ END: call site ID writing
 #	begin call site ID check
 #	------ BEGIN: call site ID check
 FROM @F4C1check		# line 1732
-'1,'_,'_,'_ '_,'_,'_,'_ L,S,S,S @593		# line 1733
+'1,'_,'_,'_ '_,'_,'_,'_ L,S,S,S @592		# line 1733
 '0,'_,'_,'_ '_,'_,'_,'_ L,S,S,S @F4C0check		# line 1735
-FROM @593		# line 1736
+FROM @592		# line 1736
 '0,'_,'_,'_ '_,'_,'_,'_ L,S,S,S		# line 1737
-'[,'_,'_,'_ '_,'_,'_,'_ L,S,S,S @594		# line 1738
-FROM @594		# line 1739
+'[,'_,'_,'_ '_,'_,'_,'_ L,S,S,S @593		# line 1738
+FROM @593		# line 1739
 '/|'0|'1,'_,'_,'_ L,S,S,S		# line 1740
 '[,'_,'_,'_ S,L,S,S @568		# line 1741
 #	------ END: call site ID check
 #	------ BEGIN: call site ID writing
 FROM @F4C0		# line 1718
-'_,'/|'[,'_,'_ '1,'/|'[,'_,'_ R,S,S,S @595		# line 1723
-FROM @595		# line 1724
+'_,'/|'[,'_,'_ '1,'/|'[,'_,'_ R,S,S,S @594		# line 1723
+FROM @594		# line 1724
 '_,'/|'[,'_,'_ '0,'/|'[,'_,'_ R,S,S,S @479		# line 1726
 #	------ END: call site ID writing
 #	begin call site ID check
 #	------ BEGIN: call site ID check
 FROM @F4C0check		# line 1732
-'1,'_,'_,'_ '_,'_,'_,'_ L,S,S,S @596		# line 1733
-FROM @596		# line 1736
+'1,'_,'_,'_ '_,'_,'_,'_ L,S,S,S @595		# line 1733
+FROM @595		# line 1736
 '0,'_,'_,'_ '_,'_,'_,'_ L,S,S,S		# line 1737
-'[,'_,'_,'_ '_,'_,'_,'_ L,S,S,S @597		# line 1738
-FROM @597		# line 1739
+'[,'_,'_,'_ '_,'_,'_,'_ L,S,S,S @596		# line 1738
+FROM @596		# line 1739
 '/|'0|'1,'_,'_,'_ L,S,S,S		# line 1740
 '[,'_,'_,'_ S,L,S,S @482		# line 1741
 #	------ END: call site ID check
@@ -2738,11 +2734,11 @@ FROM @F5C0		# line 1718
 #	begin call site ID check
 #	------ BEGIN: call site ID check
 FROM @F5C0check		# line 1732
-'1,'_,'_,'_ '_,'_,'_,'_ L,S,S,S @598		# line 1733
-FROM @598		# line 1736
+'1,'_,'_,'_ '_,'_,'_,'_ L,S,S,S @597		# line 1733
+FROM @597		# line 1736
 '0,'_,'_,'_ '_,'_,'_,'_ L,S,S,S		# line 1737
-'[,'_,'_,'_ '_,'_,'_,'_ L,S,S,S @599		# line 1738
-FROM @599		# line 1739
+'[,'_,'_,'_ '_,'_,'_,'_ L,S,S,S @598		# line 1738
+FROM @598		# line 1739
 '/|'0|'1,'_,'_,'_ L,S,S,S		# line 1740
 '[,'_,'_,'_ S,L,S,S @116		# line 1741
 #	------ END: call site ID check
@@ -2760,11 +2756,11 @@ FROM @F6C0		# line 1718
 #	begin call site ID check
 #	------ BEGIN: call site ID check
 FROM @F6C0check		# line 1732
-'1,'_,'_,'_ '_,'_,'_,'_ L,S,S,S @600		# line 1733
-FROM @600		# line 1736
+'1,'_,'_,'_ '_,'_,'_,'_ L,S,S,S @599		# line 1733
+FROM @599		# line 1736
 '0,'_,'_,'_ '_,'_,'_,'_ L,S,S,S		# line 1737
-'[,'_,'_,'_ '_,'_,'_,'_ L,S,S,S @601		# line 1738
-FROM @601		# line 1739
+'[,'_,'_,'_ '_,'_,'_,'_ L,S,S,S @600		# line 1738
+FROM @600		# line 1739
 '/|'0|'1,'_,'_,'_ L,S,S,S		# line 1740
 '[,'_,'_,'_ S,L,S,S @135		# line 1741
 #	------ END: call site ID check

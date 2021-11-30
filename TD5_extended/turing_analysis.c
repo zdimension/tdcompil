@@ -867,7 +867,7 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
             {
                 case KIS:
                 {
-                    analysis(&op[0], frame, true);
+                    analysis(&op[0], frame, false);// todo: force was true
                     expect_non_void(op[0]);
 
                     if (!op[1])
