@@ -1,7 +1,7 @@
 {
 	type stack = struct { value: u8; next: stack*; };
 
-	var cur, ptr: u8*, a, b, head: stack*,
+	var cur: u8, ptr: u8*, a: u8, b: u8, head: stack*,
 		num = 0, // is reading a number
 		n: stack*,
 		eq[] = "3 4 5 * 2 - +", // 3 + ((4 * 5) - 2) = 21 = 10101_2
