@@ -1115,7 +1115,7 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
                         SET_TYPE(FUNC_TYPE);
                     }
                     set_inferred_type(lhs_ptr, make_pointer_global_if(make_pointer(member->type),
-                                                                      lhs_ptr->inferred_type->pointer_is_global)); // convert to pointer to member
+                                                                      infer_type(lhs_ptr)->pointer_is_global)); // convert to pointer to member
                     ast_node* ret = make_node('+', 2, lhs_ptr, make_number(member->position));
                     analysis(&ret, frame, false);
                     RETURN_LVALUE(ret);
