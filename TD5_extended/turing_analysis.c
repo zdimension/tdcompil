@@ -508,6 +508,7 @@ type_list const* decode_spec(ast_node* spec, stack_frame* frame)
             }
             case KTYPEOF:
             {
+                frame->is_typeof = true;
                 analysis(&op[0], frame, false);
                 scalar_infer_auto(op[0]);
                 return infer_type(op[0]);
@@ -1241,7 +1242,8 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
                                     type = infer_type(op[2]);
                                 else
                                 {
-                                    error_msg(*n, "Cannot infer type of uninitialized variable '%s'\n", VAR_NAME(op[0]));
+                                    error_msg(*n, "Cannot infer type of uninitialized variable '%s'\n",
+                                              VAR_NAME(op[0]));
                                     exit(1);
                                 }
                             }
@@ -1505,7 +1507,7 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
                                                                                               NULL, NULL)),
                                               has_fct_call,
                                               NULL,
-                                              make_node(';', 2, clean_stack(make_node('=', 2, variable, next_fct_call)),
+                                              make_node(';', 2, clean_stack(make_node('=', 2, variable, ast_copy(next_fct_call))),
                                                         code)));
                     analysis(n, frame, false);
                     return;
@@ -1548,6 +1550,18 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
                     }
                     break;
                 }
+                case GENINST:
+                case KTYPEOF:
+                case KSCALAROF:
+                case KSTRUCT:
+                case CONSTTYPE:
+                case ARRTYPE:
+                case POINTER:
+                case KDELEGATE:
+                {
+                    AST_DATA(*n) = (void*) decode_spec(*n, frame);
+                    SET_TYPE(TYPE_TYPE);
+                }
             }
 
             struct
@@ -1566,10 +1580,80 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
 
             if (op[0] && TLEFT)
             {
+                restart_analysis: ;
                 type_list const* tleft = unalias(TLEFT);
-                if (tleft == TYPE_TYPE && ((type_list*) AST_DATA(op[0]))->type == T_COMPOSITE)
+                if (tleft == TYPE_TYPE)
                 {
-                    tleft = (AST_DATA(op[0]));
+                    type_list* const inner_type = ((type_list*) AST_DATA(op[0]));
+                    if (inner_type->type == T_COMPOSITE)
+                    {
+                        tleft = inner_type;
+                    }
+                    else if (inner_type->type == T_GENERIC && OPER_OPERATOR(*n) == '(')
+                    {
+                        for (linked_list* fptr = inner_type->generic.methods; fptr; fptr = fptr->next)
+                        {
+                            if (!strcmp("(", VAR_NAME(OPER_OPERANDS(fptr->value)[0])))
+                            {
+                                struct type_list_s
+                                {
+                                    const char* name;
+                                    ast_node* type;
+                                    struct type_list_s* next;
+                                } * types = NULL;
+                                for (linked_list* param = inner_type->generic.params; param; param = param->next)
+                                {
+                                    struct type_list_s* item = malloc(sizeof(*item));
+                                    item->name = VAR_NAME(param->value);
+                                    item->type = NULL;
+                                    item->next = types;
+                                    types = item;
+                                }
+                                ast_node* fnode = fptr->value;
+                                linked_list* param, *arg;
+                                for (param = AST_LIST_HEAD(OPER_OPERANDS(fnode)[1]),
+                                        arg = AST_LIST_HEAD(op[2]);
+                                     param && arg;
+                                     param = param->next, arg = arg->next)
+                                {
+                                    //type_list const* ptype = decode_spec(OPER_OPERANDS(param)[1], frame);
+                                    ast_node* ptypename = OPER_OPERANDS(param->value)[1];
+                                    if (AST_KIND(ptypename) == k_ident)
+                                    {
+                                        for (struct type_list_s* item = types; item; item = item->next)
+                                        {
+                                            if (!strcmp(item->name, VAR_NAME(ptypename)))
+                                            {
+                                                item->type = make_node(KTYPEOF, 1, arg->value);
+                                                break;
+                                            }
+                                        }
+                                    }
+                                }
+                                if (param || arg)
+                                {
+                                    error_msg(*n, "Invalid number of arguments in automatic generic call\n");
+                                    exit(1);
+                                }
+                                ast_node* lst = make_empty_list();
+                                for (struct type_list_s* item = types; item; item = item->next)
+                                {
+                                    if (!item->type)
+                                    {
+                                        error_msg(*n, "Missing type for generic parameter %s\n", item->name);
+                                        exit(1);
+                                    }
+                                    lst = prepend_list(lst, item->type);
+                                }
+                                op[0] = make_node(GENINST, 2, op[0], lst);
+                                analysis(&op[0], frame, false);
+                                goto restart_analysis;
+                                break;
+                            }
+                        }
+                        error_msg(*n, "Automatic generic call resolution not supported yet\n");
+                        exit(1);
+                    }
                 }
                 const char* op_str = stringify_operator_or_null(OPER_OPERATOR(*n));
                 if (op_str)
@@ -2229,18 +2313,6 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
                     }
 
                     SET_TYPE(VOID_TYPE);
-                }
-                case GENINST:
-                case KTYPEOF:
-                case KSCALAROF:
-                case KSTRUCT:
-                case CONSTTYPE:
-                case ARRTYPE:
-                case POINTER:
-                case KDELEGATE:
-                {
-                    AST_DATA(*n) = (void*) decode_spec(*n, frame);
-                    SET_TYPE(TYPE_TYPE);
                 }
                 case DEREF:
                 {

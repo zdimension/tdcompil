@@ -1,2 +1,6 @@
-var t: u16 = 5;
-disp!<u16>(t);
+func truc<T>(): T
+{
+return 4;
+}
+
+var x = truc!<u8>();

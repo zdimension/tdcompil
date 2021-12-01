@@ -269,6 +269,11 @@ void write_code(ast_node* n)
                         case 4:
                         {
                             code_n(": %s", type_display(AST_DATA(op[0])));
+                            if (op[2])
+                            {
+                                code_n(" = ");
+                                write_inline(op[2]);
+                            }
                             break;
                         }
                         case 3:
@@ -387,7 +392,7 @@ void write_code(ast_node* n)
                     linked_list* lst = AST_LIST_HEAD(op[2]);
                     if (lst)
                     {
-                        if (AST_KIND(op[0]) == k_operator && OPER_OPERATOR(op[0]) == '.')
+                        if (AST_KIND(op[0]) == k_operator && OPER_OPERATOR(op[0]) == '.' && OPER_OPERANDS(op[0])[0] == lst->value)
                         {
                             lst = lst->next;
                         }
@@ -427,6 +432,16 @@ void write_code(ast_node* n)
                     code_n("bits(");
                     write_inline(op[0]);
                     code_n(")");
+                    sci();
+                    return;
+                case KTYPEOF:
+                    code_n("typeof(");
+                    write_inline(op[0]);
+                    code_n(")");
+                    sci();
+                    return;
+                case STRUCTLIT:
+                    code_n("struct { ... }");
                     sci();
                     return;
                 case GENINST:
