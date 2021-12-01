@@ -1229,6 +1229,11 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
                             if (op[1])
                             {
                                 type = decode_spec(op[1], frame);
+                                if (op[2])
+                                {
+                                    op[2] = make_node(CAST, 2, op[1], op[2]);
+                                    analysis(&op[2], frame, false);
+                                }
                             }
                             else
                             {
