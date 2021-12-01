@@ -83,7 +83,7 @@ static int exit_compiler(int errors) {
 %token <float_value>  FLOAT
 %token <string_value> STRING CCODE
 %token <ident> IDENTIFIER
-%token KWHILE KIF KPRINT KRETURN KBREAK KFOR
+%token KWHILE KIF KPRINT KRETURN KBREAK KFOR KSTATIC
 %token TINT TFLOAT TBOOL TSTRING TVOID
 
 
@@ -144,6 +144,7 @@ stmt:           ';'                     { $$ = make_expr_statement(NULL); }
         |       KIF '(' expr ')' stmt KELSE stmt
                                         { $$ = make_if_statement($3, $5, $7); }
         |       var_decl ';'            { $$ = $1;}
+        |       KSTATIC var_decl ';'    { make_var_decl_static($2); $$ = $2;}
         |       prototype ';'           { $$ = $1;}
         |       error ';'               { yyerrok; $$ = NULL; }
         ;

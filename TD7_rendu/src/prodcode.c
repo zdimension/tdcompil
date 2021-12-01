@@ -126,6 +126,11 @@ static void produce_declarations(ast_node *node, int emit_init) {
   struct s_var_decl *n = (struct s_var_decl *) node;
   int len = list_size(n->vars);
 
+  if (n->is_static)
+  {
+      emit("static ");
+  }
+
   code(AST_TYPE(node)); emit(" ");
   FORLIST(p, n->vars) {
     ast_node *var = ((ast_node **)list_item_data(p))[0];

@@ -87,6 +87,8 @@ floatnum        {floatnum1}|{floatnum2}
 "string"        return TSTRING;
 "void"          return TVOID;
 
+"static"		return KSTATIC;
+
 "false"         { yylval.int_value = 0; return BOOLEAN; }
 "true"          { yylval.int_value = 1; return BOOLEAN; }
 

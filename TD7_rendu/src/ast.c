@@ -175,6 +175,7 @@ ast_node *make_var_decl(ast_node *var, ast_node *type, ast_node* expr) {
   DEF_AST(p, var_decl, type);
 
   /* add the given variable to a newly created list */
+  p->is_static = false;
   p->vars = list_create();
   add_variable_to_decl((ast_node *) p, var, expr);
 
@@ -189,6 +190,12 @@ void add_variable_to_decl(ast_node *decl, ast_node *var, ast_node *expr) {
   table[0] = var;
   table[1] = expr;
   list_append(VARDECL_VARS(decl), table, free_one_var_decl);
+}
+
+void make_var_decl_static(ast_node* decl) {
+    struct s_var_decl* ptr = (struct s_var_decl*) decl;
+
+    ptr->is_static = true;
 }
 
 

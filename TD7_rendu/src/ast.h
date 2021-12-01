@@ -133,12 +133,14 @@ extern ast_node *int_type,      ///< AST node representing the "int" standard ty
 struct s_var_decl {
   ast_node header;              ///< AST header
   List     vars;                ///< List of declared variables
+  bool is_static;
 };
 
 #define VARDECL_VARS(p)         (((struct s_var_decl*) (p))->vars)
 
 ast_node *make_var_decl(ast_node *var, ast_node *type, ast_node *expr);
 void add_variable_to_decl(ast_node *decl, ast_node *var, ast_node *expr);
+void make_var_decl_static(ast_node* decl);
 
 
 // ======================================================================

@@ -8,3 +8,14 @@ Il s'agit d'un nœud "bateau" sans aucune analyse et dont la production consiste
 Légère modification à faire dans l'analyse des fonctions, qui jusqu'ici supposait que le corps, s'il existait,
 était forcément un bloc de code Toy.
 
+2.
+
+Ici, j'ai rajouté le mot-clé `static` qui peut être présent devant une instruction de déclaration de variables. Il est
+stocké sous la forme d'un attribut dans le nœud var_decl (car le mot-clé s'applique à toutes les variables dans une même
+déclaration).
+
+La syntaxe est conçue de telle sorte à ne pas permettre le mot-clé dans la déclaration de variable d'un `for`, aucune
+analyse particulière n'est donc requise.
+
+La production nécessite juste d'écrire "static" devant la déclaration.
+
