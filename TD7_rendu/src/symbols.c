@@ -32,16 +32,17 @@
 #include "symbols.h"
 
 
-struct symbol_table {
-  Hash_table table;                     ///< A hash table
-  struct symbol_table *next;            ///< The embedding block
+struct symbol_table
+{
+    Hash_table table;                     ///< A hash table
+    struct symbol_table* next;            ///< The embedding block
 };
 
-static Symbol_table current_table  = NULL; ///< Table of the current block
+static Symbol_table current_table = NULL; ///< Table of the current block
 static Symbol_table tables_to_free = NULL; ///< Symbols table cannot be freed as soon
-                                           ///< as we leave a scope (code generation
-                                           ///< is done late, so we keep  a list
-                                           ///< of tables to free).
+///< as we leave a scope (code generation
+///< is done late, so we keep  a list
+///< of tables to free).
 
 
 /// \file
@@ -56,12 +57,13 @@ static Symbol_table tables_to_free = NULL; ///< Symbols table cannot be freed as
 //
 // Create a new symbol table for current scope.
 //
-void enter_scope(void){
-  Symbol_table tmp = must_malloc(sizeof(struct symbol_table));
+void enter_scope(void)
+{
+    Symbol_table tmp = must_malloc(sizeof(struct symbol_table));
 
-  tmp->table    = hash_table_create();
-  tmp->next     = current_table;
-  current_table = tmp;
+    tmp->table = hash_table_create();
+    tmp->next = current_table;
+    current_table = tmp;
 }
 
 
@@ -70,85 +72,95 @@ void enter_scope(void){
 /// destruction is postponed after code production, and is done by
 /// @function(symbol_table_free_unused_tables).
 ///
-void leave_scope(void) {
-  Symbol_table tmp = current_table;
+void leave_scope(void)
+{
+    Symbol_table tmp = current_table;
 
-  current_table = tmp->next;
+    current_table = tmp->next;
 
-  // Push the current table to the list of symbol tables to free
-  tmp->next = tables_to_free;
-  tables_to_free = tmp;
+    // Push the current table to the list of symbol tables to free
+    tmp->next = tables_to_free;
+    tables_to_free = tmp;
 }
 
 
 //
 // Declare an object (ident or function) in the current block.
 //
-void symbol_table_declare_object(char *id, ast_node *obj) {
-  ast_node *old = hash_table_search(current_table->table, id);
+void symbol_table_declare_object(char* id, ast_node* obj)
+{
+    ast_node* old = hash_table_search(current_table->table, id);
 
-  if (old)
-    error_msg(obj, "%s is already declared", id);
-  else
-    hash_table_add(current_table->table, id, obj, NULL); // obj is a node which will
-                                                         // be  freed by free_node
+    if (old)
+        error_msg(obj, "%s is already declared", id);
+    else
+        hash_table_add(current_table->table, id, obj, NULL); // obj is a node which will
+    // be  freed by free_node
 }
 
 
 //
 // Search a symbol starting from current scope.
 //
-ast_node *symbol_table_search(char *id) {
-  Symbol_table t;
+ast_node* symbol_table_search(char* id)
+{
+    Symbol_table t;
 
-  for (t = current_table; t; t = t->next) {
-    ast_node *res= hash_table_search(t->table, id);
-    if (res) return res;
-  }
-  return NULL;
+    for (t = current_table; t; t = t->next)
+    {
+        ast_node* res = hash_table_search(t->table, id);
+        if (res)
+            return res;
+    }
+    return NULL;
 }
 
 
 //
 // Search a prototype in the current scope.
 //
-ast_node *symbol_table_search_prototype(char *id) {
-  ast_node *old = hash_table_search(current_table->table, id);
+ast_node* symbol_table_search_prototype(char* id)
+{
+    ast_node* old = hash_table_search(current_table->table, id);
 
-  if (old && (AST_KIND(old)==k_function) && (FUNCTION_BODY(old)==NULL))
-    return old;     // old is a prototype
-  return NULL;
+    if (old && (AST_KIND(old) == k_function) && (FUNCTION_BODY(old) == NULL))
+        return old;     // old is a prototype
+    return NULL;
 }
 
 
 //
 // Replace a prototype in current scope by a new function (or prototype).
 //
-void symbol_table_replace_prototype(char *id, ast_node *func) {
-  hash_table_delete(current_table->table, id);
-  hash_table_add(current_table->table, id, func, (void (*)(void*)) free_node);
+void symbol_table_replace_prototype(char* id, ast_node* func)
+{
+    hash_table_delete(current_table->table, id);
+    hash_table_add(current_table->table, id, func, (void (*)(void*)) free_node);
 }
 
 
 //
 // Free the old (no more used) tables.
 //
-void symbol_table_free_unused_tables(void) {
-  Symbol_table p, next;
+void symbol_table_free_unused_tables(void)
+{
+    Symbol_table p, next;
 
-  for (p = tables_to_free; p ; p = next) {
-    next = p->next;
-    hash_table_destroy(p->table);
-    free(p);
-  }
-  tables_to_free = NULL;
+    for (p = tables_to_free; p; p = next)
+    {
+        next = p->next;
+        hash_table_destroy(p->table);
+        free(p);
+    }
+    tables_to_free = NULL;
 }
 
 
 //
 // Initialization of the symbol table module.
 //
-void init_symbols(void) {
-  // Create the table of global variables and push it in the global list
-  enter_scope();
+void init_symbols(void)
+{
+    // Create the table of global variables and push it in the global list
+    enter_scope();
 }

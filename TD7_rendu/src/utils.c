@@ -48,45 +48,50 @@ int error_detected = 0;         ///< The number of errors while compiling a file
 
 /// Function for allocating memory. This function is not used directly. Use the
 /// must_malloc macro, which provides the location of the call.
-void *_must_malloc(size_t n, char *file, int line) {
-  void * res = malloc(n);
-  if (!res) {
-    fprintf(stderr, "Allocation error during compilation (%s:%d)\n", file, line);
-    fprintf(stderr, "Abort\n");
-    exit(2);
-  }
-  return res;
+void* _must_malloc(size_t n, char* file, int line)
+{
+    void* res = malloc(n);
+    if (!res)
+    {
+        fprintf(stderr, "Allocation error during compilation (%s:%d)\n", file, line);
+        fprintf(stderr, "Abort\n");
+        exit(2);
+    }
+    return res;
 }
 
 /// Concatenation of two strings (result is allocated and must bee freed)
-char *string_concat(char *s1, char *s2) {
-  char *res = must_malloc(strlen(s1) + strlen(s2) + 1);
-  sprintf(res, "%s%s", s1, s2);
-  /* strings contains the external quotes!!! */
-  return res;
+char* string_concat(char* s1, char* s2)
+{
+    char* res = must_malloc(strlen(s1) + strlen(s2) + 1);
+    sprintf(res, "%s%s", s1, s2);
+    /* strings contains the external quotes!!! */
+    return res;
 }
 
 /// Display error message using the GNU conventions
-void error_msg(ast_node *culprit, char *format, ...) {
-  va_list ap;
-  int line = culprit? AST_LINE(culprit): yylineno;
+void error_msg(ast_node* culprit, char* format, ...)
+{
+    va_list ap;
+    int line = culprit ? AST_LINE(culprit) : yylineno;
 
-  if (input_path) fprintf(stderr, "%s:", input_path);
-  fprintf(stderr, "%d: ", line);
+    if (input_path)
+        fprintf(stderr, "%s:", input_path);
+    fprintf(stderr, "%d: ", line);
 
-  va_start(ap, format);
-  vfprintf(stderr, format, ap);
-  va_end(ap);
+    va_start(ap, format);
+    vfprintf(stderr, format, ap);
+    va_end(ap);
 
-  fprintf(stderr, "\n");
+    fprintf(stderr, "\n");
 
-  error_detected += 1;
+    error_detected += 1;
 }
 
 /// Print an error message and exits the program. Do not use this function but the
 /// die() macro instead.
-void _die(char *message, char *file, int line)
+void _die(char* message, char* file, int line)
 {
-  fprintf(stderr, "FATAL ERROR: %s in file %s line %d\n", message, file, line);
-  exit(1);
+    fprintf(stderr, "FATAL ERROR: %s in file %s line %d\n", message, file, line);
+    exit(1);
 }
