@@ -35,7 +35,8 @@ enum node_kind {k_constant, k_identifier, k_type, k_var_decl, k_expression,
                 k_call, k_function, k_parameter_list,
                 k_if_statement, k_while_statement, k_for_statement,
                 k_block_statement, k_expr_statement, k_print_statement,
-                k_return_statement, k_break_statement, k_string_access};
+                k_return_statement, k_break_statement, k_string_access,
+                k_c_code_literal};
 
 typedef struct ast_node ast_node;
 
@@ -204,7 +205,7 @@ struct s_function {
 
 ast_node *make_function(ast_node *name, ast_node *ret_type, List parameters);
 void add_parameter_to_function(List lst, ast_node *name, ast_node *type);
-void add_body_to_function(ast_node *func, List body);
+void add_body_to_function(ast_node *func, ast_node* body);
 
 
 /* ----CALL -----------------------------------------------------------*/
@@ -297,6 +298,14 @@ struct s_break_statement {
 };
 
 ast_node *make_break_statement(void);
+
+/* ---- C CODE ----------------------------------------------------------- */
+struct s_c_code_literal {
+  ast_node header;
+  char* code;              
+};
+
+ast_node *make_c_code_literal(char* code);
 
 
 // ======================================================================

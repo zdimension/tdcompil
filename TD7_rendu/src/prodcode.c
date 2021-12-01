@@ -367,6 +367,13 @@ void produce_code_break_statement(ast_node *node) {
   emit("break;");
 }
 
+void produce_code_c_code_literal(ast_node *node) {
+  struct s_c_code_literal *n = (struct s_c_code_literal *) node;
+  emit("{\n");
+  emit("%s", n->code);
+  emit("}\n");
+}
+
 // ======================================================================
 //
 // produce_code

@@ -96,6 +96,9 @@ void analysis_print_statement(ast_node *node);
 void analysis_return_statement(ast_node *node);
 void analysis_break_statement(ast_node *node);
 
+
+void analysis_c_code_literal(ast_node *node);
+
 // ======================================================================
 void analysis(ast_node *node);
 

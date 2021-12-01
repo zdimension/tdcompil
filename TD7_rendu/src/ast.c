@@ -270,9 +270,9 @@ void add_parameter_to_function(List lst, ast_node *name, ast_node *type) {
   list_append(lst, name, free);
 }
 
-void add_body_to_function(ast_node *func, List body) {
+void add_body_to_function(ast_node *func, ast_node* body) {
   struct s_function *f = (struct s_function *) func;
-  f->body = make_block_statement(body);
+  f->body = body;
 }
 
 /* ----CALL -----------------------------------------------------------*/
@@ -408,6 +408,18 @@ static void free_break_statement(ast_node *node){
 ast_node *make_break_statement(void)
 {
   DEF_AST(p, break_statement, NULL);
+  return (ast_node *) p;
+}
+
+/* ---- C CODE --------------------------------------------------------- */
+static void free_c_code_literal(ast_node *node){
+  free(node);
+}
+
+ast_node *make_c_code_literal(char* code)
+{
+  DEF_AST(p, c_code_literal, NULL);
+  p->code = code;
   return (ast_node *) p;
 }
 

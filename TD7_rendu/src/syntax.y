@@ -91,6 +91,7 @@ static int exit_compiler(int errors) {
 %type   <ast>   stmt expr var_decl type var call
 %type   <ast>   func_decl prototype expr_opt init_var
 %type   <ast>   for1 for2 for3
+%type   <ast>   c_code func_body
 %type   <lst>   fparam_list eparam_list stmt_list
 
 
@@ -170,11 +171,19 @@ type:           TINT                    { $$ = int_type; }
         |       TVOID                   { $$ = void_type; }
         ;
 
+c_code
+        : CCODE                         { $$ = make_c_code_literal($1); }
+        ;
 
 // ========== FUNCTIONS ==========
+func_body
+        : '{' stmt_list '}'             { $$ = make_block_statement($2); }
+        | c_code                        { $$ = $1; }
+        ;
+
 func_decl:      prototype ';'           { $$ = $1; }
-        |       prototype '{' stmt_list '}'
-                                        { add_body_to_function($1, $3); $$ = $1; }
+        |       prototype func_body
+                                        { add_body_to_function($1, $2); $$ = $1; }
         ;
 
 

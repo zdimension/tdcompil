@@ -314,6 +314,9 @@ static void analysis_formal(List formal) {
 static void analysis_function_body(ast_node *node) {
   struct s_function *n = (struct s_function *) node;
 
+  if (n->body->kind != k_block_statement)
+      return;
+
   // Declare the parameters in a new scope
   enter_scope();
   FORLIST(p, n->parameters) {
@@ -474,6 +477,9 @@ void analysis_break_statement(ast_node *node) {
     error_msg(node, "break used outside a loop");
 }
 
+void analysis_c_code_literal(ast_node* node) {
+  ;
+}
 
 // ======================================================================
 

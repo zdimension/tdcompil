@@ -1,0 +1,10 @@
+1.
+
+J'ai choisi de rajouter un type de nœud pour représenter un bloc de code C, parce que si pour l'instant seules les
+fonctions peuvent les utiliser, à l'avenir il sera peut-être désirable d'en utiliser ailleurs.
+
+Il s'agit d'un nœud "bateau" sans aucune analyse et dont la production consiste juste à afficher le code C.
+
+Légère modification à faire dans l'analyse des fonctions, qui jusqu'ici supposait que le corps, s'il existait,
+était forcément un bloc de code Toy.
+
