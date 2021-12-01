@@ -25,6 +25,7 @@
 
 	for (var n in square!<range>(&x))
 	{
-		print n;
+		disp!<u16>(n);
+		putc(',');
 	}
 }

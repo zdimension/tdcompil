@@ -158,9 +158,9 @@ void write_code(ast_node* n)
             return;
         case k_number:
             if (n->inferred_type && n->inferred_type->type == T_SCALAR)
-                code_n("%du%d", NUMBER_VALUE(n), n->inferred_type->scalar_bits);
+                code_n("%lldu%d", NUMBER_VALUE(n), n->inferred_type->scalar_bits);
             else
-                code_n("%d", NUMBER_VALUE(n));// todo: type
+                code_n("%lld", NUMBER_VALUE(n));// todo: type
             return;
         case k_operator:
         {
@@ -266,14 +266,14 @@ void write_code(ast_node* n)
                     write_inline(op[0]);
                     switch (arity)
                     {
-                        case 2:
+                        case 4:
                         {
                             code_n(": %s", type_display(AST_DATA(op[0])));
                             break;
                         }
                         case 3:
                         {
-                            code_n("[%d]", NUMBER_VALUE(op[1]));
+                            code_n("[%lld]", NUMBER_VALUE(op[1]));
                             if (op[2])
                             {
                                 code_n(" = \"%s\"", VAR_NAME(op[2]));

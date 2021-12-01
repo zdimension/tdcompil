@@ -54,12 +54,12 @@ ast_node* make_ident(const char* str)
 //		Numbers stuff
 // ----------------------------------------------------------------------
 
-ast_node* make_number(int f)
+ast_node* make_number(turing_int f)
 {
     return make_number_sized(f, 0);
 }
 
-ast_node* make_number_sized(int f, int s)
+ast_node* make_number_sized(turing_int f, int s)
 {
     ast_node* p = allocate_node(sizeof(ast_number));
 

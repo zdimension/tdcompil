@@ -13,6 +13,9 @@
 
 #include <stdbool.h>
 
+typedef long long turing_int;
+
+
 #define YYLTYPE_IS_DECLARED 1
 typedef struct YYLTYPE YYLTYPE;
 struct YYLTYPE
@@ -88,15 +91,15 @@ ast_node* make_ident(const char* str);    // make a ident node
 typedef struct
 {
     ast_node header;              // AST header
-    int value;            // value of the number
+    turing_int value;            // value of the number
     int size;
 } ast_number;
 
 #define NUMBER_VALUE(p)    (((ast_number *) (p))->value)
 #define NUMBER_SIZE(p)    (((ast_number *) (p))->size)
 
-ast_node* make_number(int f);    // make a number node
-ast_node* make_number_sized(int f, int s);    // make a number node
+ast_node* make_number(turing_int f);    // make a number node
+ast_node* make_number_sized(turing_int f, int s);    // make a number node
 
 
 // ----------------------------------------------------------------------

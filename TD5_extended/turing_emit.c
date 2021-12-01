@@ -11,7 +11,7 @@
 #define LABEL(n)     printf("#L%03d:\n", n);            // output a label
 
 #define PROD0(op)     printf("#\t%s\n", op)
-#define PROD1F(op, v)     printf("#\t%s\t%d\n", op, v)    // v is a float
+#define PROD1F(op, v)     printf("#\t%s\t%lld\n", op, v)    // v is a float
 #define PROD1S(op, v)     printf("#\t%s\t%s\n", op, v)    // v is a string
 #define PROD1L(op, v)     printf("#\t%s\tL%03d\n", op, v) // v is a label
 
@@ -418,6 +418,15 @@ void eval(ast_node* n, stack_frame* frame)
 
 #define USELESS() do{info_msg(n, "Line has no effect\n");return;}while(0)
 
+const char ALLOWED[] = ".#()\"/\\,+-*=";
+
+int escape(int number)
+{
+    if (number == ' ')
+        return '_';
+    return (isalnum(number) || strchr(ALLOWED, number) != NULL) ? number : '?';
+}
+
 void write_char(int bit, int state, int end_state, int number)
 {
     instr("# write_char %d", number);
@@ -429,7 +438,7 @@ void write_char(int bit, int state, int end_state, int number)
         instr("'[,'/,'_,'_ '[,'_,'_,'_ S,L,S,S @%d", ++label);
         instr("FROM @%d", label);
         instr("'[,'_|'0|'1,'_,'_ '[,'_,'_,'_ S,L,S,S");
-        instr("'[,'/|'[,'_,'_ '[,'/|'[,'_,'%c S,S,S,R @%d", (isalnum(number)) ? number : '?', ++label);
+        instr("'[,'/|'[,'_,'_ '[,'/|'[,'_,'%c S,S,S,R @%d", escape(number), ++label);
         instr("FROM @%d", label);
         instr("'[,'/|'[,'_,'_ '[,'/|'[,'_,'. S,S,S,R @%d", end_state);
     }
@@ -460,7 +469,7 @@ void write_string(int bit, int state, int start_state, int end_state, int number
         else
         {
             instr("'1|'0,'_,'_,'_ R,S,S,S");
-            instr("'/,'_,'_,'_ '/,'_,'_,'%c R,S,S,R @%d", (isalnum(number)) ? number : '?', start_state);
+            instr("'/,'_,'_,'_ '/,'_,'_,'%c R,S,S,R @%d", escape(number), start_state);
         }
 
     }

@@ -446,10 +446,15 @@ FILE * join (FILE * a, FILE * b) {
 
 int  main(int argc, char* argv[]) {
   extern FILE *yyin;
-  yyin = stdin;
+  FILE* prelude = fopen("prelude.td5", "r");
+  if (!prelude) {
+    fprintf(stderr, "%s: cannot open prelude\n", *argv);
+    exit(1);
+  }
+  FILE* input = stdin;
   if (argc >= 2) {
-    yyin = fopen(argv[1], "r");
-    if (!yyin) {
+    input = fopen(argv[1], "r");
+    if (!input) {
       fprintf(stderr, "%s: cannot open input file '%s'\n", *argv, argv[1]);
       exit(1);
     }
@@ -460,6 +465,6 @@ int  main(int argc, char* argv[]) {
 	  }
     }
   }
-  yyin = join(fopen("prelude.td5", "r"), yyin);
+  yyin = join(prelude, input);
   return yyparse();
 }

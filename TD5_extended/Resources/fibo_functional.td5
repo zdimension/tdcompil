@@ -53,6 +53,7 @@
 	{
 		if (val > 50)
 			break;
-		print val;
+		disp!<u8>(val);
+		putc(',');
 	}
 }

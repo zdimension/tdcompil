@@ -19,11 +19,39 @@
   <component name="ChangeListManager">
     <list default="true" id="a6805983-d57b-442f-a29f-dcb10bd9ca72" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Resources/calc_rpn.am" beforeDir="false" afterPath="$PROJECT_DIR$/Resources/calc_rpn.am" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Resources/calc_rpn.td5" beforeDir="false" afterPath="$PROJECT_DIR$/Resources/calc_rpn.td5" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Resources/calc_rpn_dyn.am" beforeDir="false" afterPath="$PROJECT_DIR$/Resources/calc_rpn_dyn.am" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Resources/fact.am" beforeDir="false" afterPath="$PROJECT_DIR$/Resources/fact.am" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Resources/fibo_functional.am" beforeDir="false" afterPath="$PROJECT_DIR$/Resources/fibo_functional.am" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Resources/fibo_functional.td5" beforeDir="false" afterPath="$PROJECT_DIR$/Resources/fibo_functional.td5" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Resources/fibo_iter.am" beforeDir="false" afterPath="$PROJECT_DIR$/Resources/fibo_iter.am" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Resources/fibo_ptrs.am" beforeDir="false" afterPath="$PROJECT_DIR$/Resources/fibo_ptrs.am" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Resources/fibo_rec.am" beforeDir="false" afterPath="$PROJECT_DIR$/Resources/fibo_rec.am" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Resources/func.am" beforeDir="false" afterPath="$PROJECT_DIR$/Resources/func.am" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Resources/ifwhile.am" beforeDir="false" afterPath="$PROJECT_DIR$/Resources/ifwhile.am" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Resources/linked_list.am" beforeDir="false" afterPath="$PROJECT_DIR$/Resources/linked_list.am" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Resources/loop_break.am" beforeDir="false" afterPath="$PROJECT_DIR$/Resources/loop_break.am" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Resources/nested_consts.am" beforeDir="false" afterPath="$PROJECT_DIR$/Resources/nested_consts.am" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Resources/pattern_struct.am" beforeDir="false" afterPath="$PROJECT_DIR$/Resources/pattern_struct.am" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Resources/puiss.am" beforeDir="false" afterPath="$PROJECT_DIR$/Resources/puiss.am" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Resources/range_iter.am" beforeDir="false" afterPath="$PROJECT_DIR$/Resources/range_iter.am" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Resources/range_iter.td5" beforeDir="false" afterPath="$PROJECT_DIR$/Resources/range_iter.td5" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Resources/sqrt16.am" beforeDir="false" afterPath="$PROJECT_DIR$/Resources/sqrt16.am" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Resources/sqrt_hypot.am" beforeDir="false" afterPath="$PROJECT_DIR$/Resources/sqrt_hypot.am" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Resources/tail_rec.am" beforeDir="false" afterPath="$PROJECT_DIR$/Resources/tail_rec.am" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Resources/tests.am" beforeDir="false" afterPath="$PROJECT_DIR$/Resources/tests.am" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Resources/tests.td5" beforeDir="false" afterPath="$PROJECT_DIR$/Resources/tests.td5" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Resources/tests2.am" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Resources/tests2.td5" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Resources/tests3.am" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Resources/tests3.td5" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/calc.c" beforeDir="false" afterPath="$PROJECT_DIR$/calc.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/calc.h" beforeDir="false" afterPath="$PROJECT_DIR$/calc.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/syntax.y" beforeDir="false" afterPath="$PROJECT_DIR$/syntax.y" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/turing.h" beforeDir="false" afterPath="$PROJECT_DIR$/turing.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/turing_analysis.c" beforeDir="false" afterPath="$PROJECT_DIR$/turing_analysis.c" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/turing_dis.c" beforeDir="false" afterPath="$PROJECT_DIR$/turing_dis.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/turing_emit.c" beforeDir="false" afterPath="$PROJECT_DIR$/turing_emit.c" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -160,7 +188,7 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
           <url>file://$PROJECT_DIR$/turing_emit.c</url>
-          <line>458</line>
+          <line>467</line>
           <option name="timeStamp" value="169" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
@@ -176,7 +204,7 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
           <url>file://$PROJECT_DIR$/turing.h</url>
-          <line>177</line>
+          <line>175</line>
           <option name="timeStamp" value="209" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">

@@ -8,8 +8,6 @@
 //		Utilities
 // ---------------------------------------------------------------------
 
-
-
 typedef struct call_site_list_s
 {
     int id;
@@ -42,7 +40,7 @@ typedef struct
         };
         struct // const
         {
-            int value;
+            turing_int value;
         };
     };
 } var_list;

@@ -287,7 +287,7 @@ const char* type_display(type_list const* type)
  * Statically evaluates the specified node.
  * @throws exit If the node cannot be resolved to a compile-time constant
  */
-int static_eval(ast_node** n, stack_frame* frame)
+turing_int static_eval(ast_node** n, stack_frame* frame)
 {
     if (!AST_INFERRED(*n))
     {
