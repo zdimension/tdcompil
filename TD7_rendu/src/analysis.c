@@ -248,7 +248,14 @@ void analysis_expression(ast_node *node) {
 //
 // ======================================================================
 void analysis_string_access(ast_node *node) {
+    analysis(STRING_ACCESS_STR(node));
+    analysis(STRING_ACCESS_INDEX(node));
 
+    if (AST_TYPE(STRING_ACCESS_STR(node)) != string_type)
+        error_msg(STRING_ACCESS_STR(node), "string access must be applied to a string");
+
+    if (AST_TYPE(STRING_ACCESS_INDEX(node)) != int_type)
+        error_msg(STRING_ACCESS_INDEX(node), "index of string access must be an integer");
 }
 
 

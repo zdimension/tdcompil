@@ -211,7 +211,9 @@ void produce_code_expression(ast_node *node) {
 //
 // ======================================================================
 void produce_code_string_access(ast_node *node) {
-
+    emit("_toy_str_element("); code(STRING_ACCESS_STR(node));
+    emit(", ");  code(STRING_ACCESS_INDEX(node));
+    emit(")");
 }
 
 // ======================================================================

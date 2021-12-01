@@ -237,14 +237,17 @@ ast_node *make_expression(char *operator, enum expr_kind ekind, int arity, ...)
 //
 // ======================================================================
 static void free_string_access(ast_node *node) {
-
+    struct s_string_access* ptr = (struct s_string_access*) node;
+    free_node(ptr->str);
+    free_node(ptr->index);
+    free(node);
 }
 
 ast_node *make_string_access(ast_node* name, ast_node* index) {
-  // FIXME: Les deux lignes suivantes sont FAUSSES. Elles sont là pour ne
-  // pas avoir de warnings lorsqu'on compile le compilateur Toy
-  free_string_access(NULL);
-  return NULL; 
+  DEF_AST(p, string_access, string_type);
+  p->str = name;
+  p->index = index;
+  return (ast_node *) p;
 }
 
 

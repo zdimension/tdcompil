@@ -19,3 +19,12 @@ analyse particulière n'est donc requise.
 
 La production nécessite juste d'écrire "static" devant la déclaration.
 
+3.
+
+Ici, pas d'analyse compliquée, il faut seulement vérifier que l'opérande 1 est un chaîne (litérale ou variable) et que
+l'opérande 2 est un entier.
+
+Idem pour la production, un simple appel à _toy_str_element.
+
+Côté syntaxe, j'ai juste rajouté une production d'expression pour supporte un accès sur un litéral de chaîne, ce qui
+n'était auparavant pas permis.

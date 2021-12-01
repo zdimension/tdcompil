@@ -91,7 +91,7 @@ static int exit_compiler(int errors) {
 %type   <ast>   stmt expr var_decl type var call
 %type   <ast>   func_decl prototype expr_opt init_var
 %type   <ast>   for1 for2 for3
-%type   <ast>   c_code func_body
+%type   <ast>   c_code func_body string_literal
 %type   <lst>   fparam_list eparam_list stmt_list
 
 
@@ -205,39 +205,44 @@ eparam_list:    eparam_list ',' expr    { list_append($1, $3, FREE_NODE); $$ = $
         ;
 
 
+string_literal
+		:		STRING                { $$ = make_string_constant($1);}
+		;
+
 // ========== EXPRESSIONS ==========
 expr:
-                INTEGER               { $$ = make_integer_constant($1); }
-        |       FLOAT                 { $$ = make_float_constant($1); }
-        |       BOOLEAN               { $$ = make_boolean_constant($1); }
-        |       STRING                { $$ = make_string_constant($1);}
-        |       var                   { $$ = $1; }
-        |       var '[' expr ']'      { $$ = make_string_access($1, $3); }
-        |       call                  { $$ = $1; }
-        |       var '=' expr          { $$ = make_expression("=",  assign, 2, $1,$3);}
-        |       '-' expr %prec UMINUS { $$ = make_expression("-",  uarith, 1, $2); }
-        |       '+' expr %prec UMINUS { $$ = $2; }
-        |       expr '+' expr         { $$ = make_expression("+",  barith, 2, $1,$3);}
-        |       expr '-' expr         { $$ = make_expression("-",  barith, 2, $1,$3);}
-        |       expr '*' expr         { $$ = make_expression("*",  barith, 2, $1,$3);}
-        |       expr '/' expr         { $$ = make_expression("/",  barith, 2, $1,$3);}
-        |       expr '%' expr         { $$ = make_expression("%",  barith, 2, $1,$3);}
-        |       expr POW expr         { $$ = make_expression("**", barith, 2, $1,$3);}
-        |       expr '<' expr         { $$ = make_expression("<",  comp,   2, $1,$3);}
-        |       expr '>' expr         { $$ = make_expression(">",  comp,   2, $1,$3);}
-        |       expr EQ  expr         { $$ = make_expression("==", comp,   2, $1,$3);}
-        |       expr GE  expr         { $$ = make_expression(">=", comp,   2, $1,$3);}
-        |       expr LE  expr         { $$ = make_expression("<=", comp,   2, $1,$3);}
-        |       expr NE  expr         { $$ = make_expression("!=", comp,   2, $1,$3);}
-        |       expr KOR expr         { $$ = make_expression("||", blogic, 2, $1,$3);}
-        |       expr KAND expr        { $$ = make_expression("&&", blogic, 2, $1,$3);}
-        |       KNOT expr             { $$ = make_expression("!",  ulogic, 1, $2); }
-        |       '('expr ')'           { $$ = make_expression("(", parenthesis,1,$2);}
-        |       expr '?' expr ':' expr{ $$ = make_expression("?:",ternary,3,$1,$3,$5);}
-        |       PP var                { $$ = make_expression("++", preincr,  1, $2); }
-        |       MM var                { $$ = make_expression("--", preincr,  1, $2); }
-        |       var PP                { $$ = make_expression("++", postincr, 1, $1); }
-        |       var MM                { $$ = make_expression("--", postincr, 1, $1); }
+                INTEGER               			{ $$ = make_integer_constant($1); }
+        |       FLOAT                 			{ $$ = make_float_constant($1); }
+        |       BOOLEAN               			{ $$ = make_boolean_constant($1); }
+        |       string_literal        			{ $$ = $1;}
+        |       var                   			{ $$ = $1; }
+        |       var '[' expr ']'      			{ $$ = make_string_access($1, $3); }
+        |       string_literal '[' expr ']'    	{ $$ = make_string_access($1, $3); }
+        |       call                  			{ $$ = $1; }
+        |       var '=' expr          			{ $$ = make_expression("=",  assign, 2, $1,$3);}
+        |       '-' expr %prec UMINUS 			{ $$ = make_expression("-",  uarith, 1, $2); }
+        |       '+' expr %prec UMINUS 			{ $$ = $2; }
+        |       expr '+' expr         			{ $$ = make_expression("+",  barith, 2, $1,$3);}
+        |       expr '-' expr         			{ $$ = make_expression("-",  barith, 2, $1,$3);}
+        |       expr '*' expr         			{ $$ = make_expression("*",  barith, 2, $1,$3);}
+        |       expr '/' expr         			{ $$ = make_expression("/",  barith, 2, $1,$3);}
+        |       expr '%' expr         			{ $$ = make_expression("%",  barith, 2, $1,$3);}
+        |       expr POW expr         			{ $$ = make_expression("**", barith, 2, $1,$3);}
+        |       expr '<' expr         			{ $$ = make_expression("<",  comp,   2, $1,$3);}
+        |       expr '>' expr         			{ $$ = make_expression(">",  comp,   2, $1,$3);}
+        |       expr EQ  expr         			{ $$ = make_expression("==", comp,   2, $1,$3);}
+        |       expr GE  expr         			{ $$ = make_expression(">=", comp,   2, $1,$3);}
+        |       expr LE  expr         			{ $$ = make_expression("<=", comp,   2, $1,$3);}
+        |       expr NE  expr         			{ $$ = make_expression("!=", comp,   2, $1,$3);}
+        |       expr KOR expr         			{ $$ = make_expression("||", blogic, 2, $1,$3);}
+        |       expr KAND expr        			{ $$ = make_expression("&&", blogic, 2, $1,$3);}
+        |       KNOT expr             			{ $$ = make_expression("!",  ulogic, 1, $2); }
+        |       '('expr ')'           			{ $$ = make_expression("(", parenthesis,1,$2);}
+        |       expr '?' expr ':' expr			{ $$ = make_expression("?:",ternary,3,$1,$3,$5);}
+        |       PP var                			{ $$ = make_expression("++", preincr,  1, $2); }
+        |       MM var                			{ $$ = make_expression("--", preincr,  1, $2); }
+        |       var PP                			{ $$ = make_expression("++", postincr, 1, $1); }
+        |       var MM                			{ $$ = make_expression("--", postincr, 1, $1); }
         ;
 
 // --- FOR
