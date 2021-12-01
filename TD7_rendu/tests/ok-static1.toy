@@ -1,0 +1,21 @@
+// -*- mode: java -*-
+//
+// ok-static.toy 	-- Test on static variables
+//
+//           Author: Erick Gallesio [eg@unice.fr]
+//    Creation date: 18-Jan-2021 15:50
+// Last file update: 18-Jan-2021 16:47 (eg)
+//
+
+int count() {
+  static int counter = 0;
+
+  return ++counter;
+}
+
+int main() {
+  print(count() == 1 ? "SUCCESS\n": "FAILURE\n");
+  print(count() == 2 ? "SUCCESS\n": "FAILURE\n");
+  print(count() == 3 ? "SUCCESS\n": "FAILURE\n");
+  return 0;
+}

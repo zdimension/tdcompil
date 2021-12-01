@@ -1,0 +1,24 @@
+// -*- mode: java -*-
+//
+// ok-plusequal.toy     -- Test of +=, -=, *= and /=
+//
+//           Author: Erick Gallesio [eg@unice.fr]
+//    Creation date: 13-Dec-2019 10:03
+// Last file update: 13-Dec-2019 10:10 (eg)
+//
+
+int main() {
+  int x = 0;
+
+  print("x = ", x); print(" | x+=1 => ", x+=1, "\n");
+  print((x == 1) ? "SUCCESS\n" : "FAILURE\n");
+  print("x = ", x); print(" | x-=10 => ", x-=10, "\n");
+  print((x == -9) ? "SUCCESS\n" : "FAILURE\n");
+  print("x = ", x); print(" | x*=10 => ", x*=10, "\n");
+  print((x == -90) ? "SUCCESS\n" : "FAILURE\n");
+  print("x = ", x); print(" | x/=-10 => ", x/=-10, "\n");
+  print((x == 9) ? "SUCCESS\n" : "FAILURE\n");
+    
+  return 0;
+}  
+

@@ -1,0 +1,19 @@
+// -*- mode: java -*-
+//
+// fail-undecl-var.toy  -- Undeclared variable
+//
+//           Author: Erick Gallesio [eg@unice.fr]
+//    Creation date:  1-Jul-2015 14:36 (eg)
+// Last file update:  3-Jul-2015 12:16 (eg)
+//
+// ERRORS: 3
+
+int main() {
+  int x, y;
+
+  z = x+y;   // z is undeclared
+  w = false; // w is undeclared (and auto-declaration is int)
+
+  return 0;
+}
+  

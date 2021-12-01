@@ -1,0 +1,31 @@
+// -*- mode: java -*-
+//
+// ok-slices3.toy 	-- Slices of slices tests
+//
+//           Author: Erick Gallesio [eg@unice.fr]
+//    Creation date: 15-Jan-2021 16:58
+// Last file update: 16-Jan-2021 14:16 (eg)
+//
+
+int main() {
+  string nil;    // not initialized ⟹ NULL
+  string str  = "abcdefgh";
+  string str2 = str[1:5];
+
+  print(str[:3] == "abc"    ? "SUCCESS\n": "FAILURE\n");
+  print(str[3:] == "defgh"  ? "SUCCESS\n": "FAILURE\n");
+
+  print(str2 == "bcde"     ? "SUCCESS\n": "FAILURE\n");
+  print(str2[:3] == "bcd"  ? "SUCCESS\n": "FAILURE\n");
+  print(str2[3:] == "e"    ? "SUCCESS\n": "FAILURE\n");
+
+  // Slices of slices
+  print(str[1:5] == "bcde"     ? "SUCCESS\n": "FAILURE\n");
+  print(str[1:5][:3] == "bcd"  ? "SUCCESS\n": "FAILURE\n");
+  print(str[1:5][3:] == "e"    ? "SUCCESS\n": "FAILURE\n");
+
+  print(str[1:5][1] == "c"     ? "SUCCESS\n": "FAILURE\n");
+  print(str[1:5][12] == nil    ? "SUCCESS\n": "FAILURE\n");
+  print(str[1:1000][12] == nil ? "SUCCESS\n": "FAILURE\n");
+  return 0;
+}

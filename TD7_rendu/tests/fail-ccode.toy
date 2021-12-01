@@ -1,0 +1,31 @@
+// -*- mode: java -*-
+//
+// fail-ccode.toy       -- Fail C code insertion
+//
+//           Author: Erick Gallesio [eg@unice.fr]
+//    Creation date: 18-Jan-2021 12:37 (eg)
+// Last file update: 18-Jan-2021 12:38 (eg)
+//
+//ERRORS: 2
+
+// Insertion of C code is OK here
+int foo(int x) %{
+  -x;
+%}
+
+int bar() {
+    // Insertion of C Code in a wrong place
+    %{ /* nothing but not here */ %}
+    int i;
+
+    foo(12);
+    return 0;
+}
+
+
+int main() {
+    foo(1);
+    bar(1, 2, 3);
+    return 0;
+}
+

@@ -1,0 +1,26 @@
+// -*- mode: java -*-
+//
+// ok-straccess-negative.toy 	-- Testing valid accesses to string components
+//
+//           Author: Erick Gallesio [eg@unice.fr]
+//    Creation date: 14-Jan-2021 16:34
+// Last file update: 14-Jan-2021 18:24 (eg)
+//
+
+int main() {
+  string s1 = "Hello";
+  string s2 = "World";
+
+  print((s1[-1] == "o")? "SUCCESS\n": "FAILURE\n");
+  print((s1[-2] == "l")? "SUCCESS\n": "FAILURE\n");
+  print((s1[-3] == "l")? "SUCCESS\n": "FAILURE\n");
+
+  print((s2[-1] == "d")? "SUCCESS\n": "FAILURE\n");
+  print((s2[-2] == "l")? "SUCCESS\n": "FAILURE\n");
+  print((s2[-3] == "r")? "SUCCESS\n": "FAILURE\n");
+
+  print((s1[-1] == s2[-4])? "SUCCESS\n": "FAILURE\n");
+  print("SUCCESS\n");
+  return 0;
+}
+

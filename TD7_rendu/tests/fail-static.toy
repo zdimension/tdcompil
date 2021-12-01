@@ -1,0 +1,45 @@
+// -*- mode: java -*-
+//
+// fail-static.toy 	-- Failure on static variables
+//
+//           Author: Erick Gallesio [eg@unice.fr]
+//    Creation date: 18-Jan-2021 16:41
+// Last file update: 18-Jan-2021 17:47 (eg)
+//
+// ERRORS: 3
+// ou peut-être 2 suivant comment les erreurs sont détectées (
+
+int count() {
+  static int counter = 1;
+
+  for (counter = 0; counter < 10; counter++) {
+    print("counter = ", counter);
+  }
+  return ++counter;
+}
+
+int count2() {
+    for (int counter = 0; counter < 10; counter++) { 
+    print("counter = ", counter);
+  }
+  return counter;                   // counter not declared
+}
+
+int count3() {
+  int counter = 7;
+  for (static int counter = 0; counter < 10; counter++) {  // static not allowed here
+    break;
+  }
+  return 42; 
+}
+
+int main() {
+  count();
+  count2();
+
+  return 0;
+}
+
+
+
+

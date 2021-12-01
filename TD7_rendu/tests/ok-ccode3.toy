@@ -1,0 +1,50 @@
+// -*- mode: java -*-
+//
+// ok-ccode3.toy         -- Test de l'inclusion de code C
+//
+//           Author: Erick Gallesio [eg@unice.fr]
+//    Creation date: 18-Jan-2021 11:38 (eg)
+// Last file update: 18-Jan-2021 12:29 (eg)
+//
+
+//
+// A function whose body is written in plain C
+//
+string concat(string s1, string s2) %{
+    extern void *malloc(size_t size);
+    extern void exit(int status);
+
+    _toy_string res = malloc(strlen(s1) + strlen(s2) + 1);
+    if (!res) {
+        fprintf(stderr, "concat: allocate error for '%s' and '%s'\n", s1, s2);
+        exit(1);
+    }
+    return strcat(strcpy(res, s1), s2);
+%}
+
+//
+// Length of a string (in C)
+//
+int length(string str) %{
+    char *s = str;
+    while (*str) str++;
+    return str - s;
+%}
+
+//
+// This function is in toy. Finally!!
+//
+int main() {
+    string s1 = "Hello, ";
+    string s2 = "world\n";
+    string s3 = concat(s1, s2);
+
+    print("Concaténation de ", s1, " et ", s2, " ==> ", s3);
+    print((s3 == "Hello, world\n")? "SUCCESS\n" : "FAILURE\n");
+
+    int len = length(s1);
+    print("lenth(s1) = ", len, "\n");
+
+    print((len == 7)? "SUCCESS\n" : "FAILURE\n");
+    return 0;
+}

@@ -1,0 +1,28 @@
+// -*- mode: java -*-
+//
+// ok-ccode2.toy        -- Use C code to make a kind of atoi
+//
+//           Author: Erick Gallesio [eg@unice.fr]
+//    Creation date: 18-Jan-2021 11:36 (eg)
+// Last file update: 18-Jan-2021 11:37 (eg)
+//
+
+int str2int(string s) %{
+    extern long int strtol(const char *nptr, char **endptr, int base);
+    return((int)strtol(s, (char **)0, 10));
+%}
+
+
+void convert(string s) {
+    print("Conversion of '", s, "' => ", str2int(s), "\n");
+}
+
+int main() {
+    convert("123");
+    convert("");
+    convert("       +12");
+    convert("  -123      ");
+
+    print((str2int("-1234") == -1234) ? "SUCCESS\n": "FAILURE\n");
+    return 0;
+}

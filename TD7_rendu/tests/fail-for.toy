@@ -1,0 +1,18 @@
+// -*- mode: java -*-
+//
+// fail-for.toy         -- Some tests with for that fail
+//
+//           Author: Erick Gallesio [eg@unice.fr]
+//    Creation date: 18-Nov-2015 14:43 (eg)
+// Last file update: 22-Dec-2017 15:38 (eg)
+//
+//ERRORS: 2
+
+int main() {
+    int i; 
+
+    for (i = 0; i ; i++)     print("  i = ", i, "\n");       // condition is not bool
+    for (int i=0; i < 10; i++) print("  i = ", i, "\n");     // Valid
+    break;                                                   // break outside a loop
+    return 0;
+}

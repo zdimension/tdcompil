@@ -1,0 +1,26 @@
+// -*- mode: java -*-
+//
+// ok-straccess-cst.toy 	-- Accessing a character of a string constant
+//
+//           Author: Erick Gallesio [eg@unice.fr]
+//    Creation date: 14-Jan-2021 18:42
+// Last file update: 14-Jan-2021 19:44 (eg)
+//
+
+int main() {
+  string s1 = "Hello";
+
+  print((s1[0] == "H")? "SUCCESS\n": "FAILURE\n");
+  print((s1[1] == "e")? "SUCCESS\n": "FAILURE\n");
+  print((s1[2] == "l")? "SUCCESS\n": "FAILURE\n");
+
+  print(("Hello"[0] == "H")? "SUCCESS\n": "FAILURE\n");
+  print(("Hello"[1] == "e")? "SUCCESS\n": "FAILURE\n");
+  print(("Hello"[2] == "l")? "SUCCESS\n": "FAILURE\n");
+
+  print(("Hello"[-1] == "o")? "SUCCESS\n": "FAILURE\n");
+  print(("Hello"[-2] == "l")? "SUCCESS\n": "FAILURE\n");
+  print(("Hello"[-3] == "l")? "SUCCESS\n": "FAILURE\n");
+
+  return 0;
+}
