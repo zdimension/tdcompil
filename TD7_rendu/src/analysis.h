@@ -71,6 +71,7 @@ void analysis_expression(ast_node *node);
 //
 // ======================================================================
 void analysis_string_access(ast_node *node);
+void analysis_slice(ast_node* node);
 
 // ======================================================================
 //

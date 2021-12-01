@@ -36,7 +36,7 @@ enum node_kind {k_constant, k_identifier, k_type, k_var_decl, k_expression,
                 k_if_statement, k_while_statement, k_for_statement,
                 k_block_statement, k_expr_statement, k_print_statement,
                 k_return_statement, k_break_statement, k_string_access,
-                k_c_code_literal};
+                k_c_code_literal, k_slice};
 
 typedef struct ast_node ast_node;
 
@@ -183,7 +183,18 @@ struct s_string_access {
 #define STRING_ACCESS_STR(p)    (((struct s_string_access *) p)->str)
 #define STRING_ACCESS_INDEX(p)  (((struct s_string_access *) p)->index)
   
-ast_node *make_string_access(ast_node* name, ast_node* index);  
+ast_node *make_string_access(ast_node* name, ast_node* index);
+
+struct s_slice {
+    ast_node header;
+    ast_node* a;
+    ast_node* b;
+};
+
+#define SLICE_A(s) (((struct s_slice*) (s))->a)
+#define SLICE_B(s) (((struct s_slice*) (s))->b)
+
+ast_node *make_slice(ast_node* a, ast_node* b);
 
 
 // ======================================================================

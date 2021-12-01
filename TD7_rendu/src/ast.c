@@ -250,6 +250,20 @@ ast_node *make_string_access(ast_node* name, ast_node* index) {
   return (ast_node *) p;
 }
 
+static void free_slice(ast_node* node) {
+    struct s_slice* ptr = (struct s_slice*) node;
+    free_node(SLICE_A(ptr));
+    free_node(SLICE_B(ptr));
+    free(node);
+}
+
+ast_node *make_slice(ast_node* a, ast_node* b) {
+    DEF_AST(p, slice, NULL);
+    SLICE_A(p) = a;
+    SLICE_B(p) = b;
+    return (ast_node *) p;
+}
+
 
 // ======================================================================
 //

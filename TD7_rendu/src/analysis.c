@@ -254,8 +254,24 @@ void analysis_string_access(ast_node *node) {
     if (AST_TYPE(STRING_ACCESS_STR(node)) != string_type)
         error_msg(STRING_ACCESS_STR(node), "string access must be applied to a string");
 
-    if (AST_TYPE(STRING_ACCESS_INDEX(node)) != int_type)
-        error_msg(STRING_ACCESS_INDEX(node), "index of string access must be an integer");
+    if (AST_KIND(STRING_ACCESS_INDEX(node)) != k_slice && AST_TYPE(STRING_ACCESS_INDEX(node)) != int_type)
+        error_msg(STRING_ACCESS_INDEX(node), "index of string access must be an integer or a slice");
+}
+
+void analysis_slice(ast_node* node) {
+    if (SLICE_A(node))
+    {
+        analysis(SLICE_A(node));
+        if (AST_TYPE(SLICE_A(node)) != int_type)
+            error_msg(SLICE_A(node), "first index of slice must be an integer");
+    }
+
+    if (SLICE_B(node))
+    {
+        analysis(SLICE_B(node));
+        if (AST_TYPE(SLICE_B(node)) != int_type)
+            error_msg(SLICE_B(node), "second index of slice must be an integer");
+    }
 }
 
 

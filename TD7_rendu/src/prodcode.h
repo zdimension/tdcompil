@@ -77,6 +77,7 @@ void produce_code_expression(ast_node *node);
 //
 // ======================================================================
 void produce_code_string_access(ast_node *node);
+void produce_code_slice(ast_node* node);
 
 // ======================================================================
 //

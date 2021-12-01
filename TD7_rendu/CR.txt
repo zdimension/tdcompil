@@ -21,10 +21,20 @@ La production nécessite juste d'écrire "static" devant la déclaration.
 
 3.
 
-Ici, pas d'analyse compliquée, il faut seulement vérifier que l'opérande 1 est un chaîne (litérale ou variable) et que
-l'opérande 2 est un entier.
+Ici, pas d'analyse compliquée, il faut seulement vérifier que l'opérande 1 est de type chaîne et que l'opérande 2 est de
+type entier.
 
 Idem pour la production, un simple appel à _toy_str_element.
 
-Côté syntaxe, j'ai juste rajouté une production d'expression pour supporte un accès sur un litéral de chaîne, ce qui
-n'était auparavant pas permis.
+Côté syntaxe, j'ai modifier la règle concernant l'opérateur [] pour permettre tout type d'expression à gauche, pas
+seulement un litéral de variable.
+
+4.
+
+Ici, j'ai rajouté un type de nœud servant à stocker une slice, autrement dit juste la partie "a:b". Il ne s'agit pas
+d'un nœud "concret" correspond à du code qui sera produit, car ce nœud n'est utilisé que dans l'opérateur [].
+
+L'analyse vérifie juste que les deux opérandes a et b, si elles sont présentes, sont de type entier.
+
+Pour la production, j'appelle simplement _toy_str_slice, en remplaçant éventuellement a et b par 0 et strlen(...)
+respectivement en cas d'absence.

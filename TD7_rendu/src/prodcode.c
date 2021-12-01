@@ -211,9 +211,39 @@ void produce_code_expression(ast_node *node) {
 //
 // ======================================================================
 void produce_code_string_access(ast_node *node) {
-    emit("_toy_str_element("); code(STRING_ACCESS_STR(node));
-    emit(", ");  code(STRING_ACCESS_INDEX(node));
-    emit(")");
+    if (AST_KIND(STRING_ACCESS_INDEX(node)) == k_slice) {
+        emit("_toy_str_slice(");
+        code(STRING_ACCESS_STR(node));
+        emit(", ");
+        ast_node* slice_a = SLICE_A(STRING_ACCESS_INDEX(node));
+        if (slice_a)
+            code(slice_a);
+        else
+            emit("0");
+        emit(", ");
+        ast_node* slice_b = SLICE_B(STRING_ACCESS_INDEX(node));
+        if (slice_b)
+            code(slice_b);
+        else
+        {
+            emit("strlen(");
+            code(STRING_ACCESS_STR(node));
+            emit(")");
+        }
+        emit(")");
+    }
+    else
+    {
+        emit("_toy_str_element(");
+        code(STRING_ACCESS_STR(node));
+        emit(", ");
+        code(STRING_ACCESS_INDEX(node));
+        emit(")");
+    }
+}
+
+void produce_code_slice(ast_node* node) {
+    ;
 }
 
 // ======================================================================
