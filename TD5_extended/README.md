@@ -178,8 +178,10 @@ print counter.`(`(&cnt);
 
 A structure type can have generic type parameters, which allow for a decrease in code duplication.
 
+Generic type parameters can be constrained.
+
 ```rust
-type vec<T> = struct { x: T; y: T; };
+type vec<T> where(is_scalar<T>) = struct { x: T; y: T; };
 impl vec
 {
     func normsq(this: self): T
@@ -195,6 +197,8 @@ var p = vec<u8> { x: 1, y: 2 }; // struct literal
 var q = p.normsq(); // q is u8
 ```
 
+
+
 ### Functions
 
 A function takes a fixed number of parameters and can optionally return a value.
@@ -203,14 +207,14 @@ Like a type, a function can be generic. This is often useful to simulate C macro
 
 A generic function will be compiled as a generic type containing an overloaded `(`-operator:
 ```rust
-func add<T>(x: T, y: T): T
+func add<T>(x: T, y: T): T where(is_scalar<T>)
 {
     return x + y;
 }
 ```
 is compiled as:
 ```rust
-type add<T> = struct { };
+type add<T> where(is_scalar<T>) = struct { };
 impl add
 {
     func `(`(x: T, y: T): T
