@@ -526,7 +526,7 @@ type_list const* decode_spec(ast_node* spec, stack_frame* frame)
                 sprintf(namebuf, "%s<", VAR_NAME(op[0]));
                 char* end = namebuf;
                 for (param = generic->generic.params,
-                             arg = ((ast_linked_list*) op[1])->list; param && arg; param = param->next, arg = arg->next)
+                             arg = AST_LIST_HEAD(op[1]); param && arg; param = param->next, arg = arg->next)
                 {
                     type_list* argt = check_add_type(VAR_NAME(param->value), sc_frame);
                     argt->type = T_ALIAS;
@@ -546,6 +546,15 @@ type_list const* decode_spec(ast_node* spec, stack_frame* frame)
                     if (!strcmp(cache->instance->header.name, namebuf))
                     {
                         return cache->instance;
+                    }
+                }
+                for(linked_list* cons = generic->generic.constraints; cons; cons = cons->next)
+                {
+                    ast_node* val = ast_copy(cons->value);
+                    if (!static_eval(&val, sc_frame))
+                    {
+                        error_msg(cons->value, "Constraint not satisfied\n");
+                        exit(1);
                     }
                 }
                 type_list* res = (type_list*) decode_spec(generic->generic.spec, sc_frame);
@@ -714,7 +723,7 @@ var_list* check_add_var(const char* name, stack_frame* frame, type_list const* t
 
 
 #define RETURN(x, type) do{*n = x; AST_INFERRED(*n) = type; return;}while(0)
-#define RETURN_VAL(x) do{*n = x; return;}while(0)
+#define RETURN_VAL(x) do{*n = x; analysis(n, frame, true); return;}while(0)
 #define SET_TYPE(type) do {AST_INFERRED(*n) = type; return;}while(0)
 #define RETURN_LVALUE(x) do {*n = make_node(DEREF, 1, x); analysis(n, frame, true); return;}while(0)
 
@@ -1144,7 +1153,10 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
                         error_msg(*n, "Cannot redeclare constant '%s'\n", VAR_NAME(op[0]));
                         exit(1);
                     }
-
+                    if (!strcmp(var->header.name, "PRELUDE_LOADED"))
+                    {
+                        line_offset = -op[0]->info.line;
+                    }
                     analysis(&op[1], frame, false);
                     type_list* type = NEW_TYPE();
                     *type = *AST_INFERRED(op[1]);
@@ -1191,12 +1203,14 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
                     }
                     ast_node* spec = op[1];
                     ast_node* args = op[2];
+                    ast_node* constr = op[3];
                     stack_frame* new_frame = frame;
                     if (args) // type is generic
                     {
                         type->type = T_GENERIC;
                         type->generic.params = ((ast_linked_list*) args)->list;
                         type->generic.spec = spec;
+                        type->generic.constraints = AST_LIST_HEAD(constr);
                     }
                     else
                     {
@@ -1315,11 +1329,11 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
                     {
                         if (type_params)
                         {
-                            ast_node* tdef = make_node(KTYPE, 3,
+                            ast_node* tdef = make_node(KTYPE, 4,
                                                        op[0],
                                                        make_node(KSTRUCT, 1, make_empty_list()),
-                                                       type_params);
-                            ast_node* newfunc = make_node(KFUNC, 5, make_ident("("), op[1], op[2], op[3], NULL);
+                                                       type_params, op[5]);
+                            ast_node* newfunc = make_node(KFUNC, 6, make_ident("("), op[1], op[2], op[3], NULL, op[5]);
                             ast_node* timpl = make_node(KIMPL, 2, op[0], make_list(newfunc));
                             *n = make_node(';', 2, tdef, timpl);
                             analysis(n, frame, false);
@@ -1551,6 +1565,17 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
                     break;
                 }
                 case GENINST:
+                {
+                    if (AST_KIND(op[0]) == k_ident)
+                    {
+                        const char* tname = VAR_NAME(op[0]);
+                        if (!strcmp(tname, "is_scalar"))
+                        {
+                            RETURN_VAL(make_number_sized(unalias(decode_spec(AST_LIST_HEAD(op[1])->value, frame))->type == T_SCALAR, 1));
+                        }
+                    }
+                    // fall through
+                }
                 case KTYPEOF:
                 case KSCALAROF:
                 case KSTRUCT:

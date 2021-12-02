@@ -1,6 +1,6 @@
-func truc<T>(): T
+func truc<T>(): u8 where (is_scalar!<T>)
 {
-return 4;
+	return 4;
 }
 
-var x = truc!<u8>();
+var x = truc!<void>();

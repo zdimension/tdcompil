@@ -143,12 +143,13 @@ void display_code(ast_node* node)
     fprintf(stderr, "\t%s\n\t%*s^\n", ptr, left - 1, "");
 }
 
+int line_offset = 0;
 
 void error_msg(ast_node* node, const char* format, ...)
 {
     va_list ap;
 
-    fprintf(stderr, "*** Error on line %d: ", node ? node->info.line : yylineno);
+    fprintf(stderr, "*** Error on line %d: ", (node ? node->info.line : yylineno) + line_offset);
     va_start(ap, format);
     vfprintf(stderr, format, ap);
     va_end(ap);
@@ -159,7 +160,7 @@ void info_msg(ast_node* node, const char* format, ...)
 {
     va_list ap;
 
-    fprintf(stderr, "*** Info on line %d: ", node ? node->info.line : yylineno);
+    fprintf(stderr, "*** Info on line %d: ", (node ? node->info.line : yylineno) + line_offset);
     va_start(ap, format);
     vfprintf(stderr, format, ap);
     va_end(ap);

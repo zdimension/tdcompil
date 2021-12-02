@@ -43,7 +43,7 @@ void yyerror(const char *s);
 %token  <var>           IDENT STRING
 %token                  KWHILE KIF KPRINT KELSE KREAD KFOR KDO KVAR KFUNC KRETURN KBREAK KCONTINUE KCONST KTYPE KTYPEOF
 %token					KSIZEOF KSTRUCT KBITSOF KNEW KASSERT KLOOP KMATCH KIS RANGE IRANGE KGLOBAL KIMPL KIN KFOREACH
-%token					KINTERFACE KSELF KSCALAROF POINTER ARRTYPE CONSTTYPE KDELEGATE
+%token					KINTERFACE KSELF KSCALAROF POINTER ARRTYPE CONSTTYPE KDELEGATE KWHERE
 %token '+' '-' '*' '/' GE LE EQ NE '>' '<' REF DEREF APL AMN AML ADV INC DEC AND OR SHL SHR ARROW STRUCTLIT GENINST PIPELINE CAST
 %token UMINUS VDECL SCOPE TUPLEASSIGN
 //                       Precedence rules
@@ -60,7 +60,7 @@ void yyerror(const char *s);
 %type 	<node>		param_list param_list_ne arg_list arg_list_ne var_decl var_decl_list type_spec_opt type_spec type_decl type_decl_list type_params type_param_list
 %type	<node>		struct_field struct_field_list var_typed stmt_braced expr_discard_or_inline_decl_opt expr_or_inline_decl pattern pattern_list pattern_branch pattern_basic
 %type	<node>		struct_field_init struct_field_init_list func_list func func_signature interf_func_list interf_func named_typespec struct_field_list_ne
-%type	<node>		pipe_expr complex_typespec
+%type	<node>		pipe_expr complex_typespec generic_constraints
 %type   <chr>		aug_assign unary_op
 
 %%
@@ -95,8 +95,14 @@ stmt
     | stmt_braced		                													{ $$ = $1; }
     ;
 
+generic_constraints
+	: KWHERE '(' arg_list_ne ')'	{ $$ = $3; }
+	|								{ $$ = NULL; }
+	;
+
 func_signature
-	: KFUNC var type_params '(' param_list ')' ':' type_spec								{ $$ = make_node(KFUNC, 5, $2, $5, NULL, $8, $3); }
+	: KFUNC var '(' param_list ')' ':' type_spec											{ $$ = make_node(KFUNC, 6, $2, $4, NULL, $7, NULL, NULL); }
+	| KFUNC var type_params '(' param_list ')' ':' type_spec generic_constraints			{ $$ = make_node(KFUNC, 6, $2, $5, NULL, $8, $3, $9); }
     ;
 
 func
@@ -144,12 +150,12 @@ var_decl
     ;
 
 type_decl
-    : var type_params '=' type_spec													{ $$ = make_node(KTYPE, 3, $1, $4, $2); }
+    : var '=' type_spec																{ $$ = make_node(KTYPE, 4, $1, $3, NULL, NULL); }
+    | var type_params generic_constraints '=' type_spec								{ $$ = make_node(KTYPE, 4, $1, $5, $2, $3); }
     ;
 
 type_params
-	: 								{ $$ = NULL; }
-	| '<' type_param_list '>'		{ $$ = $2; }
+	: '<' type_param_list '>'		{ $$ = $2; }
 	;
 
 type_param_list

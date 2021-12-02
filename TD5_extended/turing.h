@@ -163,6 +163,7 @@ typedef struct type_list_s
             ast_node* spec;
             linked_list* methods;
             struct generic_cache_s* cache;
+            linked_list* constraints;
         } generic;
         struct
         {
@@ -231,3 +232,5 @@ type_list const* unalias(type_list const* type);
 type_list const* infer_type(ast_node* n);
 
 type_list const* make_pointer(type_list const* target);
+
+extern int line_offset;

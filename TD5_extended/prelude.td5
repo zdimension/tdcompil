@@ -10,3 +10,4 @@ func disp<T>(x: T): void
 	}
 	putc(cast!<u8>(x - n * 10) + '0');
 }
+const PRELUDE_LOADED = 1;

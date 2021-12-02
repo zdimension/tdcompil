@@ -116,6 +116,7 @@
 "self" { return KSELF; }
 "scalarof" { return KSCALAROF; }
 "delegate" { return KDELEGATE; }
+"where" { return KWHERE; }
 
 	/* ---- Idents ---- */
 [a-zA-Z_][a-zA-Z0-9_]*			{ yylval.var = strdup(yytext); return IDENT; }

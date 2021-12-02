@@ -110,6 +110,16 @@ void write_inline(ast_node* n)
     indent = ind;
 }
 
+void write_inline_list(ast_node* n)
+{
+    for (linked_list* lst = AST_LIST_HEAD(n); lst; lst = lst->next)
+    {
+        write_inline(lst->value);
+        if (lst->next)
+            code_n(", ");
+    }
+}
+
 void write_code(ast_node* n)
 {
     if (!n)
@@ -268,7 +278,16 @@ void write_code(ast_node* n)
                     {
                         case 4:
                         {
-                            code_n(": %s", type_display(AST_DATA(op[0])));
+                            //code_n(": %s", type_display(AST_DATA(op[0])));
+                            code_n(": ");
+                            if (op[1] != NULL)
+                            {
+                                write_inline(op[1]);
+                            }
+                            else
+                            {
+                                code_n("%s", type_display(AST_DATA(op[0])));
+                            }
                             if (op[2])
                             {
                                 code_n(" = ");
@@ -323,6 +342,18 @@ void write_code(ast_node* n)
                 case KTYPE:
                     code_n("type ");
                     write_inline(op[0]);
+                    if (op[2])
+                    {
+                        code_n("<");
+                        write_inline_list(op[2]);
+                        code_n(">");
+                    }
+                    if (op[3])
+                    {
+                        code_n(" where (");
+                        write_inline_list(op[3]);
+                        code_n(")");
+                    }
                     code_n(" = %s", type_display_full(AST_INFERRED(op[0]), true, false));
                     sc();
                     return;
@@ -349,19 +380,25 @@ void write_code(ast_node* n)
                     return;
                 case ':':
                     write_inline(op[0]);
-                    code_n(": %s", type_display(AST_INFERRED(op[0])));
+                    //code_n(": %s", type_display(AST_INFERRED(op[0])));
+                    code_n(": ");
+                    write_inline(op[1]);
                     return;
                 case KFUNC:
                     code_n("func ");
                     write_inline(op[0]);
                     code_n("(");
-                    for (linked_list* lst = AST_LIST_HEAD(op[1]); lst; lst = lst->next)
+                    write_inline_list(op[1]);
+                    //code_n("): %s", type_display(AST_DATA(op[0])));
+                    code_n("): ");
+                    write_inline(op[3]);
+                    if (op[5])
                     {
-                        write_inline(lst->value);
-                        if (lst->next)
-                            code_n(", ");
+                        code_n(" where (");
+                        write_inline_list(op[5]);
+                        code_n(")");
                     }
-                    code_n("): %s\n", type_display(AST_DATA(op[0])));
+                    code_n("\n");
                     expect_sub = true;
                     indent++;
                     write_code(op[2]);
@@ -369,19 +406,9 @@ void write_code(ast_node* n)
                     return;
                 case TUPLEASSIGN:
                     code_n("(");
-                    for (linked_list* lst = AST_LIST_HEAD(op[0]); lst; lst = lst->next)
-                    {
-                        write_inline(lst->value);
-                        if (lst->next)
-                            code_n(", ");
-                    }
+                    write_inline_list(op[0]);
                     code_n(") = (");
-                    for (linked_list* lst = AST_LIST_HEAD(op[1]); lst; lst = lst->next)
-                    {
-                        write_inline(lst->value);
-                        if (lst->next)
-                            code_n(", ");
-                    }
+                    write_inline_list(op[1]);
                     code_n(")");
                     sci();
                     return;
