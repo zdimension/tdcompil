@@ -250,5 +250,8 @@ ast_node* ast_copy(ast_node* n)
 {
     if (!n)
         return NULL;
-    return set_inferred_type(ast_copy_internal(n), AST_INFERRED(n));
+    ast_node* res = ast_copy_internal(n);
+    set_inferred_type(res, AST_INFERRED(n));
+    AST_CLEAN_STACK(res) = AST_CLEAN_STACK(n);
+    res->data = n->data;
 }
