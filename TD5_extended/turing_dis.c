@@ -180,6 +180,10 @@ void write_code(ast_node* n)
 
             switch (OPER_OPERATOR(n))
             {
+                case KSELF:
+                    code_n("self");
+                    sci();
+                    return;
                 case UMINUS:
                 case '~':
                 case DEREF:

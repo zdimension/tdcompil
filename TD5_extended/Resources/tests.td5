@@ -1,6 +1,20 @@
-func truc<T>(): u8 where (is_scalar!<T>)
 {
-	return 4;
-}
+	type point<T> where(is_scalar!<T>) = struct { x: T; y: T; };
 
-var x = truc!<void>();
+	impl point
+	{
+		func hypot(this: self): T
+		{
+			return sqrt(this.x * this.x + this.y * this.y);
+		}
+	}
+
+	var p = point!<u8> { x: 7, y: 2 };
+
+	disp(match (p)
+	{
+		point!<u8> { x: 0..5, y: 0..5 } => 1,
+		point!<u8> { x: 5..10, y: 5..10 } => 2,
+		_ => p.hypot()
+	});
+}

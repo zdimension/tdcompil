@@ -1,4 +1,5 @@
 # disp        <generic type>
+# sqrt        <generic type>
 # range       struct { from: u16; to: u16; current: u16; }
 # square      <generic type>
 # dbl         u32       
@@ -22,12 +23,36 @@ FROM @INIT		# line 1772
 #	** begin
 #	** end
 # KIND = 2 (k_operator)		# line 504
+#	; first
+#	** begin
+#	** end
+# KIND = 2 (k_operator)		# line 504
+#	; first
+#	** begin
+#	** end
+# KIND = 2 (k_operator)		# line 504
 #	type
 #	; second
 #	** begin
 #	** end
 # KIND = 2 (k_operator)		# line 504
 #	impl
+#	; second
+#	** begin
+#	** end
+# KIND = 2 (k_operator)		# line 504
+#	; first
+#	** begin
+#	** end
+# KIND = 2 (k_operator)		# line 504
+#	type
+#	; second
+#	** begin
+#	** end
+# KIND = 2 (k_operator)		# line 504
+#	impl
+#	; second
+#	empty node
 #	; second
 #	** begin
 #	** end

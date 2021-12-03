@@ -1,4 +1,5 @@
 # disp        <generic type>
+# sqrt        <generic type>
 # even_filter  <generic type>
 # fibo_iter   struct { a: u8; b: u8; }
 # dbl         u16       
@@ -22,12 +23,36 @@ FROM @INIT		# line 1772
 #	** begin
 #	** end
 # KIND = 2 (k_operator)		# line 504
+#	; first
+#	** begin
+#	** end
+# KIND = 2 (k_operator)		# line 504
+#	; first
+#	** begin
+#	** end
+# KIND = 2 (k_operator)		# line 504
 #	type
 #	; second
 #	** begin
 #	** end
 # KIND = 2 (k_operator)		# line 504
 #	impl
+#	; second
+#	** begin
+#	** end
+# KIND = 2 (k_operator)		# line 504
+#	; first
+#	** begin
+#	** end
+# KIND = 2 (k_operator)		# line 504
+#	type
+#	; second
+#	** begin
+#	** end
+# KIND = 2 (k_operator)		# line 504
+#	impl
+#	; second
+#	empty node
 #	; second
 #	** begin
 #	** end

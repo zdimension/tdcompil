@@ -10,4 +10,29 @@ func disp<T>(x: T): void
 	}
 	putc(cast!<u8>(x - n * 10) + '0');
 }
+
+func sqrt<T>(x: T): T where(is_scalar!<T>)
+{
+	var rem: T, root: T;
+
+	for (var i = 0; i < (bitsof(T) / 2); i++)
+	{
+		root = root << 1;
+		rem = (rem << 2) + (x >> (bitsof(T) - 2));
+		x = x << 2;
+		root++;
+		if (root <= rem)
+		{
+			rem -= root;
+			root++;
+		}
+		else
+		{
+			root--;
+		}
+	}
+
+	return root >> 1;
+}
+
 const PRELUDE_LOADED = 1;

@@ -1517,11 +1517,11 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
                                                        NULL);
                     *n = make_scope(make_node(KFOR, 4, make_node(';', 2, iter_decl, make_node(KVAR, 4, variable,
                                                                                               make_node(KTYPEOF, 1,
-                                                                                                        next_fct_call),
+                                                                                                        ast_copy(next_fct_call)),
                                                                                               NULL, NULL)),
                                               has_fct_call,
                                               NULL,
-                                              make_node(';', 2, clean_stack(make_node('=', 2, variable, ast_copy(next_fct_call))),
+                                              make_node(';', 2, clean_stack(make_node('=', 2, variable, next_fct_call)),
                                                         code)));
                     analysis(n, frame, false);
                     return;
@@ -1649,7 +1649,7 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
                                         {
                                             if (!strcmp(item->name, VAR_NAME(ptypename)))
                                             {
-                                                item->type = make_node(KTYPEOF, 1, arg->value);
+                                                item->type = make_node(KTYPEOF, 1, ast_copy(arg->value));
                                                 break;
                                             }
                                         }

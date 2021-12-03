@@ -3,10 +3,10 @@
 
 	var p = point { x: 7, y: 2 };
 
-	print match (p)
+	disp(match (p)
 	{
 		point { x: 0..5, y: 0..5 } => 1,
 		point { x: 5..10, y: 5..10 } => 2,
 		_ => 3
-	};
+	});
 }
