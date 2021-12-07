@@ -1,3 +1,4 @@
 doc/html
 src/syntax.h
 !exec*
+!IGNORE
