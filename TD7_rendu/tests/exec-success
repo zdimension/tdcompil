@@ -1,0 +1,37 @@
+#!/bin/sh
+#
+# Run a compiled toy program and verify that we have the expected result
+#
+#           Author: Erick Gallesio [eg@unice.fr]
+#    Creation date: 19-Jul-2015 09:34 (eg)
+# Last file update: 14-Dec-2019 22:03 (eg)
+#
+
+PROG=$1
+
+if [ -e $PROG.in ] ;then
+    ./$PROG < $PROG.in > $PROG.out 2>&1
+else
+    ./$PROG > $PROG.out 2>&1
+fi
+
+retcode=$?
+
+if [ "$retcode" != 0 ] ;then
+    echo "**** Execution of $PROG didn't return 0"
+    exit 1
+fi 
+
+if grep -q "FAILURE" $PROG.out ;then
+    echo "**** Found a failure when running $PROG"
+    exit 1
+fi
+
+if ! grep -q "SUCCESS" $PROG.out ;then
+    echo "**** No success signalled when running $PROG"
+    exit 1
+fi
+
+echo "Test of $PROG: OK"
+
+exit 0
