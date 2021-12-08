@@ -1,0 +1,38 @@
+// -*- mode: java -*-
+//
+// ok-foreach3.toy      -- Nested FOREACHs
+//
+//           Author: Erick Gallesio [eg@unice.fr]
+//    Creation date:  7-Dec-2018 14:03
+// Last file update:  7-Dec-2018 14:27 (eg)
+//
+
+int main() {
+    int i = 0, sum = 0;
+    
+    foreach string color in ["Spades", "Hearts", "Diamonds", "Clubs"] {
+        foreach string value in ["7", "8", "9", "10", "Jack", "Queen", "King", "Ace"] {
+            print(value, " of ", color, "\n");
+            i++;
+        }
+    }
+    print("# of cards = ", i, "\n");
+
+    {
+        bool i = true;
+        foreach int i in [2, 3, 5, 7, 11, 13] {
+            print("Value of i = ", i, "\n");
+
+            foreach string i in ["a", "b", "c"] {
+                print("   Value of i = ", i, "\n");
+                sum = sum + 1;
+            }
+
+        }
+        print("In block: value of i = ", i, "\n");
+        print(i? "SUCCESS\n": "FAILURE\n");
+    }
+    print("In main: value of i = ", i, " and sum = ", sum, "\n");
+    print((i == 32 and sum == 18)? "SUCCESS\n": "FAILURE\n");
+    return 0;
+}

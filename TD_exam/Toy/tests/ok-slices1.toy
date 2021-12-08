@@ -1,0 +1,30 @@
+// -*- mode: java -*-
+//
+// ok-slices1.toy 	-- Test des slices
+//
+//           Author: Erick Gallesio [eg@unice.fr]
+//    Creation date: 15-Jan-2021 16:58
+// Last file update: 16-Jan-2021 12:19 (eg)
+//
+
+int main() {
+  string nil;    // not initialized ⟹ NULL
+  string str = "abcd";
+
+  for (int i = 0; i < 4; i++) {
+    print(str[i] != nil ? "SUCCESS\n" : "FAILURE\n");
+  }
+  for (int i = -1; i > -5; i--) {
+    print(str[i] != nil ? "SUCCESS\n" : "FAILURE\n");
+  }
+
+  print(str[1:1] == ""    ? "SUCCESS\n": "FAILURE\n");
+  print(str[1:2] == "b"   ? "SUCCESS\n": "FAILURE\n");
+  print(str[1:4] == "bcd" ? "SUCCESS\n": "FAILURE\n");
+  print(str[1:5] == nil   ? "SUCCESS\n": "FAILURE\n");
+  print(str[1:] ==  "bcd" ? "SUCCESS\n": "FAILURE\n");
+  print(str[:2] == "ab"   ? "SUCCESS\n": "FAILURE\n");
+  print(str[2:] == "cd"   ? "SUCCESS\n": "FAILURE\n");
+  print(str[:] == "abcd"  ? "SUCCESS\n": "FAILURE\n");
+  return 0;
+}

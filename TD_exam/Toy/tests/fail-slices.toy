@@ -1,0 +1,31 @@
+// -*- mode: java -*-
+//
+// fail-slices.toy 	-- Test failure for string access
+//
+//           Author: Erick Gallesio [eg@unice.fr]
+//    Creation date: 14-Jan-2021 18:34
+// Last file update: 16-Jan-2021 12:35 (eg)
+//
+// ERRORS: 7
+
+
+int main() {
+  int foo;
+  string str = "ABC";
+  bool b;
+  int i = 18;
+  float f = 1;
+
+  print(foo[4:5]);       // Ici
+  print(str[4:10]);
+  print(str[-7:1000]);
+  print(str[n:n+1]);      // Ici
+  print(str[i+i*7:-8]);
+  str[i:i+1] = "a";       // Ici
+  print(str[:b]);         // Ici
+  print(str[1:2:3]);      // Ici
+  print(str[::]);         // Ici
+  print(str[f:]);         // et ici
+
+  return 0;
+}

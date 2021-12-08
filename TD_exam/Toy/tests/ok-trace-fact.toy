@@ -1,0 +1,35 @@
+// -*- mode: java -*-
+//
+// ok-test2.debug.toy        -- Testing debug mode
+//
+//           Author: Erick Gallesio [eg@unice.fr]
+//    Creation date:  5-Dec-2021 22:04
+// Last file update:  6-Dec-2021 13:10 (eg)
+//
+
+
+int fact(int n) {
+    if (n <= 1)
+        return 1;
+    else
+        return n * fact(n-1);
+}
+
+int fib(int n) {
+  return (n < 2)? 1:  fib(n-1) + fib(n-2);
+}
+
+
+int main() {
+    int fa = fact(10);
+    print("==============================\n");
+    int fi = fib(7);
+    print("==============================\n");
+    print("Fact(10) = ", fa, "\n");
+    print("Fib(7) = ", fi, "\n");
+
+    print((fa == 3628800) ? "SUCCESS\n": "FAILURE\n");
+    print((fi == 21) ? "SUCCESS\n": "FAILURE\n");
+    return 0;
+}
+

@@ -1,0 +1,24 @@
+// -*- mode: java -*-
+//
+// ok-straccess-simple.toy 	-- Testing valid accesses to string components
+//
+//           Author: Erick Gallesio [eg@unice.fr]
+//    Creation date: 14-Jan-2021 16:34
+// Last file update: 14-Jan-2021 20:11 (eg)
+//
+
+int main() {
+  string s1 = "Hello";
+  string s2 = "World";
+
+  print((s1[0] == "H")? "SUCCESS\n": "FAILURE\n");
+  print((s1[1] == "e")? "SUCCESS\n": "FAILURE\n");
+  print((s1[2] == "l")? "SUCCESS\n": "FAILURE\n");
+
+  print((s2[0] == "W")? "SUCCESS\n": "FAILURE\n");
+  print((s2[1] == "o")? "SUCCESS\n": "FAILURE\n");
+  print((s2[2] == "r")? "SUCCESS\n": "FAILURE\n");
+
+  print((s1[4] == s2[1])? "SUCCESS\n": "FAILURE\n");
+  return 0;
+}

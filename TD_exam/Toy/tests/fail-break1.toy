@@ -1,0 +1,25 @@
+// -*- mode: java -*-
+//
+// fail-break.toy       -- Failin on break statement
+//
+//           Author: Erick Gallesio [eg@unice.fr]
+//    Creation date: 16-Nov-2015 16:39 (eg)
+// Last file update: 16-Nov-2015 18:32 (eg)
+//
+//ERRORS: 2
+
+int foo() {
+    int i;
+
+    while (i < 10) {
+        if (i > 6) 
+            break;
+    }
+    break;
+}
+
+int main() {
+    break; 
+}
+
+

@@ -1,0 +1,30 @@
+// -*- mode: java -*-
+//
+// ok-foreach4.toy      -- Special FOREACHs
+//
+//           Author: Erick Gallesio [eg@unice.fr]
+//    Creation date:  7-Dec-2018 14:33
+// Last file update:  7-Dec-2018 14:43 (eg)
+//
+
+int main() {
+
+    // Empty list
+    foreach int i in [] {
+        print(i, "\n");
+    }
+
+    // Mix of ints and floats
+    foreach float f in [1.0, 2.0, 10.4, 18, -3]    // 18 and -3 are ints but it's OK here
+        print(f, "\n");
+
+    // Expressions in the list
+    int sum;
+    foreach int i in [1, 1+2, 1+2+3, 1+2+3+4, 1+2+3+4+5] {
+        sum = sum + i;
+        print(i, "\n");
+    }
+
+    print((sum == 35) ? "SUCCESS\n": "FAILURE\n");
+    return 0;
+}

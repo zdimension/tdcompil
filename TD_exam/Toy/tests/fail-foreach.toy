@@ -1,0 +1,19 @@
+// -*- mode: java -*-
+//
+// fail-foreach.toy     -- Errors on foreach
+//
+//           Author: Erick Gallesio [eg@unice.fr]
+//    Creation date:  7-Dec-2018 14:28
+// Last file update:  7-Dec-2018 14:33 (eg)
+//
+// ERRORS: 3
+
+int main() {
+    foreach int i in [1, 2]
+        i = "string";                                   // operands of assignment have incompatible types
+
+    foreach int i in [1, 2, "three", 4, 5, false]       // type of expression is incompatible with foreach variable
+        print(i);                                       // 2 times: a string and a boolean
+    return 0;
+}
+

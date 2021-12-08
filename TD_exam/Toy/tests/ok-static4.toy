@@ -1,0 +1,27 @@
+// -*- mode: java -*-
+//
+// ok-STATIC2.toy 	-- Déclaration de static dans un for
+//
+//           Author: Erick Gallesio [eg@unice.fr]
+//    Creation date:  8-Feb-2021 11:43
+// Last file update:  8-Feb-2021 11:52 (eg)
+//
+
+int foo() {
+  int res;
+  for (int i = 0; i < 10; i ++) {
+    static int j = 10;
+    print("i = ", i, " j= ", j++, "\n");
+    res = j;
+  }
+  print("=> ", res, "\n");
+  return res;
+}
+
+
+int main()
+{
+  print(foo() == 20 ? "SUCCESS\n": "FAILURE\n");
+  print(foo() == 30 ? "SUCCESS\n": "FAILURE\n");
+  return 0;
+}

@@ -1,0 +1,31 @@
+// -*- mode: java -*-
+//
+// ok-trace-types.toy 	-- Testing various return types
+//
+//           Author: Erick Gallesio [eg@unice.fr]
+//    Creation date:  6-Dec-2021 12:48
+// Last file update:  6-Dec-2021 12:57 (eg)
+//
+
+
+void fail() {
+  print("FAILURE\n");
+}
+
+
+int    f1(int x)        { return 2 * x; fail(); }
+float  f2(int x)        { return 2 * x; fail(); }
+string f3()             { return  "Hello"; fail(); }
+bool   f4(bool b)       { return not b; fail(); }
+void   f5(int a, int b) { print(a+b, "\n"); return; fail(); }
+
+int main()
+{
+  f1(3);
+  f2(5);
+  f3();
+  f4(true);
+  f5(1,2);
+  print("SUCCESS\n");
+  return 0;
+}

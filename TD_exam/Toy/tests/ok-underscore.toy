@@ -1,0 +1,25 @@
+// -*- mode: java -*-
+//
+// underscore.toy    -- Test numbers with underscores
+//
+//           Author: Erick Gallesio [eg@unice.fr]
+//    Creation date: 30-Nov-2021 18:49
+// Last file update: 30-Nov-2021 18:58 (eg)
+//
+
+int main()
+{
+  int x = 1_000_000;
+  int y = 1000000;
+
+  print((x == y) ? "SUCCESS\n": "FAILURE\n");
+  print((y+1 == 1_000_001)? "SUCCESS\n": "FAILURE\n");
+
+  int sum = 0;
+  for (int i = 1; i < 1_0_0; i++)
+    sum = sum + i;
+  print("sum = ", sum, "\n");
+  print(sum == 4_950 ? "SUCCESS\n": "FAILURE\n");
+
+  return 0;
+}
