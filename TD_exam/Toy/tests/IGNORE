@@ -1,0 +1,42 @@
+# This line is for emacs ⟹                      -*- mode: conf-space -*-
+
+# ======================================================================
+# Rappel: les fichiers qui sont ici ne sont pas utilisé par "make tests"
+# Pour qu'un test soit utilisé, il suffit de le mettre en commentaire
+
+#
+# Q1 - float bug
+#
+#ok-float-bug.toy
+
+#
+# Q2 - underscore in numbers
+#
+#ok-underscore.toy
+#fail-underscore.toy
+
+#
+# Q3 - const qualifier
+#
+#ok-const1.toy
+#ok-const2.toy
+#fail-const1.toy
+#fail-const2.toy
+
+
+#
+# Q4 - Traces
+#
+#ok-trace-simple.toy
+#ok-trace-types.toy
+#ok-trace-fact.toy
+
+
+#
+# Q5 - foreach
+#
+#ok-foreach1.toy
+#ok-foreach2.toy
+#ok-foreach3.toy
+#ok-foreach4.toy
+#fail-foreach.toy
