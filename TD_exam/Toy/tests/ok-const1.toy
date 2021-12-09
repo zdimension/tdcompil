@@ -1,0 +1,22 @@
+// -*- mode: java -*-
+//
+// ok-const1.toy  -- Test const declarations
+//
+//           Author: Erick Gallesio [eg@unice.fr]
+//    Creation date:  1-Dec-2021 12:07
+// Last file update:  1-Dec-2021 16:07 (eg)
+//
+
+
+int main()
+{
+  const int x = 10;
+  int y = 8;
+
+  print ((y < x) ? "SUCCESS\n": "FAILURE\n");
+  y = y + 1;
+  print ((y < x) ? "SUCCESS\n": "FAILURE\n");
+  y = y + 1;
+  print ((y == x) ? "SUCCESS\n": "FAILURE\n");
+  return 0;
+}

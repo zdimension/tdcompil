@@ -1,0 +1,33 @@
+// -*- mode: java -*-
+//
+// ok-foreach2.toy      -- Simple tests on foreach control structure
+//
+//           Author: Erick Gallesio [eg@unice.fr]
+//    Creation date:  7-Dec-2018 13:50
+// Last file update:  3-Dec-2021 15:33 (eg)
+//
+
+int main() {
+    int sum = 0;
+
+    foreach int v in [10, 20, 30, 40]
+      sum = sum + v;
+
+    foreach string str in ["one", "two", "three"] {
+        print(str, "\n");
+        sum = sum + 1;
+    }
+    print((sum == 103) ? "SUCCESS\n": "FAILURE\n");
+
+    // Testing break
+    int cpt = 0;
+    sum = 0;
+
+    foreach int v in [5, 8, 13, 25, 50] {
+      sum = sum + v;
+      if (++cpt == 3) break;
+    }
+    print((sum == 26) ? "SUCCESS\n": "FAILURE\n");
+
+    return 0;
+}

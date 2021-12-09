@@ -1,0 +1,26 @@
+// -*- mode: java -*-
+//
+// ok-ccode1.toy         -- Test de l'inclusion de code C
+//
+//           Author: Erick Gallesio [eg@unice.fr]
+//    Creation date: 18-Jan-2021 11:04 (eg)
+// Last file update: 18-Jan-2021 14:18 (eg)
+//
+
+//
+// A function whose body is written in plain C
+//
+void test() %{
+  // The character '#' is not valid in toy whereas it is in C
+  #define msg "This function is written in C!\n"
+  printf(msg);
+%}
+
+//
+// This function is in toy. Finally!!
+//
+int main() {
+  test();
+  print("SUCCESS\n");    // always with this test
+  return 0;
+}

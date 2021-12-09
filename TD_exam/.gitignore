@@ -1,0 +1,6 @@
+Toy/doc/html
+Toy/src/syntax.h
+!exec*
+!IGNORE
+!Toy/tests/toy
+!Makefile

@@ -1,0 +1,24 @@
+// -*- mode: java -*-
+//
+// ok-float-bug.toy     -- Simple tests on floats
+//
+//           Author: Erick Gallesio [eg@unice.fr]
+//    Creation date: 10-Dec-2018 11:05
+// Last file update: 10-Dec-2018 11:11 (eg)
+//
+
+int main() {
+    int x = 3;
+    float y = 3.1;
+
+    print("Value of x: ", x, "\n");
+    print("Value of -x: ", -x, "\n");
+    print("-3 + 10 = ", -3 + 10, "\n");
+
+    print("Value of y: ", y, "\n");
+    print("Value of -y: ", -y, "\n");
+    print("-3.1 + 10 = ", -3.1 + 10, "\n");
+
+    print((-3.1 == -y) ? "SUCCESS\n": "FAILURE\n");
+}
+

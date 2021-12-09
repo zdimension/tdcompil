@@ -1,0 +1,29 @@
+// -*- mode: java -*-
+//
+// ok-var-decl.toy      -- Test of variable declarations
+//
+//           Author: Erick Gallesio [eg@unice.fr]
+//    Creation date: 26-Jun-2015 14:59 (eg)
+// Last file update: 12-Jul-2015 13:06 (eg)
+//
+
+int foo(int x) {
+  // local variables 
+  int w = 3 * 7 * x;
+
+  return  w + 42;
+}
+
+
+// Global variables
+int w, x = (5), y = 3* 2, z = -(100 * 2);
+
+
+int main() {
+    foo(17);
+    print("w=", w, "x=", x, " y=", y, " z=", z, "\n");
+    print("foo(x+y+z) = ", foo(x+y+z), "\n");
+    print((foo(x+y+z) == -3927) ? "SUCCESS\n" : "FAILURE\n");
+    print("End of test\n");
+}
+

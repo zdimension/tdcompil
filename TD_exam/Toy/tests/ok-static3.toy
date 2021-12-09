@@ -1,0 +1,37 @@
+// -*- mode: java -*-
+//
+// ok-STATIC.toy 	-- Un exemple de plus pour les static
+//
+//           Author: Erick Gallesio [eg@unice.fr]
+//    Creation date:  8-Feb-2021 10:38
+// Last file update:  8-Feb-2021 10:53 (eg)
+//
+
+int x = 10;
+int y = 20;
+
+
+int foo() {
+  static int x = 0, y = 1;
+  return x++ + y++;
+}
+int bar() {
+  return x++ + y++;
+}
+
+
+
+int main()
+{
+  print("x = ", x , "y = ", y, "\n");
+  print(((x== 10) and (y == 20)) ? "SUCCESS\n": "FAILURE\n");
+  print(foo() == 1 ? "SUCCESS\n": "FAILURE\n");
+  print(((x== 10) and (y == 20)) ? "SUCCESS\n": "FAILURE\n");
+  print(foo() == 3 ? "SUCCESS\n": "FAILURE\n");
+  print(((x== 10) and (y == 20)) ? "SUCCESS\n": "FAILURE\n");
+  print(bar() == 30 ? "SUCCESS\n": "FAILURE\n");
+  print(((x== 11) and (y == 21)) ? "SUCCESS\n": "FAILURE\n");
+  print(bar() == 32 ? "SUCCESS\n": "FAILURE\n");
+  print(((x== 12) and (y == 22)) ? "SUCCESS\n": "FAILURE\n");
+  return 0;
+}

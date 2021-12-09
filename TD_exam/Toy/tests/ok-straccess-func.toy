@@ -1,0 +1,31 @@
+// -*- mode: java -*-
+//
+// ok-straccess-func.toy 	-- String access with function calls
+//
+//           Author: Erick Gallesio [eg@unice.fr]
+//    Creation date:  9-Feb-2021 11:43
+// Last file update:  9-Feb-2021 11:46 (eg)
+//
+
+string Hello() {
+  return "Hello";
+}
+
+int main() {
+  string s1 = Hello();
+
+  print((s1[0] == "H")? "SUCCESS\n": "FAILURE\n");
+  print((s1[1] == "e")? "SUCCESS\n": "FAILURE\n");
+  print((s1[2] == "l")? "SUCCESS\n": "FAILURE\n");
+
+  print((Hello()[0] == "H")? "SUCCESS\n": "FAILURE\n");
+  print((Hello()[1] == "e")? "SUCCESS\n": "FAILURE\n");
+  print((Hello()[2] == "l")? "SUCCESS\n": "FAILURE\n");
+
+  print((Hello()[-1] == "o")? "SUCCESS\n": "FAILURE\n");
+  print((Hello()[-2] == "l")? "SUCCESS\n": "FAILURE\n");
+  print((Hello()[-3] == "l")? "SUCCESS\n": "FAILURE\n");
+
+  return 0;
+}
+

@@ -1,0 +1,20 @@
+// -*- mode: java -*-
+//
+// fail-const1.toy 	-- Fail on constants
+//
+//           Author: Erick Gallesio [eg@unice.fr]
+//    Creation date:  1-Dec-2021 15:43
+// Last file update:  1-Dec-2021 16:06 (eg)
+//
+//ERRORS: 2
+
+int main()
+{
+  const int i = 10, j = 20;
+  print("i=", i, " j=", j, "\n");
+
+  i = 17;                           // interdit d'affecter i
+  print("i=", i, " j=", j, "\n");
+  j = 100;                          // interdit d'affecter j
+  return 0;
+}

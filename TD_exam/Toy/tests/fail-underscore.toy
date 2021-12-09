@@ -1,0 +1,19 @@
+// -*- mode: java -*-
+//
+// fail-underscore.toy 	-- Fail test with numbers with underscores
+//
+//           Author: Erick Gallesio [eg@unice.fr]
+//    Creation date: 30-Nov-2021 18:59
+// Last file update: 30-Nov-2021 19:04 (eg)
+//
+// ERROR: 5
+
+int main()
+{
+  print("Ce nombre n'est pas correct (2 underscores successifs) ", 10__200);
+  print("La c'est OK ", 10_200);
+  print("Ce nombre n'est pas correct (commence par un underscore) ", _200);
+  print("Un nombre correct ", 123);
+  print("Ce nombre n'est pas correct (termine par un underscore) ", 123_);
+  return 0;
+}

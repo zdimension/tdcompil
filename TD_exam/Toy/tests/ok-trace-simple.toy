@@ -1,0 +1,35 @@
+// -*- mode: java -*-
+//
+// ok-test1.debug.toy        -- Testing debug mode
+//
+//           Author: Erick Gallesio [eg@unice.fr]
+//    Creation date:  5-Dec-2021 22:04
+// Last file update:  6-Dec-2021 13:10 (eg)
+//
+
+void boucle() {
+    for (int i = 0; i < 10; i ++) {
+        print("i = ",  i, "\n");
+        if (i == 5) return;
+    }
+}
+
+float f(int i) {
+    if (i < 5)
+        return i;
+    else
+        return i / 2.0;
+}
+
+int main() {
+    boucle();
+    print("==============================\n");
+    float f1 = f(1);
+    print("==============================\n");
+    float f7 = f(7);
+
+    print((f1 == 1.0) ? "SUCCESS\n": "FAILURE\n");
+    print((f7 == 3.5) ? "SUCCESS\n": "FAILURE\n");
+    return 0;
+}
+

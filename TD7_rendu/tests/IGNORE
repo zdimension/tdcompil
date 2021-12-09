@@ -1,0 +1,33 @@
+# This line is for emacs ⟹                      -*- mode: conf-space -*-
+
+# ======================================================================
+# Question 1: Ajout de code C
+#ok-ccode1.toy
+#ok-ccode2.toy
+#ok-ccode3.toy
+#fail-ccode.toy
+ 
+# ======================================================================
+# Question 2: Variables statiques
+#ok-static1.toy
+#ok-static2.toy
+#fail-static.toy
+
+# ======================================================================
+# Question 3: Ajout de l'accès au caractères d'une chaîne
+
+#ok-straccess-simple.toy
+#ok-straccess-outbounds1.toy
+#ok-straccess-negative.toy
+#ok-straccess-outbounds2.toy
+#fail-straccess.toy
+#ok-straccess-cst.toy
+
+# ======================================================================
+# Question 4: Slices
+#ok-slices1.toy
+#ok-slices2.toy
+#ok-slices3.toy
+#ok-slices4.toy
+#fail-slices.toy
+

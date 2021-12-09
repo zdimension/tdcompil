@@ -1,0 +1,29 @@
+// -*- mode: java -*-
+//
+// ok-straccess-outbounds1.toy 	-- Testing invvalid accesses to string components
+//
+//           Author: Erick Gallesio [eg@unice.fr]
+//    Creation date: 14-Jan-2021 16:34
+// Last file update: 14-Jan-2021 19:54 (eg)
+//
+
+int main() {
+  string nil;     // Uninitialized string is set to NULL
+  string s1 = "Hello";
+  string s2 = "World";
+
+  // Valid positive accesses
+  print((s1[0] == "H")? "SUCCESS\n": "FAILURE\n");
+  print((s1[1] == "e")? "SUCCESS\n": "FAILURE\n");
+  print((s1[2] == "l")? "SUCCESS\n": "FAILURE\n");
+  print((s2[0] == "W")? "SUCCESS\n": "FAILURE\n");
+  print((s2[1] == "o")? "SUCCESS\n": "FAILURE\n");
+  print((s2[2] == "r")? "SUCCESS\n": "FAILURE\n");
+  print((s1[4] == s2[1])? "SUCCESS\n": "FAILURE\n");
+
+  // Out of bounds accesses
+  print((s1[5] == nil) ? "SUCCESS\n": "FAILURE\n");
+  print((s2[100] == nil) ? "SUCCESS\n": "FAILURE\n");
+
+  return 0;
+}

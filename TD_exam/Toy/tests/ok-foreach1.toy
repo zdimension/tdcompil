@@ -1,0 +1,25 @@
+// -*- mode: java -*-
+//
+// ok-foreach1.toy      -- Simple tests on foreach control structure
+//
+//           Author: Erick Gallesio [eg@unice.fr]
+//    Creation date:  7-Dec-2018 13:45
+// Last file update:  7-Dec-2018 13:49 (eg)
+//
+
+int main() {
+    int i = 0;
+
+    foreach int v in [10, 20, 30, 40] {
+        print("Value of v = ", v, "\n");
+        i = i + 1;
+    }
+
+    foreach string str in ["one", "two", "three"] {
+        print("current str: ", str, "\n");
+        i = i + 1;
+    }
+
+    print((i == 7) ? "SUCCESS\n": "FAILURE\n");
+    return 0;
+}

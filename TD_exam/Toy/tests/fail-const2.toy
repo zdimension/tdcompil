@@ -1,0 +1,22 @@
+// -*- mode: java -*-
+//
+// fail-const2.toy 	-- Fail on constants
+//
+//           Author: Erick Gallesio [eg@unice.fr]
+//    Creation date:  1-Dec-2021 15:43
+// Last file update:  1-Dec-2021 16:05 (eg)
+//
+//ERRORS: 3
+
+int main()
+{
+  const int i = 10, j = 20;
+  print("i=", i, " j=", j, "\n");
+
+  i = 100;                     // interdit de changer i
+  j++;                         //interdit d'incrémenter j
+  print("i=", i, " j=", j, "\n");
+  i--;                        //interdit dde décrementer i
+  
+  return 0;
+}

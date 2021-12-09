@@ -1,0 +1,35 @@
+// -*- mode: java -*-
+//
+// ok-power.toy         -- Test the power operator
+//
+//           Author: Erick Gallesio [eg@unice.fr]
+//    Creation date: 17-Nov-2015 19:03 (eg)
+// Last file update: 17-Nov-2015 19:48 (eg)
+//
+
+int main() {
+
+
+    print("2**4+4    = ", 2**4+4,    " (should be 20)\n");
+    print("2**(4+4)  = ", 2**(4+4),  " (should be 256)\n");
+    print("2**(2**2) = ", 2**(2**2), " (should be 16)\n");
+    print("-2**4     = ", -2**4,     " (should be -16)\n");
+    print("(-2)**4)  = ", (-2)**4,   " (should be +16)\n");
+    print("5**12     = ", 5**12,     " (should be 244140625)\n");
+    print("12**0     = ", 12**0,     " (should be 1)\n");
+    print("3**4**2   = ", 3**4**2,   " (should be 43046721)\n");
+    print("3**(4**2) = ", 3**(4**2), " (should be 43046721)\n");
+    print("(3**4)**2 = ", (3**4)**2, " (should be 6561)\n");
+
+    int i = 0;
+    while (i < 10){ 
+        print("2**", i, " = ", 2**i, "\t3**", i, " = ", 3**i, "\n");
+        i = i + 1;
+    }
+
+    print((-7**11 == -1977326743) ? "SUCCESS\n": "FAILURE\n");
+
+    return 0;
+}
+
+

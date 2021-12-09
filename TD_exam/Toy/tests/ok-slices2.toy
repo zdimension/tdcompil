@@ -1,0 +1,24 @@
+// -*- mode: java -*-
+//
+// ok-slices2.toy 	-- More slices tests
+//
+//           Author: Erick Gallesio [eg@unice.fr]
+//    Creation date: 15-Jan-2021 16:58
+// Last file update: 16-Jan-2021 12:28 (eg)
+//
+
+int main() {
+  string nil;    // not initialized ⟹ NULL
+  string str = "abcd";
+
+  // Mainly negative accesses
+  print(str[-1:-1] == ""   ? "SUCCESS\n": "FAILURE\n");
+  print(str[-3:-2] == "b"  ? "SUCCESS\n": "FAILURE\n");
+  print(str[-3:4] == "bcd" ? "SUCCESS\n": "FAILURE\n");
+  print(str[-3:5] == nil   ? "SUCCESS\n": "FAILURE\n");
+  print(str[-3:] ==  "bcd" ? "SUCCESS\n": "FAILURE\n");
+  print(str[:-2] == "ab"   ? "SUCCESS\n": "FAILURE\n");
+  print(str[-2:] == "cd"   ? "SUCCESS\n": "FAILURE\n");
+  print(str[:] == "abcd"   ? "SUCCESS\n": "FAILURE\n");
+  return 0;
+}
