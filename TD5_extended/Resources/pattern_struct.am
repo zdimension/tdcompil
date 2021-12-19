@@ -1,5 +1,7 @@
 # disp        <generic type>
 # sqrt        <generic type>
+# map         <generic type>
+# range       struct { from: u16; to: u16; current: u16; }
 # point       struct { x: u8; y: u8; }
 # dbl         u16       
 # Types
@@ -30,6 +32,22 @@ FROM @INIT		# line 1772
 #	** begin
 #	** end
 # KIND = 2 (k_operator)		# line 504
+#	; first
+#	** begin
+#	** end
+# KIND = 2 (k_operator)		# line 504
+#	; first
+#	** begin
+#	** end
+# KIND = 2 (k_operator)		# line 504
+#	; first
+#	** begin
+#	** end
+# KIND = 2 (k_operator)		# line 504
+#	; first
+#	** begin
+#	** end
+# KIND = 2 (k_operator)		# line 504
 #	type
 #	; second
 #	** begin
@@ -41,6 +59,26 @@ FROM @INIT		# line 1772
 #	** end
 # KIND = 2 (k_operator)		# line 504
 #	; first
+#	** begin
+#	** end
+# KIND = 2 (k_operator)		# line 504
+#	type
+#	; second
+#	** begin
+#	** end
+# KIND = 2 (k_operator)		# line 504
+#	impl
+#	; second
+#	** begin
+#	** end
+# KIND = 2 (k_operator)		# line 504
+#	type
+#	; second
+#	** begin
+#	** end
+# KIND = 2 (k_operator)		# line 504
+#	impl
+#	; second
 #	** begin
 #	** end
 # KIND = 2 (k_operator)		# line 504
@@ -1310,7 +1348,7 @@ FROM @364		# line 1556
 FROM @363		# line 1565
 '/|'0|'1|'[,'/,'_,'_ R,S,S,S		# line 1566
 '/|'0|'1|'[,'[,'_,'_ R,S,S,S		# line 1567
-'_,'/|'[,'_,'_ '[,'/|'[,'_,'_ R,S,S,S @F2C1		# line 1569
+'_,'/|'[,'_,'_ '[,'/|'[,'_,'_ R,S,S,S @F5C1		# line 1569
 #	start copying args from stack to heap
 FROM @365		# line 1574
 '_,'/|'[,'_,'_ '[,'/|'[,'_,'_ R,R,S,S @366		# line 1575
@@ -1322,8 +1360,8 @@ FROM @367		# line 1581
 '/|'0|'1,'_,'_,'_ L,L,S,S		# line 1582
 '/|'0|'1,'/,'_,'_ L,S,S,S		# line 1583
 '/|'0|'1,'[,'_,'_ L,S,S,S		# line 1584
-'[,'/|'[,'_,'_ S,S,S,S @F2		# line 1585
-'_,'/|'[,'_,'_ '[,'/|'[,'_,'_ S,S,S,S @F2		# line 1586
+'[,'/|'[,'_,'_ S,S,S,S @F5		# line 1585
+'_,'/|'[,'_,'_ '[,'/|'[,'_,'_ S,S,S,S @F5		# line 1586
 #	; exiting scope
 FROM @368		# line 211
 '/|'0|'1|'[,'[,'_,'_ R,R,S,S		# line 212
@@ -1348,8 +1386,8 @@ FROM @373		# line 230
 FROM @374		# line 1781
 '[,'/,'_,'_ S,S,S,S @END		# line 1782
 '[,'[,'_,'_ S,S,S,S @END		# line 1783
-# procedure ( (F2)		# line 1701
-FROM @F2		# line 1703
+# procedure ( (F5)		# line 1701
+FROM @F5		# line 1703
 '[,'/|'[,'_,'_ S,S,S,S @375		# line 1704
 #	------ BEGIN: function code
 #	** begin
@@ -1709,7 +1747,7 @@ FROM @463		# line 1556
 FROM @462		# line 1565
 '/|'0|'1|'[,'/,'_,'_ R,S,S,S		# line 1566
 '/|'0|'1|'[,'[,'_,'_ R,S,S,S		# line 1567
-'_,'/|'[,'_,'_ '[,'/|'[,'_,'_ R,S,S,S @F2C0		# line 1569
+'_,'/|'[,'_,'_ '[,'/|'[,'_,'_ R,S,S,S @F5C0		# line 1569
 #	start copying args from stack to heap
 FROM @464		# line 1574
 '_,'/|'[,'_,'_ '[,'/|'[,'_,'_ R,R,S,S @465		# line 1575
@@ -1721,8 +1759,8 @@ FROM @466		# line 1581
 '/|'0|'1,'_,'_,'_ L,L,S,S		# line 1582
 '/|'0|'1,'/,'_,'_ L,S,S,S		# line 1583
 '/|'0|'1,'[,'_,'_ L,S,S,S		# line 1584
-'[,'/|'[,'_,'_ S,S,S,S @F2		# line 1585
-'_,'/|'[,'_,'_ '[,'/|'[,'_,'_ S,S,S,S @F2		# line 1586
+'[,'/|'[,'_,'_ S,S,S,S @F5		# line 1585
+'_,'/|'[,'_,'_ '[,'/|'[,'_,'_ S,S,S,S @F5		# line 1586
 #	; exiting scope
 FROM @467		# line 1280
 '[,'/|'[,'_,'_ S,S,S,S @455		# line 1281
@@ -5271,18 +5309,18 @@ FROM @1544		# line 230
 '[,'_,'_,'_ S,L,S,S @1545		# line 232
 #	------ END: function code
 FROM @1545		# line 1709
-'[,'/|'[,'_,'_ S,S,S,S @F2ret		# line 1710
+'[,'/|'[,'_,'_ S,S,S,S @F5ret		# line 1710
 #	------ BEGIN: call site ID writing
-FROM @F2C1		# line 1727
+FROM @F5C1		# line 1727
 '_,'/|'[,'_,'_ '0,'/|'[,'_,'_ R,S,S,S @1546		# line 1732
 FROM @1546		# line 1733
 '_,'/|'[,'_,'_ '1,'/|'[,'_,'_ R,S,S,S @365		# line 1735
 #	------ END: call site ID writing
 #	begin call site ID check
 #	------ BEGIN: call site ID check
-FROM @F2C1check		# line 1741
+FROM @F5C1check		# line 1741
 '1,'_,'_,'_ '_,'_,'_,'_ L,S,S,S @1547		# line 1742
-'0,'_,'_,'_ '_,'_,'_,'_ L,S,S,S @F2C0check		# line 1744
+'0,'_,'_,'_ '_,'_,'_,'_ L,S,S,S @F5C0check		# line 1744
 FROM @1547		# line 1745
 '0,'_,'_,'_ '_,'_,'_,'_ L,S,S,S		# line 1746
 '[,'_,'_,'_ '_,'_,'_,'_ L,S,S,S @1548		# line 1747
@@ -5291,14 +5329,14 @@ FROM @1548		# line 1748
 '[,'_,'_,'_ S,L,S,S @368		# line 1750
 #	------ END: call site ID check
 #	------ BEGIN: call site ID writing
-FROM @F2C0		# line 1727
+FROM @F5C0		# line 1727
 '_,'/|'[,'_,'_ '1,'/|'[,'_,'_ R,S,S,S @1549		# line 1732
 FROM @1549		# line 1733
 '_,'/|'[,'_,'_ '0,'/|'[,'_,'_ R,S,S,S @464		# line 1735
 #	------ END: call site ID writing
 #	begin call site ID check
 #	------ BEGIN: call site ID check
-FROM @F2C0check		# line 1741
+FROM @F5C0check		# line 1741
 '1,'_,'_,'_ '_,'_,'_,'_ L,S,S,S @1550		# line 1742
 FROM @1550		# line 1745
 '0,'_,'_,'_ '_,'_,'_,'_ L,S,S,S		# line 1746
@@ -5308,9 +5346,9 @@ FROM @1551		# line 1748
 '[,'_,'_,'_ S,L,S,S @467		# line 1750
 #	------ END: call site ID check
 #	------ BEGIN: function epilogue
-FROM @F2ret		# line 1756
+FROM @F5ret		# line 1756
 '[,'/|'[,'_,'_ '[,'/|'[,'_,'_ R,R,S,S		# line 1757
 '0|'1|'/,'_,'_,'_ '_,'_,'_,'_ R,S,S,S		# line 1758
 '_,'_,'_,'_ L,S,S,S		# line 1759
-'[,'_,'_,'_ '_,'_,'_,'_ L,S,S,S @F2C1check		# line 1760
+'[,'_,'_,'_ '_,'_,'_,'_ L,S,S,S @F5C1check		# line 1760
 #	------ END: function epilogue

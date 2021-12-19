@@ -1,5 +1,6 @@
 # disp        <generic type>
 # sqrt        <generic type>
+# map         <generic type>
 # range       struct { from: u16; to: u16; current: u16; }
 # square      <generic type>
 # dbl         u32       
@@ -31,6 +32,22 @@ FROM @INIT		# line 1772
 #	** begin
 #	** end
 # KIND = 2 (k_operator)		# line 504
+#	; first
+#	** begin
+#	** end
+# KIND = 2 (k_operator)		# line 504
+#	; first
+#	** begin
+#	** end
+# KIND = 2 (k_operator)		# line 504
+#	; first
+#	** begin
+#	** end
+# KIND = 2 (k_operator)		# line 504
+#	; first
+#	** begin
+#	** end
+# KIND = 2 (k_operator)		# line 504
 #	type
 #	; second
 #	** begin
@@ -42,6 +59,26 @@ FROM @INIT		# line 1772
 #	** end
 # KIND = 2 (k_operator)		# line 504
 #	; first
+#	** begin
+#	** end
+# KIND = 2 (k_operator)		# line 504
+#	type
+#	; second
+#	** begin
+#	** end
+# KIND = 2 (k_operator)		# line 504
+#	impl
+#	; second
+#	** begin
+#	** end
+# KIND = 2 (k_operator)		# line 504
+#	type
+#	; second
+#	** begin
+#	** end
+# KIND = 2 (k_operator)		# line 504
+#	impl
+#	; second
 #	** begin
 #	** end
 # KIND = 2 (k_operator)		# line 504
@@ -224,24 +261,6 @@ FROM @52		# line 199
 #	** end
 # KIND = 2 (k_operator)		# line 504
 #	; first
-#	** begin
-#	** end
-# KIND = 2 (k_operator)		# line 504
-#	; first
-#	** begin
-#	** end
-# KIND = 2 (k_operator)		# line 504
-#	; first
-#	** begin
-#	** end
-# KIND = 2 (k_operator)		# line 504
-#	type
-#	; second
-#	** begin
-#	** end
-# KIND = 2 (k_operator)		# line 504
-#	impl
-#	; second
 #	** begin
 #	** end
 # KIND = 2 (k_operator)		# line 504

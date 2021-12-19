@@ -1,20 +1,15 @@
 {
-	type point<T> where(is_scalar!<T>) = struct { x: T; y: T; };
-
-	impl point
+	type square = struct { };
+	impl square
 	{
-		func hypot(this: self): T
-		{
-			return sqrt(this.x * this.x + this.y * this.y);
-		}
+		func `(`(x: u16): u16 { return x * x; }
 	}
 
-	var p = point!<u8> { x: 7, y: 2 };
+	var x = range(1, 10);
 
-	disp(match (p)
+	for (var n in map!<range, square>(&x))
 	{
-		point!<u8> { x: 0..5, y: 0..5 } => 1,
-		point!<u8> { x: 5..10, y: 5..10 } => 2,
-		_ => p.hypot()
-	});
+		disp!<u16>(n);
+		putc(',');
+	}
 }

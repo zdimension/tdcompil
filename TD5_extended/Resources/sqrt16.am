@@ -1,5 +1,7 @@
 # disp        <generic type>
 # sqrt        <generic type>
+# map         <generic type>
+# range       struct { from: u16; to: u16; current: u16; }
 # Types
 # NAME        VALUE
 NEW "generated" 4		# line 1767
@@ -9,6 +11,22 @@ END @DEFAULT "default option"		# line 1770
 FROM @INIT		# line 1772
 '_,'_,'_,'_ '[,'[,'_,'. S,S,S,R @1		# line 1773
 #	------ BEGIN: program
+#	** begin
+#	** end
+# KIND = 2 (k_operator)		# line 504
+#	; first
+#	** begin
+#	** end
+# KIND = 2 (k_operator)		# line 504
+#	; first
+#	** begin
+#	** end
+# KIND = 2 (k_operator)		# line 504
+#	; first
+#	** begin
+#	** end
+# KIND = 2 (k_operator)		# line 504
+#	; first
 #	** begin
 #	** end
 # KIND = 2 (k_operator)		# line 504
@@ -39,6 +57,26 @@ FROM @INIT		# line 1772
 #	** end
 # KIND = 2 (k_operator)		# line 504
 #	; first
+#	** begin
+#	** end
+# KIND = 2 (k_operator)		# line 504
+#	type
+#	; second
+#	** begin
+#	** end
+# KIND = 2 (k_operator)		# line 504
+#	impl
+#	; second
+#	** begin
+#	** end
+# KIND = 2 (k_operator)		# line 504
+#	type
+#	; second
+#	** begin
+#	** end
+# KIND = 2 (k_operator)		# line 504
+#	impl
+#	; second
 #	** begin
 #	** end
 # KIND = 2 (k_operator)		# line 504
@@ -124,7 +162,7 @@ FROM @21		# line 1556
 FROM @20		# line 1565
 '/|'0|'1|'[,'/,'_,'_ R,S,S,S		# line 1566
 '/|'0|'1|'[,'[,'_,'_ R,S,S,S		# line 1567
-'_,'/|'[,'_,'_ '[,'/|'[,'_,'_ R,S,S,S @F2C0		# line 1569
+'_,'/|'[,'_,'_ '[,'/|'[,'_,'_ R,S,S,S @F5C0		# line 1569
 #	start copying args from stack to heap
 FROM @22		# line 1574
 '_,'/|'[,'_,'_ '[,'/|'[,'_,'_ R,R,S,S @23		# line 1575
@@ -136,15 +174,15 @@ FROM @24		# line 1581
 '/|'0|'1,'_,'_,'_ L,L,S,S		# line 1582
 '/|'0|'1,'/,'_,'_ L,S,S,S		# line 1583
 '/|'0|'1,'[,'_,'_ L,S,S,S		# line 1584
-'[,'/|'[,'_,'_ S,S,S,S @F2		# line 1585
-'_,'/|'[,'_,'_ '[,'/|'[,'_,'_ S,S,S,S @F2		# line 1586
+'[,'/|'[,'_,'_ S,S,S,S @F5		# line 1585
+'_,'/|'[,'_,'_ '[,'/|'[,'_,'_ S,S,S,S @F5		# line 1586
 #	; exiting scope
 #	------ END: program
 FROM @25		# line 1781
 '[,'/,'_,'_ S,S,S,S @END		# line 1782
 '[,'[,'_,'_ S,S,S,S @END		# line 1783
-# function isqrt (F2)		# line 1701
-FROM @F2		# line 1703
+# function isqrt (F5)		# line 1701
+FROM @F5		# line 1703
 '[,'/|'[,'_,'_ S,S,S,S @26		# line 1704
 #	------ BEGIN: function code
 #	** begin
@@ -1414,7 +1452,7 @@ FROM @344		# line 673
 '[,'/,'1,'_ '[,'/,'_,'_ S,S,L,S		# line 678
 '[,'/,'_,'_ S,S,S,S @346		# line 679
 FROM @346		# line 1452
-'[,'/|'[,'_,'_ S,S,S,S @F2ret		# line 1453
+'[,'/|'[,'_,'_ S,S,S,S @F5ret		# line 1453
 #	; exiting scope
 FROM @347		# line 211
 '/|'0|'1|'[,'[,'_,'_ R,R,S,S		# line 212
@@ -1437,14 +1475,14 @@ FROM @352		# line 230
 '[,'_,'_,'_ S,L,S,S @353		# line 232
 #	------ END: function code
 FROM @353		# line 1709
-'[,'/|'[,'_,'_ S,S,S,S @F2ret		# line 1710
+'[,'/|'[,'_,'_ S,S,S,S @F5ret		# line 1710
 #	------ BEGIN: call site ID writing
-FROM @F2C0		# line 1727
+FROM @F5C0		# line 1727
 '_,'/|'[,'_,'_ '1,'/|'[,'_,'_ R,S,S,S @22		# line 1735
 #	------ END: call site ID writing
 #	begin call site ID check
 #	------ BEGIN: call site ID check
-FROM @F2C0check		# line 1741
+FROM @F5C0check		# line 1741
 '1,'_,'_,'_ '_,'_,'_,'_ L,S,S,S @354		# line 1742
 FROM @354		# line 1745
 '0,'_,'_,'_ '_,'_,'_,'_ L,S,S,S		# line 1746
@@ -1454,9 +1492,9 @@ FROM @355		# line 1748
 '[,'_,'_,'_ S,L,S,S @25		# line 1750
 #	------ END: call site ID check
 #	------ BEGIN: function epilogue
-FROM @F2ret		# line 1756
+FROM @F5ret		# line 1756
 '[,'/|'[,'_,'_ '[,'/|'[,'_,'_ R,R,S,S		# line 1757
 '0|'1|'/,'_,'_,'_ '_,'_,'_,'_ R,S,S,S		# line 1758
 '_,'_,'_,'_ L,S,S,S		# line 1759
-'[,'_,'_,'_ '_,'_,'_,'_ L,S,S,S @F2C0check		# line 1760
+'[,'_,'_,'_ '_,'_,'_,'_ L,S,S,S @F5C0check		# line 1760
 #	------ END: function epilogue

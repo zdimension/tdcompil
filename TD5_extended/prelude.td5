@@ -35,4 +35,30 @@ func sqrt<T>(x: T): T where(is_scalar!<T>)
 	return root >> 1;
 }
 
+type map<T, U> = struct { iterator: T* global; };
+
+impl map
+{
+	func `(`(iterator: T*): self { return self { iterator }; }
+
+	func hasNext(sq: self*): bool { return sq.iterator.hasNext(); }
+
+	func next(sq: self*): u16 { return U(sq.iterator.next()); }
+
+	//func reset(sq: self*): void { sq.iterator.reset(); }
+}
+
+type range = struct { from: u16; to: u16; current: u16; };
+
+impl range
+{
+	func `(`(from: u16, to: u16): range { return range { from: from, to: to, current: from }; }
+
+	func hasNext(iter: range*): bool { return iter.current < iter.to; }
+
+	func next(iter: range*): u16 { return iter.current++; }
+
+	//func reset(iter: range*): void { iter.current = iter.from; }
+}
+
 const PRELUDE_LOADED = 1;

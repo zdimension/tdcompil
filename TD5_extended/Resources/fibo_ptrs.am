@@ -1,5 +1,7 @@
 # disp        <generic type>
 # sqrt        <generic type>
+# map         <generic type>
+# range       struct { from: u16; to: u16; current: u16; }
 # Types
 # NAME        VALUE
 NEW "generated" 4		# line 1767
@@ -9,6 +11,22 @@ END @DEFAULT "default option"		# line 1770
 FROM @INIT		# line 1772
 '_,'_,'_,'_ '[,'[,'_,'. S,S,S,R @1		# line 1773
 #	------ BEGIN: program
+#	** begin
+#	** end
+# KIND = 2 (k_operator)		# line 504
+#	; first
+#	** begin
+#	** end
+# KIND = 2 (k_operator)		# line 504
+#	; first
+#	** begin
+#	** end
+# KIND = 2 (k_operator)		# line 504
+#	; first
+#	** begin
+#	** end
+# KIND = 2 (k_operator)		# line 504
+#	; first
 #	** begin
 #	** end
 # KIND = 2 (k_operator)		# line 504
@@ -39,6 +57,26 @@ FROM @INIT		# line 1772
 #	** end
 # KIND = 2 (k_operator)		# line 504
 #	; first
+#	** begin
+#	** end
+# KIND = 2 (k_operator)		# line 504
+#	type
+#	; second
+#	** begin
+#	** end
+# KIND = 2 (k_operator)		# line 504
+#	impl
+#	; second
+#	** begin
+#	** end
+# KIND = 2 (k_operator)		# line 504
+#	type
+#	; second
+#	** begin
+#	** end
+# KIND = 2 (k_operator)		# line 504
+#	impl
+#	; second
 #	** begin
 #	** end
 # KIND = 2 (k_operator)		# line 504
