@@ -1308,6 +1308,7 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
                 {
                     func_list* newNode;
                     ast_node* type_params = op[4];
+                    bool existing = false;
                     if (frame->impl_parent)
                     {
                         if (type_params)
@@ -1320,10 +1321,20 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
                             error_msg(*n, "Method '%s' missing instance parameter\n", VAR_NAME(op[0]));
                             exit(1);
                         }*/
-                        newNode = ADD_SYM(func_list, &frame->impl_parent->composite_methods.head,
-                                          &frame->impl_parent->composite_methods.tail);
-                        add_symbol_existing((linked_list_header**) &funcs_head, (linked_list_header**) &funcs_tail,
-                                            &newNode->header);
+
+                        func_list* func = FIND_SYM_OR_NULL(func_list, frame->impl_parent->composite_methods.head, op[0]);
+                        if (func)
+                        {
+                            newNode = func;
+                            existing = true;
+                        }
+                        else
+                        {
+                            newNode = ADD_SYM(func_list, &frame->impl_parent->composite_methods.head,
+                                              &frame->impl_parent->composite_methods.tail);
+                            add_symbol_existing((linked_list_header**) &funcs_head, (linked_list_header**) &funcs_tail,
+                                                &newNode->header);
+                        }
                     }
                     else
                     {
@@ -1340,8 +1351,16 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
                             return;
                         }
 
-
-                        newNode = ADD_SYM(func_list, &funcs_head, &funcs_tail);
+                        func_list* func = FIND_SYM_OR_NULL(func_list, funcs_head, op[0]);
+                        if (func)
+                        {
+                            newNode = func;
+                            existing = true;
+                        }
+                        else
+                        {
+                            newNode = ADD_SYM(func_list, &funcs_head, &funcs_tail);
+                        }
                     }
                     newNode->header.name = VAR_NAME(op[0]);
                     newNode->header.owner = NULL;
@@ -1359,33 +1378,32 @@ void analysis(ast_node** n, stack_frame* frame, bool force)
                     }
                     else
                     {
-                        newNode->kind = F_NORMAL;
-                        newNode->return_type = decode_spec(op[3], frame);
-                        AST_DATA(op[0]) = (void*) newNode->return_type;
-                        newNode->callsites = NULL;
-                        newNode->frame = (stack_frame) {
-                                .function = newNode,
-                                .loop = NULL,
-                                .is_root = true,
-                                .vars = {NULL, NULL},
-                                .parent = frame
-                        };
-                        if (!op[2])
+                        if (!existing)
                         {
-                            newNode->code = NULL;
+                            newNode->kind = F_NORMAL;
+                            newNode->return_type = decode_spec(op[3], frame);
+                            AST_DATA(op[0]) = (void*) newNode->return_type;
+                            newNode->callsites = NULL;
+                            newNode->frame = (stack_frame) {
+                                    .function = newNode,
+                                    .loop = NULL,
+                                    .is_root = true,
+                                    .vars = {NULL, NULL},
+                                    .parent = frame
+                            };
                         }
-                        else
+                        newNode->code = make_scope(op[2]);
+                        SC_SCOPE(newNode->code) = &newNode->frame;
+                        for (linked_list* ptr = newNode->arglist; ptr; ptr = ptr->next)
                         {
-                            newNode->code = make_scope(op[2]);
-                            SC_SCOPE(newNode->code) = &newNode->frame;
-                            for (linked_list* ptr = newNode->arglist; ptr; ptr = ptr->next)
-                            {
-                                ast_node* argname = OPER_OPERANDS(ptr->value)[0];
-                                const type_list* spec = decode_spec(OPER_OPERANDS(ptr->value)[1], frame);
-                                spec = make_pointer_global_if(spec, ptr == newNode->arglist && spec->type == T_POINTER);
-                                AST_INFERRED(argname) = spec;
-                                check_add_var(VAR_NAME(argname), &newNode->frame, spec);
-                            }
+                            ast_node* argname = OPER_OPERANDS(ptr->value)[0];
+                            const type_list* spec = decode_spec(OPER_OPERANDS(ptr->value)[1], frame);
+                            spec = make_pointer_global_if(spec, ptr == newNode->arglist && spec->type == T_POINTER);
+                            AST_INFERRED(argname) = spec;
+                            check_add_var(VAR_NAME(argname), &newNode->frame, spec);
+                        }
+                        if (op[2])
+                        {
                             analysis(&newNode->code, &newNode->frame, force);
 
                             // tail recursion

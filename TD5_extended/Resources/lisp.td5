@@ -1,0 +1,134 @@
+{
+	var eq[] = "(* (+ 5 6) 3)", end=0, ptr = &eq[0];
+	var cx = 0;
+	var dx = 0;
+	var ramstart = 255;
+	const RAM_SIZE = 100;
+	var ram[RAM_SIZE];
+	var M = &ram[RAM_SIZE / 2];
+	var S[] = "NIL\0T\0QUOTE\0COND\0ATOM\0CAR\0CDR\0CONS\0EQ", S_end = 1;
+	var p = &S[0], q = &M[0];
+	loop
+	{
+		var cur = *p;
+		if (cur == 1) break;
+		*q++ = cur;
+	};
+
+
+	type context = struct {
+		ptr: u8*;
+		cx: u8;
+		dx: u8;
+		ram: u8*;
+		m: u8*;
+	};
+
+	var ctx = context { &eq[0], 0, 0, ram, M };
+
+	impl context
+	{
+		func eval(this: self*, e: u8, a: u8): u8;
+
+		func get_char(this: self*): u8
+		{
+			var c = *this.ptr;
+			if (c)
+			{
+				(*this).ptr += 1;
+			}
+			return c;
+		}
+
+		func get_token(this: self*): u8
+		{
+			var c: u8, i: u8;
+			do if ((c = this.get_char()) > ' ') this.ram[i++] = c;
+			while (c <= ' ' || (c > ')' && this.dx > ')'));
+			this.ram[i] = 0;
+			return c;
+		}
+
+		func car(this: self*, x: u8): u8
+		{
+			return this.m[x];
+		}
+
+		func cdr(this: self*, x: u8): u8
+		{
+			return this.m[x + 1];
+		}
+
+		func cons(this: self*, a: u8, b: u8): u8
+		{
+			this.m[--this.cx] = a;
+			this.m[--this.cx] = b;
+			return this.cx;
+		}
+
+		/*func gc(this: self*, x: u8, m: u8, k: u8): u8
+		{
+			if (x < m)
+				return this.cons(this.gc(this.car(x), m, k), this.gc(this.cdr(x), m, k)) + k;
+			else
+				return x;
+		}
+
+		func evlis(this: self*, m: u8, a: u8): u8
+		{
+			if (m)
+				return this.cons(this.eval(this.car(m), a), this.evlis(this.cdr(m), a));
+			else
+				return 0;
+		}
+
+		func eval(this: self*, e: u8, a: u8): u8
+		{
+			return 123;
+		}
+
+		func pairlis(this: self*, x: u8, y: u8, a: u8): u8
+		{
+			if (x)
+				return this.cons(this.cons(this.car(x), this.car(y)), this.pairlis(this.cdr(x), this.cdr(y), a));
+			else
+				return a;
+		}
+
+		func assoc(this: self*, x: u8, y: u8): u8
+		{
+			if (y)
+			{
+				if (x == this.car(this.car(y)))
+					return this.cdr(y);
+				else
+					return this.assoc(x, this.cdr(y));
+			}
+			else
+				return 0;
+		}
+
+		func evcon(this: self*, c: u8, a: u8): u8
+		{
+			if (this.eval(this.car(this.car(c)), a))
+				return this.eval(this.cdr(this.car(c)), a);
+			else
+				return this.evcon(this.cdr(c), a);
+		}*/
+	}
+
+
+	putc(ctx.get_token());
+
+	/*func parse(ptr: u8* global): u8
+	{
+		var c = *ptr;
+		return match (c)
+		{
+			'(' => 1,
+			_ => 2
+		};
+	}*/
+
+	//disp!<u8>(parse(eq));
+}

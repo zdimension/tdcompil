@@ -1,0 +1,31 @@
+{
+	func odd(x: u8): bool;
+
+	var y = odd(5);
+
+	func even(x: u8): bool
+	{
+		if (x == 0)
+		{
+			return true;
+		}
+		else
+		{
+			return odd(x - 1);
+		}
+	}
+
+	func odd(x: u8): bool
+	{
+		if (x == 0)
+		{
+			return false;
+		}
+		else
+		{
+			return even(x - 1);
+		}
+	}
+
+	disp!<bool>(even(10));
+}

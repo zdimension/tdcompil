@@ -1698,6 +1698,12 @@ void emit_functions()
         if (!function_emittable(ptr))
             continue;
 
+        if (!SC_CODE(ptr->code))
+        {
+            error_msg(ptr->fct_def, "Function %s has no implementation\n", ptr->header.name);
+            exit(1);
+        }
+
         instr("# %s %s (F%d)", ptr->return_type == VOID_TYPE ? "procedure" : "function", ptr->header.name,
               ptr->header.id);
         instr("FROM @F%d", ptr->header.id);

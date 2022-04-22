@@ -60,7 +60,7 @@ void yyerror(const char *s);
 %type 	<node>		param_list param_list_ne arg_list arg_list_ne var_decl var_decl_list type_spec_opt type_spec type_decl type_decl_list type_params type_param_list
 %type	<node>		struct_field struct_field_list var_typed stmt_braced expr_discard_or_inline_decl_opt expr_or_inline_decl pattern pattern_list pattern_branch pattern_basic
 %type	<node>		struct_field_init struct_field_init_list func_list func func_signature interf_func_list interf_func named_typespec struct_field_list_ne
-%type	<node>		pipe_expr complex_typespec generic_constraints
+%type	<node>		pipe_expr complex_typespec generic_constraints stmt_braced_or_semi
 %type   <chr>		aug_assign unary_op
 
 %%
@@ -105,8 +105,13 @@ func_signature
 	| KFUNC var type_params '(' param_list ')' ':' type_spec generic_constraints			{ $$ = make_node(KFUNC, 6, $2, $5, NULL, $8, $3, $9); }
     ;
 
+stmt_braced_or_semi
+	: stmt_braced					{ $$ = $1; }
+	| ';'							{ $$ = NULL; }
+	;
+
 func
-	: func_signature stmt_braced															{ $$ = $1; OPER_OPERANDS($$)[2] = $2; }
+	: func_signature stmt_braced_or_semi													{ $$ = $1; OPER_OPERANDS($$)[2] = $2; }
     ;
 
 func_list

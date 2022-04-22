@@ -3,3 +3,4 @@ syntax.h
 !Resources/interp
 *.png
 !Resources/*.dot
+cmake-build-debug-wsl
